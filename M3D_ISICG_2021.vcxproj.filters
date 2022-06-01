@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{2f026719-83d8-4e35-bf22-250fd2499de3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\imgui">
+      <UniqueIdentifier>{452953eb-0b67-46e0-96c0-11a37bcce988}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\gl3w">
+      <UniqueIdentifier>{63068269-32c7-4532-ab4c-0e74395f20cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utils">
+      <UniqueIdentifier>{9b4fd73f-2c45-4c00-8e25-2b7c81358354}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works">
+      <UniqueIdentifier>{74170745-fa0d-4fe0-8310-eac029c5a860}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_1">
+      <UniqueIdentifier>{9fb90719-53af-4980-b7ec-f4f2dc3504b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_1\shaders">
+      <UniqueIdentifier>{aa1a1120-a788-40d0-9579-2ff60cf1ed63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_2">
+      <UniqueIdentifier>{6fb9621a-8912-451a-b8ad-530d103cd46d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_2\shaders">
+      <UniqueIdentifier>{8542e548-76fe-49ae-97a5-9c2985501e2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\common">
+      <UniqueIdentifier>{bb968e4a-9faa-4fc3-aa69-e606673cab2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_3">
+      <UniqueIdentifier>{f4b98eb1-f591-4ba3-9904-a9f9b6c9278f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_3\shaders">
+      <UniqueIdentifier>{35e6dbd5-3a1e-4545-a224-b62ee2cf61c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\common\models">
+      <UniqueIdentifier>{a5f1663a-e12d-4ced-ae8c-acf1c3c94079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_4">
+      <UniqueIdentifier>{a1b68507-69cd-4e3a-9725-578389f7c2cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_4\shaders">
+      <UniqueIdentifier>{8c6c5402-7cc7-41a0-ae4e-9e7e7781d88f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lab_works\lab_work_cgal">
+      <UniqueIdentifier>{5a045e33-7133-4d86-9ffb-233e6dde92b6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\application.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui.cpp">
+      <Filter>lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_draw.cpp">
+      <Filter>lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_tables.cpp">
+      <Filter>lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\imgui_widgets.cpp">
+      <Filter>lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\gl3w\GL\gl3w.c">
+      <Filter>lib\gl3w</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\imgui\backends\imgui_impl_sdl.cpp">
+      <Filter>lib\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lab_works\common\camera.cpp">
+      <Filter>Source Files\lab_works\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lab_works\common\lab_work_manager.cpp">
+      <Filter>Source Files\lab_works\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lab_works\common\models\triangle_mesh_model.cpp">
+      <Filter>Source Files\lab_works\common\models</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lab_works\common\models\triangle_mesh.cpp">
+      <Filter>Source Files\lab_works\common\models</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\image.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lab_works\common\BaseCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lab_works\common\TrackBallCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\lab_works\lab_work_cgal\lab_work_cgal.cpp">
+      <Filter>Source Files\lab_works\lab_work_cgal</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\application.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imgui.h">
+      <Filter>lib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\imgui_internal.h">
+      <Filter>lib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\gl3w\GL\gl3w.h">
+      <Filter>lib\gl3w</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\gl3w\GL\glcorearb.h">
+      <Filter>lib\gl3w</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>lib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\imgui\backends\imgui_impl_sdl.h">
+      <Filter>lib\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\define.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\read_file.hpp">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\gl_utils.hpp">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\random.hpp">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lab_works\common\camera.hpp">
+      <Filter>Source Files\lab_works\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lab_works\common\lab_work_manager.hpp">
+      <Filter>Source Files\lab_works\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lab_works\common\base_lab_work.hpp">
+      <Filter>Source Files\lab_works\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lab_works\common\models\base_model.hpp">
+      <Filter>Source Files\lab_works\common\models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lab_works\common\models\triangle_mesh.hpp">
+      <Filter>Source Files\lab_works\common\models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lab_works\common\models\triangle_mesh_model.hpp">
+      <Filter>Source Files\lab_works\common\models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\image.hpp">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\file_path.hpp">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lab_works\common\BaseCamera.hpp" />
+    <ClInclude Include="src\lab_works\common\TrackBallCamera.hpp" />
+    <ClInclude Include="src\lab_works\lab_work_cgal\lab_work_cgal.hpp">
+      <Filter>Source Files\lab_works\lab_work_cgal</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\lab_works\lab_work_cgal\shaders\triangle.frag" />
+    <None Include="src\lab_works\lab_work_cgal\shaders\triangle.vert" />
+  </ItemGroup>
+</Project>
