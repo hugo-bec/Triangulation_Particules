@@ -6,6 +6,7 @@
 #include "define.hpp"
 #include <map>
 #include <vector>
+#include "tetgen/tetgen.h"
 
 namespace SIM_PART
 {
