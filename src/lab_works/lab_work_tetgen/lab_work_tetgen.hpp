@@ -11,9 +11,9 @@ namespace SIM_PART
 {
 	class LabWorkTetgen : public BaseLabWork
 	{
-		struct Mesh
+		struct WireMesh
 		{
-			~Mesh()
+			~WireMesh()
 			{
 				if ( _vao != GL_INVALID_INDEX )
 				{
@@ -21,16 +21,41 @@ namespace SIM_PART
 					glDisableVertexArrayAttrib( _vao, 1 );
 					glDeleteVertexArrays( 1, &_vao );
 				}
-				if ( _vboPositions != GL_INVALID_INDEX )
-					glDeleteBuffers( 1, &_vboPositions );
-				if ( _vboColors != GL_INVALID_INDEX )
-					glDeleteBuffers( 1, &_vboColors );
+				if ( _vboPoints != GL_INVALID_INDEX )
+					glDeleteBuffers( 1, &_vboPoints );
 				if ( _ebo != GL_INVALID_INDEX )
 					glDeleteBuffers( 1, &_ebo );
 			}
 			// ================ Geometric data.
 			std::vector<Vec3f>		  _vertices;
-			std::vector<Vec3f>		  _vertexColors;
+			std::vector<unsigned int> _segments;
+			Mat4f					  _transformation = MAT4F_ID;
+			// ================
+
+			// ================ GL data.
+			GLuint _vao = GL_INVALID_INDEX; // Vertex Array Object
+			GLuint _ebo = GL_INVALID_INDEX; // Element Buffer Object
+
+			// Vertex Buffer Objects.
+			GLuint _vboPoints = GL_INVALID_INDEX;
+			// ================
+		};
+
+		struct Particules
+		{
+			~Particules()
+			{
+				if ( _vao != GL_INVALID_INDEX )
+				{
+					glDisableVertexArrayAttrib( _vao, 0 );
+					glDisableVertexArrayAttrib( _vao, 1 );
+					glDeleteVertexArrays( 1, &_vao );
+				}
+				if ( _vboPoints != GL_INVALID_INDEX )
+					glDeleteBuffers( 1, &_vboPoints );
+			}
+			// ================ Geometric data.
+			std::vector<Vec3f>		  _vertices;
 			std::vector<unsigned int> _indices;
 			Mat4f					  _transformation = MAT4F_ID;
 			// ================
@@ -40,8 +65,7 @@ namespace SIM_PART
 			GLuint _ebo = GL_INVALID_INDEX; // Element Buffer Object
 
 			// Vertex Buffer Objects.
-			GLuint _vboPositions = GL_INVALID_INDEX;
-			GLuint _vboColors	 = GL_INVALID_INDEX;
+			GLuint _vboPoints = GL_INVALID_INDEX;
 			// ================
 		};
 
@@ -61,27 +85,27 @@ namespace SIM_PART
 	  private:
 		bool _initProgram();
 		void _initCamera();
-		void _initBuffersCube( Mesh * cube_ptr );
+
+		void _initBuffersCage( WireMesh * cage_ptr );
+		void _initBuffersParticules( Particules * part_ptr );
+
 		void _updateViewMatrix();
 		void _updateProjectionMatrix();
 
-		// Create a mesh representing a unit cube centerd in (0,0,0)
-		Mesh _createCube();
+		// Create a mesh representing a unit cage centerd in (0,0,0)
+		WireMesh _createCage();
+		Particules _createParticules();
 
 	  private:
 		// ================ Scene data.
-		Mesh _cube;
-		Mesh _cube2;
+		WireMesh		_cage;
+		Particules		_particules;
+		int				_nbparticules = 100;
 
-		// std::vector<Vec3f>		  _vertices_data;
-		// std::vector<Vec3f>		  _colors_data;
-		// std::vector<unsigned int> _indices_data;
-
-		// Camera			_camera;
-		// TrackBallCamera _camera;
-		BaseCamera * _camera;
-
-		time_t current_time;
+		BaseCamera *	_camera;
+		time_t			current_time;
+		//Vec3f			_dimCage = Vec3f(5, 2, 3.021);
+		Vec3f			_dimCage = Vec3f(5);
 		// ================
 
 		// ================ Settings.
@@ -95,11 +119,8 @@ namespace SIM_PART
 		// ================
 
 		// ================ GL program data.
-		GLuint _program = GL_INVALID_INDEX;
-
-		GLint _uModelMatrixLoc = GL_INVALID_INDEX;
-		// GLint _uModelMatrix2Loc		= GL_INVALID_INDEX;
-
+		GLuint _program				= GL_INVALID_INDEX;
+		GLint _uModelMatrixLoc		= GL_INVALID_INDEX;
 		GLint _uViewMatrixLoc		= GL_INVALID_INDEX;
 		GLint _uProjectionMatrixLoc = GL_INVALID_INDEX;
 		// ================

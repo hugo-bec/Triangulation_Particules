@@ -25,25 +25,18 @@ namespace SIM_PART
 		if ( !_initProgram() )
 			return false;
 
-		_cube  = _createCube();
-		_cube2 = _createCube();
+		_cage  = _createCage();
+		_cage._transformation = glm::scale( _cage._transformation, _dimCage );
+		_initBuffersCage( &_cage );
 
-		// Scaling du _cube en 0.5
-		_cube._transformation = glm::scale( _cube._transformation, glm::vec3( 0.5 ) );
-		// Scaling du _cube2 en 0.2
-		_cube2._transformation = glm::scale( _cube2._transformation, glm::vec3( 0.2 ) );
-		_cube2._transformation = glm::translate( _cube2._transformation, glm::vec3( distance_orbite2, 0.f, 0.f ) );
-		/*_cube2._vertexColors = {
-			  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 0 ),
-			  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 0 ),
-		};*/
+		_particules = _createParticules();
+		_initBuffersParticules( &_particules );
+
 
 		_initCamera();
-		_initBuffersCube( &_cube );
-		_initBuffersCube( &_cube2 );
 
 		glUseProgram( _program );
-		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cube._transformation ) );
+		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cage._transformation ) );
 
 		_updateViewMatrix();
 		_updateProjectionMatrix();
@@ -54,11 +47,6 @@ namespace SIM_PART
 
 	void LabWorkTetgen::animate( const float p_deltaTime )
 	{
-		_cube._transformation = glm::rotate( _cube._transformation, p_deltaTime, Vec3f( 0.f, 1.f, 1.f ) );
-
-		_cube2._transformation = glm::translate( _cube2._transformation, Vec3f( -distance_orbite2, 0.0f, 0.0f ) );
-		_cube2._transformation = glm::rotate( _cube2._transformation, p_deltaTime * 7, Vec3f( 0.f, 1.f, 1.f ) );
-		_cube2._transformation = glm::translate( _cube2._transformation, Vec3f( distance_orbite2, 0.0f, 0.0f ) );
 	}
 
 	void LabWorkTetgen::render()
@@ -66,15 +54,17 @@ namespace SIM_PART
 		// Clear the color buffer.
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-		glBindVertexArray( _cube._vao ); /*bind VAO avec le programme*/
-		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cube._transformation ) );
-		glDrawElements( GL_TRIANGLES, _cube._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
+		glBindVertexArray( _cage._vao ); /*bind cage VAO avec le programme*/
+		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cage._transformation ) );
+		glDrawElements( GL_LINES, _cage._segments.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
 		glBindVertexArray( 0 );													   /*debind VAO*/
 
-		glBindVertexArray( _cube2._vao ); /*bind VAO avec le programme*/
-		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cube2._transformation ) );
-		glDrawElements( GL_TRIANGLES, _cube2._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
-		glBindVertexArray( 0 );														/*debind VAO*/
+		glBindVertexArray( _particules._vao ); /*bind particules VAO avec le programme*/
+		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _particules._transformation ) );
+		glDrawElements( GL_POINTS, _particules._vertices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
+		glBindVertexArray( 0 );													/*debind VAO*/
+
+		
 	}
 
 	void LabWorkTetgen::handleEvents( const SDL_Event & p_event )
@@ -128,9 +118,7 @@ namespace SIM_PART
 
 		// Background.
 		if ( ImGui::ColorEdit3( "Background", glm::value_ptr( _bgColor ) ) )
-		{
 			glClearColor( _bgColor.x, _bgColor.y, _bgColor.z, _bgColor.w );
-		}
 
 		// Camera.
 		if ( ImGui::SliderFloat( "fovy", &_fovy, 10.f, 160.f, "%01.f" ) )
@@ -152,14 +140,11 @@ namespace SIM_PART
 		{
 			delete ( _camera );
 			if ( _trackball_camera )
-			{
 				_camera = new TrackBallCamera();
-			}
 			else
-			{
 				_camera = new Camera();
-			}
 		}
+
 
 		ImGui::End();
 	}
@@ -217,7 +202,6 @@ namespace SIM_PART
 			std::cerr << "Error compiling fragment shader: " << log << std::endl;
 			return false;
 		}
-		// ====================================================================
 
 		// ====================================================================
 		// Program.
@@ -231,6 +215,7 @@ namespace SIM_PART
 
 		// Link program.
 		glLinkProgram( _program );
+
 		// Check if link is ok.
 		GLint linked;
 		glGetProgramiv( _program, GL_LINK_STATUS, &linked );
@@ -266,75 +251,105 @@ namespace SIM_PART
 		_updateProjectionMatrix();
 	}
 
-	void LabWorkTetgen::_initBuffersCube( Mesh * cube )
-	{
-		/*//Vertices
-		for ( Vec3f v : _cube._vertices ) { _vertices_data.push_back( v ); }
-		for ( Vec3f v : _cube2._vertices ) { _vertices_data.push_back( v ); }
-		//Colors
-		for ( Vec3f v : _cube._vertexColors ) { _colors_data.push_back( v ); }
-		for ( Vec3f v : _cube2._vertexColors ) { _colors_data.push_back( v ); }
-		//Indices
-		for ( unsigned int i : _cube._indices ) { _indices_data.push_back( i ); }
-		for ( unsigned int i : _cube2._indices ) { _indices_data.push_back( i + _cube._vertices.size() ); }*/
-
-		// VBO points
-		glCreateBuffers( 1, &( *cube )._vboPositions );
-		glNamedBufferData( ( *cube )._vboPositions,
-						   ( *cube )._vertices.size() * sizeof( Vec3f ),
-						   ( *cube )._vertices.data(),
-						   GL_STATIC_DRAW );
-		// glNamedBufferData( _cube._vboPositions, _vertices_data.size() * sizeof( Vec3f ), _vertices_data.data(),
-		// GL_STATIC_DRAW );
-
-		// VBO couleurs
-		glCreateBuffers( 1, &( *cube )._vboColors );
-		glNamedBufferData( ( *cube )._vboColors,
-						   ( *cube )._vertexColors.size() * sizeof( Vec3f ),
-						   ( *cube )._vertexColors.data(),
-						   GL_STATIC_DRAW );
-		// glNamedBufferData( _cube._vboColors, _colors_data.size() * sizeof( Vec3f ), _colors_data.data(),
-		// GL_STATIC_DRAW );
-
-		// EBO
-		glCreateBuffers( 1, &( *cube )._ebo );
-		glNamedBufferData( ( *cube )._ebo,
-						   ( *cube )._indices.size() * sizeof( unsigned int ),
-						   ( *cube )._indices.data(),
+	void LabWorkTetgen::_initBuffersCage( WireMesh * cage )
+	{ 
+		//VBO Points
+		glCreateBuffers( 1, &( *cage )._vboPoints );
+		glNamedBufferData( ( *cage )._vboPoints,
+						   ( *cage )._vertices.size() * sizeof( Vec3f ),
+						   ( *cage )._vertices.data(),
 						   GL_STATIC_DRAW );
 
-		// VAO
-		GLuint indexVBO_points	 = 0;
-		GLuint indexVBO_couleurs = 1;
-		glCreateVertexArrays( 1, &( *cube )._vao );
+		//EBO segments
+		glCreateBuffers( 1, &( *cage )._ebo );
+		glNamedBufferData( ( *cage )._ebo,
+						   ( *cage )._segments.size() * sizeof( unsigned int ),
+						   ( *cage )._segments.data(),
+						   GL_STATIC_DRAW );
 
-		// liaison VAO avec VBO points
-		glEnableVertexArrayAttrib( ( *cube )._vao, indexVBO_points );
-		glVertexArrayAttribFormat( ( *cube )._vao,
+		//VAO
+		GLuint indexVBO_points = 0;
+		glCreateVertexArrays( 1, &( *cage )._vao );
+
+		// liaison VAO avec VBO Points
+		glEnableVertexArrayAttrib( ( *cage )._vao, indexVBO_points );
+		glVertexArrayAttribFormat( ( *cage )._vao,
 								   indexVBO_points,
 								   3 /*car Vec3f*/,
 								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE,
-								   0 /*aucune séparation entre les éléments*/ );
-		glVertexArrayVertexBuffer(
-			( *cube )._vao, indexVBO_points, ( *cube )._vboPositions, 0 /*débute à 0*/, sizeof( Vec3f ) );
-		glVertexArrayAttribBinding(
-			( *cube )._vao, 0, indexVBO_points ); /*connexion avec le shader (layout(location = 0))*/
+								   GL_FALSE, /*non normalisé*/
+								   0 /*aucune sparation entre les elements*/ );
 
-		// liaisin VAO avec VBO couleurs
-		glEnableVertexArrayAttrib( ( *cube )._vao, indexVBO_couleurs );
-		glVertexArrayAttribFormat( ( *cube )._vao,
-								   indexVBO_couleurs,
-								   3 /*car Vec3f*/,
-								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE,
-								   0 /*aucune séparation entre les éléments*/ );
-		glVertexArrayVertexBuffer( ( *cube )._vao, indexVBO_couleurs, ( *cube )._vboColors, 0, sizeof( Vec3f ) );
-		glVertexArrayAttribBinding(
-			( *cube )._vao, 1, indexVBO_couleurs ); /*connexion avec le shader (layout(location = 1))*/
+
+		glVertexArrayVertexBuffer( ( *cage )._vao, indexVBO_points, ( *cage )._vboPoints, 0 /*dbute 0*/, sizeof( Vec3f ) );
+		//connexion avec le shader (layout(location = 0))
+		glVertexArrayAttribBinding( ( *cage )._vao, 0, indexVBO_points ); 
 
 		// liaison VAO avec l'EBO
-		glVertexArrayElementBuffer( ( *cube )._vao, ( *cube )._ebo );
+		glVertexArrayElementBuffer( ( *cage )._vao, ( *cage )._ebo );
+	}
+
+	void LabWorkTetgen::_initBuffersParticules( Particules * part )
+	{
+		// VBO Points
+		glCreateBuffers( 1, &( *part )._vboPoints );
+		glNamedBufferData( ( *part )._vboPoints,
+						   ( *part )._vertices.size() * sizeof( Vec3f ),
+						   ( *part )._vertices.data(),
+						   GL_STATIC_DRAW );	//attention!
+
+		// EBO segments
+		for ( int i = 0; i < ( *part )._vertices.size(); i++ )
+			( *part )._indices.push_back( i );
+
+		glCreateBuffers( 1, &( *part )._ebo );
+		glNamedBufferData( ( *part )._ebo,
+						   ( *part )._indices.size() * sizeof( unsigned int ),
+						   ( *part )._indices.data(),
+						   GL_STATIC_DRAW );
+
+		// VAO
+		GLuint indexVBO_points = 0;
+		glCreateVertexArrays( 1, &( *part )._vao );
+
+		// liaison VAO avec VBO Points
+		glEnableVertexArrayAttrib( ( *part )._vao, indexVBO_points );
+		glVertexArrayAttribFormat( ( *part )._vao,
+								   indexVBO_points,
+								   3 /*car Vec3f*/,
+								   GL_FLOAT /*car Vec3f*/,
+								   GL_FALSE, /*non normalisé*/
+								   0 /*aucune sparation entre les elements*/ );
+
+		glVertexArrayVertexBuffer(
+			( *part )._vao, indexVBO_points, ( *part )._vboPoints, 0 /*dbute 0*/, sizeof( Vec3f ) );
+		// connexion avec le shader (layout(location = 0))
+		glVertexArrayAttribBinding( ( *part )._vao, 0, indexVBO_points );
+
+		// liaison VAO avec l'EBO
+		glVertexArrayElementBuffer( ( *part )._vao, ( *part )._ebo );
+	}
+
+	LabWorkTetgen::WireMesh LabWorkTetgen::_createCage()
+	{
+		// Creation du cage
+		WireMesh cage		   = WireMesh();
+		cage._vertices	   = { Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
+						   Vec3f( 0, 1, 1 ), Vec3f( 0, 1, 0 ), Vec3f( 0, 0, 0 ), Vec3f( 0, 0, 1 ) };
+
+		cage._segments = {	0, 1, 1, 2, 2, 3, 3, 0, 
+							4, 5, 5, 6, 6, 7, 7, 4, 
+							0, 4, 1, 5, 2, 6, 3, 7 };
+		return cage;
+	}
+
+	LabWorkTetgen::Particules LabWorkTetgen::_createParticules() 
+	{ 
+		Particules particules = Particules();
+		for (int i = 0; i < _nbparticules; i++) {
+			particules._vertices.push_back( getRandomVec3f() * _dimCage );
+		}
+		return particules;
 	}
 
 	void LabWorkTetgen::_updateViewMatrix()
@@ -348,23 +363,4 @@ namespace SIM_PART
 			_program, _uProjectionMatrixLoc, 1, GL_FALSE, glm::value_ptr( _camera->getProjectionMatrix() ) );
 	}
 
-	LabWorkTetgen::Mesh LabWorkTetgen::_createCube()
-	{
-		// Creation du cube
-		Mesh cube		   = Mesh();
-		cube._vertices	   = { Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, -1 ),  Vec3f( 1, -1, -1 ), Vec3f( 1, -1, 1 ),
-						   Vec3f( -1, 1, 1 ), Vec3f( -1, 1, -1 ), Vec3f( -1, -1, 1 ), Vec3f( -1, -1, -1 ) };
-		cube._vertexColors = {
-			getRandomVec3f(), getRandomVec3f(), getRandomVec3f(), getRandomVec3f(),
-			getRandomVec3f(), getRandomVec3f(), getRandomVec3f(), getRandomVec3f(),
-		};
-		cube._indices = { 0, 1, 2, 0, 2, 3,	  // face droite
-						  0, 1, 4, 1, 4, 5,	  // face haut
-						  4, 5, 6, 5, 6, 7,	  // face gauche
-						  2, 3, 6, 2, 6, 7,	  // face bas
-						  0, 3, 4, 3, 4, 6,	  // face avant
-						  1, 2, 5, 2, 5, 7 }; // face arrire
-
-		return cube;
-	}
 } // namespace SIM_PART

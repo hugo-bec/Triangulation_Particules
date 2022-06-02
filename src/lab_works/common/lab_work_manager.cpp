@@ -7,8 +7,8 @@ namespace SIM_PART
 {
 	LabWorkManager::LabWorkManager()
 	{
-		_current = new LabWorkCGAL();
-		_type	 = TYPE::LAB_WORK_CGAL;
+		_current = new LabWorkTetgen();
+		_type	 = TYPE::LAB_WORK_TETGEN;
 	}
 
 	void LabWorkManager::drawMenu()
