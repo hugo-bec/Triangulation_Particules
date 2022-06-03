@@ -25,6 +25,7 @@ namespace SIM_PART
 		if ( !_initProgram() )
 			return false;
 
+		// init objects
 		_cage  = _createCage();
 		_cage._transformation = glm::scale( _cage._transformation, _dimCage );
 		_initBuffersCage( &_cage );
@@ -32,7 +33,7 @@ namespace SIM_PART
 		_particules = _createParticules();
 		_initBuffersParticules( &_particules );
 
-
+		//init camera
 		_initCamera();
 
 		glUseProgram( _program );
@@ -43,6 +44,30 @@ namespace SIM_PART
 
 		std::cout << "Done!" << std::endl;
 		return true;
+	}
+
+	void LabWorkTetgen::tetrahedralize_particules()
+	{
+		tetgenio in, out;
+		in.initialize();
+		out.initialize();
+		in.numberofpoints = _nbparticules;
+		in.pointlist	  = new REAL[ in.numberofpoints * 3 ];
+
+		for ( int i = 0; i < _nbparticules; i++ )
+		{
+			in.pointlist[ 3 * i ]	  = _particules._vertices[ i ].x;
+			in.pointlist[ 3 * i + 1 ] = _particules._vertices[ i ].y;
+			in.pointlist[ 3 * i + 2 ] = _particules._vertices[ i ].z;
+		}
+
+		char * param = new char[ 5 ];
+		param[ 0 ]	 = 'v';
+		param[ 1 ]	 = 'e';
+		param[ 2 ]	 = 'e';
+		param[ 3 ]	 = 'Q';
+		param[ 4 ]	 = '\0';
+		//tetrahedralize( param, &in, &out );
 	}
 
 	void LabWorkTetgen::animate( const float p_deltaTime )

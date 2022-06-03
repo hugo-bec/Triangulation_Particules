@@ -90,6 +90,7 @@ namespace SIM_PART
 		void _initBuffersCage( WireMesh * cage_ptr );
 		void _initBuffersParticules( Particules * part_ptr );
 
+		void tetrahedralize_particules();
 		void _updateViewMatrix();
 		void _updateProjectionMatrix();
 
