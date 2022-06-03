@@ -53,10 +53,10 @@ namespace SIM_PART
 		glDrawElements( GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0 );
 		
 		//debind textures
-		glBindTextureUnit( 0, _material._diffuseMap._id );
-		glBindTextureUnit( 0, _material._ambientMap._id );
-		glBindTextureUnit( 0, _material._shininessMap._id );
-		glBindTextureUnit( 0, _material._specularMap._id );
+		//glBindTextureUnit( 0, _material._diffuseMap._id );
+		//glBindTextureUnit( 0, _material._ambientMap._id );
+		//glBindTextureUnit( 0, _material._shininessMap._id );
+		//glBindTextureUnit( 0, _material._specularMap._id );
 
 		glBindVertexArray( 0 ); /*debind VAO*/
 	}

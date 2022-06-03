@@ -1,5 +1,6 @@
 #include "lab_work_tetgen.hpp"
 
+#include "common/models/triangle_mesh_model.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "imgui.h"
 #include "utils/random.hpp"
@@ -10,6 +11,7 @@ namespace SIM_PART
 {
 	const std::string LabWorkTetgen::_shaderFolder = "src/lab_works/lab_work_tetgen/shaders/";
 	float			  distance_orbite2			 = 7.f;
+	TriangleMeshModel s1;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -32,6 +34,9 @@ namespace SIM_PART
 
 		_particules = _createParticules();
 		_initBuffersParticules( &_particules );
+
+		s1.load( "spherebg", "./model/icosphere3.obj" );
+
 
 		//init camera
 		_initCamera();
@@ -89,7 +94,8 @@ namespace SIM_PART
 		glDrawElements( GL_POINTS, _particules._vertices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
 		glBindVertexArray( 0 );													/*debind VAO*/
 
-		
+		s1.render( _program );
+
 	}
 
 	void LabWorkTetgen::handleEvents( const SDL_Event & p_event )
@@ -376,6 +382,7 @@ namespace SIM_PART
 		}
 		return particules;
 	}
+
 
 	void LabWorkTetgen::_updateViewMatrix()
 	{

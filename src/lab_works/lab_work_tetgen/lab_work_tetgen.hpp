@@ -6,6 +6,7 @@
 #include "define.hpp"
 #include <map>
 #include <vector>
+#include "imgui_impl_glut.h"
 #include "tetgen/tetgen.h"
 
 namespace SIM_PART
@@ -58,6 +59,7 @@ namespace SIM_PART
 			// ================ Geometric data.
 			std::vector<Vec3f>		  _vertices;
 			std::vector<unsigned int> _indices;
+			//std::vector<gluSphere> ;
 			Mat4f					  _transformation = MAT4F_ID;
 			// ================
 
