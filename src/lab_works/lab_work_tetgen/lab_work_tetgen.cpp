@@ -37,7 +37,7 @@ namespace SIM_PART
 		_particules = _createParticules();
 		_initBuffersParticules( &_particules );
 
-		s1.load( "spherebg", "./model/icosphere3.obj" );
+		s1.load( "spherebg", "./data/model/icosphere3.obj" );
 
 
 		//init camera
@@ -401,11 +401,14 @@ namespace SIM_PART
 	LabWorkTetgen::Particules LabWorkTetgen::_createParticules() 
 	{ 
 		Particules particules = Particules();
-		for (int i = 0; i < _nbparticules; i++) {
+		for ( int i = 0; i < _nbparticules; i++ )
+		{
 			particules._positions.push_back( getRandomVec3f() * _dimCage );
 			particules._colors.push_back( getRandomVec3f() );
 		}
 		return particules;
+
+
 	}
 
 

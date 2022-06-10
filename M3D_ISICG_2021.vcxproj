@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\lab_works\lab_work_tetgen\Point.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\lab_work_tetgen.cpp" />
     <ClCompile Include="src\lab_works\lab_work_cgal\lab_work_cgal.cpp" />
     <ClCompile Include="lib\gl3w\GL\gl3w.c" />
@@ -37,8 +38,10 @@
     <ClCompile Include="src\lab_works\common\lab_work_manager.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utils\image.cpp" />
+    <ClCompile Include="src\lab_works\lab_work_tetgen\Tetrahedron.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\lab_works\lab_work_tetgen\Point.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\lab_work_tetgen.hpp" />
     <ClInclude Include="src\lab_works\lab_work_cgal\lab_work_cgal.hpp" />
     <ClInclude Include="lib\gl3w\GL\gl3w.h" />
@@ -62,6 +65,7 @@
     <ClInclude Include="src\utils\image.hpp" />
     <ClInclude Include="src\utils\random.hpp" />
     <ClInclude Include="src\utils\read_file.hpp" />
+    <ClInclude Include="src\lab_works\lab_work_tetgen\Tetrahedron.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\lab_works\lab_work_cgal\shaders\triangle.frag" />
