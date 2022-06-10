@@ -57,7 +57,8 @@ namespace SIM_PART
 					glDeleteBuffers( 1, &_vboPoints );
 			}
 			// ================ Geometric data.
-			std::vector<Vec3f>		  _vertices;
+			std::vector<Vec3f>		  _positions;
+			std::vector<Vec3f>		  _colors;
 			std::vector<unsigned int> _indices;
 			//std::vector<gluSphere> ;
 			Mat4f					  _transformation = MAT4F_ID;
@@ -69,6 +70,7 @@ namespace SIM_PART
 
 			// Vertex Buffer Objects.
 			GLuint _vboPoints = GL_INVALID_INDEX;
+			GLuint _vboColors = GL_INVALID_INDEX;
 			// ================
 		};
 

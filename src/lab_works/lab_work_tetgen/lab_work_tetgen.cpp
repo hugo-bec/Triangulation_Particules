@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "utils/random.hpp"
 #include "utils/read_file.hpp"
+#include <tetgen.h>
 #include <iostream>
 
 namespace SIM_PART
@@ -21,6 +22,7 @@ namespace SIM_PART
 		// Set the color used by glClear to clear the color buffer (in render()).
 		glClearColor( _bgColor.x, _bgColor.y, _bgColor.z, _bgColor.w );
 		glEnable( GL_DEPTH_TEST );
+		glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );
 
 		//_camera = new Camera();
 
@@ -53,7 +55,7 @@ namespace SIM_PART
 
 	void LabWorkTetgen::tetrahedralize_particules()
 	{
-		tetgenio in, out;
+		/* tetgenio in, out;
 		in.initialize();
 		out.initialize();
 		in.numberofpoints = _nbparticules;
@@ -71,7 +73,7 @@ namespace SIM_PART
 		param[ 1 ]	 = 'e';
 		param[ 2 ]	 = 'e';
 		param[ 3 ]	 = 'Q';
-		param[ 4 ]	 = '\0';
+		param[ 4 ]	 = '\0';*/
 		//tetrahedralize( param, &in, &out );
 	}
 
@@ -83,6 +85,7 @@ namespace SIM_PART
 	{
 		// Clear the color buffer.
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		glPointSize( 5 ); 
 
 		glBindVertexArray( _cage._vao ); /*bind cage VAO avec le programme*/
 		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cage._transformation ) );
@@ -91,10 +94,10 @@ namespace SIM_PART
 
 		glBindVertexArray( _particules._vao ); /*bind particules VAO avec le programme*/
 		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _particules._transformation ) );
-		glDrawElements( GL_POINTS, _particules._vertices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
+		glDrawElements( GL_POINTS, _particules._positions.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
 		glBindVertexArray( 0 );													/*debind VAO*/
 
-		s1.render( _program );
+		//s1.render( _program );
 
 	}
 
@@ -325,12 +328,19 @@ namespace SIM_PART
 		// VBO Points
 		glCreateBuffers( 1, &( *part )._vboPoints );
 		glNamedBufferData( ( *part )._vboPoints,
-						   ( *part )._vertices.size() * sizeof( Vec3f ),
-						   ( *part )._vertices.data(),
+						   ( *part )._positions.size() * sizeof( Vec3f ),
+						   ( *part )._positions.data(),
 						   GL_STATIC_DRAW );	//attention!
 
+		// VBO couleurs
+		glCreateBuffers( 1, &( *part )._vboColors );
+		glNamedBufferData( ( *part )._vboColors,
+						   ( *part )._colors.size() * sizeof( Vec3f ),
+						   ( *part )._colors.data(),
+						   GL_STATIC_DRAW );
+
 		// EBO segments
-		for ( int i = 0; i < ( *part )._vertices.size(); i++ )
+		for ( int i = 0; i < ( *part )._positions.size(); i++ )
 			( *part )._indices.push_back( i );
 
 		glCreateBuffers( 1, &( *part )._ebo );
@@ -341,6 +351,7 @@ namespace SIM_PART
 
 		// VAO
 		GLuint indexVBO_points = 0;
+		GLuint indexVBO_colors = 1;
 		glCreateVertexArrays( 1, &( *part )._vao );
 
 		// liaison VAO avec VBO Points
@@ -349,13 +360,26 @@ namespace SIM_PART
 								   indexVBO_points,
 								   3 /*car Vec3f*/,
 								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE, /*non normalisé*/
+								   GL_FALSE /*non normalisé*/,
 								   0 /*aucune sparation entre les elements*/ );
 
 		glVertexArrayVertexBuffer(
 			( *part )._vao, indexVBO_points, ( *part )._vboPoints, 0 /*dbute 0*/, sizeof( Vec3f ) );
-		// connexion avec le shader (layout(location = 0))
+		
 		glVertexArrayAttribBinding( ( *part )._vao, 0, indexVBO_points );
+
+		// liaisin VAO avec VBO couleurs
+		glEnableVertexArrayAttrib( ( *part )._vao, indexVBO_colors );
+		glVertexArrayAttribFormat( ( *part )._vao,
+								   indexVBO_colors,
+								   3 /*car Vec3f*/,
+								   GL_FLOAT /*car Vec3f*/,
+								   GL_FALSE /*non normalisé*/,
+								   0 /*aucune sparation entre les lments*/ );
+		glVertexArrayVertexBuffer( ( *part )._vao, indexVBO_colors, ( *part )._vboColors, 0, sizeof( Vec3f ) );
+		// connexion avec le shader (layout(location = 0))
+		glVertexArrayAttribBinding( ( *part )._vao, 1, indexVBO_colors );
+
 
 		// liaison VAO avec l'EBO
 		glVertexArrayElementBuffer( ( *part )._vao, ( *part )._ebo );
@@ -378,7 +402,8 @@ namespace SIM_PART
 	{ 
 		Particules particules = Particules();
 		for (int i = 0; i < _nbparticules; i++) {
-			particules._vertices.push_back( getRandomVec3f() * _dimCage );
+			particules._positions.push_back( getRandomVec3f() * _dimCage );
+			particules._colors.push_back( getRandomVec3f() );
 		}
 		return particules;
 	}
