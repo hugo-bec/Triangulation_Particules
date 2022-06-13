@@ -61,6 +61,8 @@ namespace SIM_PART
 		glBindVertexArray( 0 ); /*debind VAO*/
 	}
 
+	//void TriangleMesh::render_wire( const GLuint p_glProgram ) const {}
+
 	void TriangleMesh::cleanGL()
 	{
 		glDisableVertexArrayAttrib( _vao, 0 );

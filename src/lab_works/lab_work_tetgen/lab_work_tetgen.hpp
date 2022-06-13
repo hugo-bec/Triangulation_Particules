@@ -106,12 +106,12 @@ namespace SIM_PART
 		// ================ Scene data.
 		WireMesh		_cage;
 		Particules		_particules;
-		int				_nbparticules = 100;
+		int				_nbparticules;
 
 		BaseCamera *	_camera;
 		time_t			current_time;
 		//Vec3f			_dimCage = Vec3f(5, 2, 3.021);
-		Vec3f			_dimCage = Vec3f(5);
+		Vec3f			_dimCage = Vec3f(10);
 		// ================
 
 		// ================ Settings.

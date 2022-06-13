@@ -39,6 +39,7 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utils\image.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\Tetrahedron.cpp" />
+    <ClCompile Include="src\lab_works\lab_work_tetgen\TetraFileReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\lab_works\lab_work_tetgen\Point.hpp" />
@@ -66,6 +67,7 @@
     <ClInclude Include="src\utils\random.hpp" />
     <ClInclude Include="src\utils\read_file.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\Tetrahedron.hpp" />
+    <ClInclude Include="src\lab_works\lab_work_tetgen\TetraFileReader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\lab_works\lab_work_cgal\shaders\triangle.frag" />

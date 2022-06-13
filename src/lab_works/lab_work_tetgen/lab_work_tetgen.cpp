@@ -1,12 +1,18 @@
 #include "lab_work_tetgen.hpp"
+#include <tetgen.h>
+#include <iostream>
+#include <chrono>
 
 #include "common/models/triangle_mesh_model.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "imgui.h"
 #include "utils/random.hpp"
 #include "utils/read_file.hpp"
-#include <tetgen.h>
-#include <iostream>
+
+#include "Point.hpp"
+#include "Tetrahedron.hpp"
+#include "TetraFileReader.hpp"
+
 
 namespace SIM_PART
 {
@@ -37,7 +43,7 @@ namespace SIM_PART
 		_particules = _createParticules();
 		_initBuffersParticules( &_particules );
 
-		s1.load( "spherebg", "./data/model/icosphere3.obj" );
+		//s1.load( "spherebg", "./data/model/icosphere3.obj" );
 
 
 		//init camera
@@ -389,8 +395,8 @@ namespace SIM_PART
 	{
 		// Creation du cage
 		WireMesh cage		   = WireMesh();
-		cage._vertices	   = { Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
-						   Vec3f( 0, 1, 1 ), Vec3f( 0, 1, 0 ), Vec3f( 0, 0, 0 ), Vec3f( 0, 0, 1 ) };
+		cage._vertices	   = {	Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
+								Vec3f( 0, 1, 1 ), Vec3f( 0, 1, 0 ), Vec3f( 0, 0, 0 ), Vec3f( 0, 0, 1 ) };
 
 		cage._segments = {	0, 1, 1, 2, 2, 3, 3, 0, 
 							4, 5, 5, 6, 6, 7, 7, 4, 
@@ -400,15 +406,75 @@ namespace SIM_PART
 
 	LabWorkTetgen::Particules LabWorkTetgen::_createParticules() 
 	{ 
+		std::chrono::time_point<std::chrono::system_clock> 
+			start_reading, stop_reading, start_neighbours, stop_neighbours, start_attract, stop_attract;
+
 		Particules particules = Particules();
-		for ( int i = 0; i < _nbparticules; i++ )
+		std::vector<tetrasearch::Point *> list_points;
+		std::vector<tetrasearch::Tetrahedron *> list_tetras;
+
+		// Reading tetrahedrization mesh
+		start_reading = std::chrono::system_clock::now();
+		tetrasearch::TetraFileReader::readNodes( "data/tetgen500points.1.node", list_points );
+		tetrasearch::TetraFileReader::readTetras( "data/tetgen500points.1.ele", list_points, list_tetras );
+		_nbparticules = list_points.size();
+		stop_reading = std::chrono::system_clock::now();
+
+
+		// Computing neighbours for each points
+		std::cout << "Computing neighbours from tetrahedrization..." << std::endl;
+		start_neighbours = std::chrono::system_clock::now();
+		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
-			particules._positions.push_back( getRandomVec3f() * _dimCage );
-			particules._colors.push_back( getRandomVec3f() );
+			list_points[ i ]->computeNeighbours( list_tetras );
+			//if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute neighbours: " << i << " / " << _nbparticules << std::endl;
 		}
+		stop_neighbours = std::chrono::system_clock::now();
+
+
+		// Computing attract points for each points
+		std::cout << "Computing attract points from tetrahedrization..." << std::endl;
+		start_attract = std::chrono::system_clock::now();
+		std::vector<int> traveled_points( _nbparticules, -1 );
+		for ( int i = 0; i < (int)list_points.size(); i++ )
+		{
+			list_points[ i ]->computePointAttractV3( 3.f, list_points, traveled_points );
+			//if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute attract points: " << i << " / " << _nbparticules << std::endl;
+		}
+		stop_attract = std::chrono::system_clock::now();
+
+
+		// Assign position of the point for OpenGL
+		std::vector<float> coord;
+		for ( int i = 0; i < _nbparticules; i++ ) 
+		{
+			coord = list_points[ i ]->getCoord();
+			particules._positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
+			particules._colors.push_back( Vec3f(0) );
+		}
+
+		// Change color of attracted point and center point
+		std::vector<int> point_attract = list_points[ 0 ]->getPointAttract();
+		for (int i = 0; i < point_attract.size(); i++) 
+		{
+			particules._colors[ point_attract[ i ] ] = Vec3f(1, 0, 0);
+		}
+		particules._colors[ 0 ] = Vec3f( 0, 1, 1 );
+
+
+		// Computing and printing nb particles and times
+		std::chrono::duration<double>	time_reading	= stop_reading - start_reading, 
+										time_neighbours = stop_neighbours - start_neighbours,
+										time_attract	= stop_attract - start_attract;
+
+		std::cout << "Number of particles: " << _nbparticules << std::endl;
+		std::cout << "Time reading: \t\t\t\t" << time_reading.count() << "s" << std::endl;
+		std::cout << "Time computing neighbours: \t\t" << time_neighbours.count() << "s" << std::endl;
+		std::cout << "Time computing attracted points: \t" << time_attract.count() << "s" << std::endl;
+
+
+
 		return particules;
-
-
 	}
 
 
