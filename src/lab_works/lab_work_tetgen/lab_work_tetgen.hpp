@@ -8,6 +8,7 @@
 #include <vector>
 #include "imgui_impl_glut.h"
 #include "tetgen/tetgen.h"
+#include "Point.hpp"
 
 namespace SIM_PART
 {
@@ -74,6 +75,44 @@ namespace SIM_PART
 			// ================
 		};
 
+		struct Edge
+		{
+			tetrasearch::Point * p1;
+			tetrasearch::Point * p2;
+			Vec3f				 color;
+		};
+
+		struct Edges
+		{
+			~Edges()
+			{
+				if ( _vao != GL_INVALID_INDEX )
+				{
+					glDisableVertexArrayAttrib( _vao, 0 );
+					glDisableVertexArrayAttrib( _vao, 1 );
+					glDeleteVertexArrays( 1, &_vao );
+				}
+				if ( _vboPoints != GL_INVALID_INDEX )
+					glDeleteBuffers( 1, &_vboPoints );
+			}
+			// ================ Geometric data.
+			std::vector<Edge>				  _edges;
+			std::vector<Vec3f>				  _colors;
+			std::vector<unsigned int>		  _indices;
+			// std::vector<gluSphere> ;
+			Mat4f _transformation = MAT4F_ID;
+			// ================
+
+			// ================ GL data.
+			GLuint _vao = GL_INVALID_INDEX; // Vertex Array Object
+			GLuint _ebo = GL_INVALID_INDEX; // Element Buffer Object
+
+			// Vertex Buffer Objects.
+			GLuint _vboPoints = GL_INVALID_INDEX;
+			GLuint _vboColors = GL_INVALID_INDEX;
+			// ================
+		};
+
 	  public:
 		LabWorkTetgen() : BaseLabWork() { _camera = new Camera(); }
 		~LabWorkTetgen();
@@ -101,12 +140,14 @@ namespace SIM_PART
 		// Create a mesh representing a unit cage centerd in (0,0,0)
 		WireMesh _createCage();
 		Particules _createParticules();
+		void	   _colorPoint();
 
 	  private:
 		// ================ Scene data.
 		WireMesh		_cage;
 		Particules		_particules;
 		int				_nbparticules;
+		std::vector<tetrasearch::Point*> list_points;
 
 		BaseCamera *	_camera;
 		time_t			current_time;

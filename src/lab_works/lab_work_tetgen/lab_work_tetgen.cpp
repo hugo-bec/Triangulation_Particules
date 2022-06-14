@@ -19,6 +19,8 @@ namespace SIM_PART
 	const std::string LabWorkTetgen::_shaderFolder = "src/lab_works/lab_work_tetgen/shaders/";
 	float			  distance_orbite2			 = 7.f;
 	TriangleMeshModel s1;
+	int				  actif_point = 0;
+	bool			  mode_edges  = true;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -41,6 +43,12 @@ namespace SIM_PART
 		_initBuffersCage( &_cage );
 
 		_particules = _createParticules();
+		for ( int i = 0; i < _nbparticules; i++ )
+		{
+			_particules._colors.push_back(Vec3f( 0 ));
+		}
+		_colorPoint();
+
 		_initBuffersParticules( &_particules );
 
 		//s1.load( "spherebg", "./data/model/icosphere3.obj" );
@@ -100,8 +108,18 @@ namespace SIM_PART
 
 		glBindVertexArray( _particules._vao ); /*bind particules VAO avec le programme*/
 		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _particules._transformation ) );
-		glDrawElements( GL_POINTS, _particules._positions.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
+		glDrawElements( GL_POINTS, _particules._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
 		glBindVertexArray( 0 );													/*debind VAO*/
+
+		// edges 
+		if ( mode_edges )
+		{
+			glBindVertexArray( _particules._vao ); /*bind particules VAO avec le programme*/
+			glProgramUniformMatrix4fv(
+				_program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _particules._transformation ) );
+			glDrawElements( GL_LINES, _particules._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
+			glBindVertexArray( 0 );
+		}
 
 		//s1.render( _program );
 
@@ -139,6 +157,28 @@ namespace SIM_PART
 				_camera->moveUp( -_cameraSpeed );
 				_updateViewMatrix();
 				break;
+			case SDL_SCANCODE_KP_PLUS: //arrow left
+				if ( actif_point == _nbparticules - 1 )
+					actif_point = 0;
+				else
+					actif_point++;
+				_colorPoint();
+				_initBuffersParticules( &_particules );
+				break;
+			case SDL_SCANCODE_KP_MINUS: // arrow right
+				if ( actif_point == 0 )
+					actif_point = _nbparticules - 1;
+				else
+					actif_point--;
+				_colorPoint();
+				_initBuffersParticules( &_particules );
+				break;
+			case SDL_SCANCODE_E: 
+				mode_edges = !mode_edges;
+				render();
+				break;
+
+
 			default: break;
 			}
 		}
@@ -346,9 +386,7 @@ namespace SIM_PART
 						   GL_STATIC_DRAW );
 
 		// EBO segments
-		for ( int i = 0; i < ( *part )._positions.size(); i++ )
-			( *part )._indices.push_back( i );
-
+		//for ( int i = 0; i < ( *part )._positions.size(); i++ ) ( *part )._indices.push_back( i );
 		glCreateBuffers( 1, &( *part )._ebo );
 		glNamedBufferData( ( *part )._ebo,
 						   ( *part )._indices.size() * sizeof( unsigned int ),
@@ -406,17 +444,15 @@ namespace SIM_PART
 
 	LabWorkTetgen::Particules LabWorkTetgen::_createParticules() 
 	{ 
-		std::chrono::time_point<std::chrono::system_clock> 
-			start_reading, stop_reading, start_neighbours, stop_neighbours, start_attract, stop_attract;
+		std::chrono::time_point<std::chrono::system_clock> start_reading, stop_reading, start_neighbours, stop_neighbours, start_attract, stop_attract;
 
 		Particules particules = Particules();
-		std::vector<tetrasearch::Point *> list_points;
 		std::vector<tetrasearch::Tetrahedron *> list_tetras;
 
 		// Reading tetrahedrization mesh
 		start_reading = std::chrono::system_clock::now();
-		tetrasearch::TetraFileReader::readNodes( "data/tetgen500points.1.node", list_points );
-		tetrasearch::TetraFileReader::readTetras( "data/tetgen500points.1.ele", list_points, list_tetras );
+		tetrasearch::TetraFileReader::readNodes( "data/tetgen1000points.1.node", list_points );
+		tetrasearch::TetraFileReader::readTetras( "data/tetgen1000points.1.ele", list_points, list_tetras );
 		_nbparticules = list_points.size();
 		stop_reading = std::chrono::system_clock::now();
 
@@ -450,16 +486,32 @@ namespace SIM_PART
 		{
 			coord = list_points[ i ]->getCoord();
 			particules._positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
-			particules._colors.push_back( Vec3f(0) );
 		}
 
-		// Change color of attracted point and center point
-		std::vector<int> point_attract = list_points[ 0 ]->getPointAttract();
-		for (int i = 0; i < point_attract.size(); i++) 
+		//_colorPoint();
+
+		//edges
+
+		std::vector<unsigned int> edges;
+		for (int i = 0; i < (int)list_tetras.size(); i++) 
 		{
-			particules._colors[ point_attract[ i ] ] = Vec3f(1, 0, 0);
+			edges.push_back( list_tetras[ i ]->getPoints()[ 0 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 1 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 0 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 2 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 0 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 3 ] );
+
+			edges.push_back( list_tetras[ i ]->getPoints()[ 1 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 2 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 1 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 3 ] );
+
+			edges.push_back( list_tetras[ i ]->getPoints()[ 2 ] );
+			edges.push_back( list_tetras[ i ]->getPoints()[ 3 ] );
 		}
-		particules._colors[ 0 ] = Vec3f( 0, 1, 1 );
+		
+		particules._indices.insert(particules._indices.end(), edges.begin(), edges.end() );
 
 
 		// Computing and printing nb particles and times
@@ -476,6 +528,28 @@ namespace SIM_PART
 
 		return particules;
 	}
+
+	void LabWorkTetgen::_colorPoint() 
+	{
+		// Change color of attracted point and center point
+		std::cout << "Particule choisie : " << actif_point << std::endl;
+
+		for ( int i = 0; i < _nbparticules; i++ )
+		{
+			_particules._colors[i] =  Vec3f( 0 ) ;
+		}
+		
+		std::vector<int> point_attract = list_points[ actif_point ]->getPointAttract();
+		for ( int i = 0; i < point_attract.size(); i++ )
+		{
+			_particules._colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
+		}
+		_particules._colors[ actif_point ] = Vec3f( 0, 1, 1 );
+
+		
+
+	}
+
 
 
 	void LabWorkTetgen::_updateViewMatrix()

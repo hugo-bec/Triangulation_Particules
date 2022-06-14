@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <iostream>
 
-
 namespace tetrasearch
 {
 
@@ -250,7 +249,7 @@ namespace tetrasearch
 			}
 		}
 	}
-    
+
     
 
 } // namespace tetrasearch

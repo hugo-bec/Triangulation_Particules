@@ -74,6 +74,8 @@ namespace tetrasearch
 
 		void computePointAttractV3( float r, std::vector<Point *> PointList, std::vector<int> traveled_point );
 
+		
+
 	  private:
 		int	  id;
 		float x;
