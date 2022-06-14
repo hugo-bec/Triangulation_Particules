@@ -1,5 +1,5 @@
 #include "lab_work_tetgen.hpp"
-#include <tetgen.h>
+//#include <tetgen.h>
 #include <iostream>
 #include <chrono>
 
@@ -51,8 +51,8 @@ namespace SIM_PART
 
 		_initBuffersParticules( &_particules );
 
-		//s1.load( "spherebg", "./data/model/icosphere3.obj" );
-
+		s1.load( "spherebg", "./data/model/icosphere3.obj" );
+		s1._transformation = glm::scale( s1._transformation, Vec3f(2.f));
 
 		//init camera
 		_initCamera();
@@ -120,6 +120,7 @@ namespace SIM_PART
 			glDrawElements( GL_LINES, _particules._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
 			glBindVertexArray( 0 );
 		}
+
 
 		//s1.render( _program );
 
@@ -451,8 +452,8 @@ namespace SIM_PART
 
 		// Reading tetrahedrization mesh
 		start_reading = std::chrono::system_clock::now();
-		tetrasearch::TetraFileReader::readNodes( "data/tetgen1000points.1.node", list_points );
-		tetrasearch::TetraFileReader::readTetras( "data/tetgen1000points.1.ele", list_points, list_tetras );
+		tetrasearch::TetraFileReader::readNodes( "data/tetgen10000points.node", list_points );
+		tetrasearch::TetraFileReader::readTetras( "data/tetgen10000points.ele", list_points, list_tetras );
 		_nbparticules = list_points.size();
 		stop_reading = std::chrono::system_clock::now();
 
@@ -462,8 +463,8 @@ namespace SIM_PART
 		start_neighbours = std::chrono::system_clock::now();
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
-			list_points[ i ]->computeNeighbours( list_tetras );
-			//if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute neighbours: " << i << " / " << _nbparticules << std::endl;
+			list_points[ i ]->computeNeighboursV2( list_tetras );
+			if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute neighbours: " << i << " / " << _nbparticules << std::endl;
 		}
 		stop_neighbours = std::chrono::system_clock::now();
 
@@ -474,11 +475,14 @@ namespace SIM_PART
 		std::vector<int> traveled_points( _nbparticules, -1 );
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
-			list_points[ i ]->computePointAttractV3( 3.f, list_points, traveled_points );
-			//if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute attract points: " << i << " / " << _nbparticules << std::endl;
+			list_points[ i ]->computePointAttractV4( 2.5f, list_points, traveled_points );
+			if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute attract points: " << i << " / " << _nbparticules << std::endl;
 		}
 		stop_attract = std::chrono::system_clock::now();
 
+		std::cout << " nb points attracts : " << list_points[ 550 ]->getPointAttract().size() << std::endl;
+
+		//list_points[550 ]->computePointAttractBrut( 2.5f, list_points );
 
 		// Assign position of the point for OpenGL
 		std::vector<float> coord;

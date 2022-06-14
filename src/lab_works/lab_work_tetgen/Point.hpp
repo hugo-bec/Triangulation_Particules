@@ -52,9 +52,11 @@ namespace tetrasearch
 
 		void addPoint( Point * p );
 
-		void searchAdjPoint();
+		//void searchAdjPoint();
 
 		void computeNeighbours( std::vector<Tetrahedron *> tetraList );
+
+		void computeNeighboursV2( std::vector<Tetrahedron *> tetraList );
 
 		bool samePoints( Point * p );
 
@@ -66,13 +68,26 @@ namespace tetrasearch
 
 		Tetrahedron * findTetra( std::vector<Tetrahedron *> PointList, int id );
 
+		// ne fonctionne pas
 		//============Point Attract V2============
 
-		void computePointAttractV2( float r, std::vector<Point *> PointList );
+		//void computePointAttractV2( float r, std::vector<Point *> PointList );
 
 		//============Point Attract V3============
 
-		void computePointAttractV3( float r, std::vector<Point *> PointList, std::vector<int> traveled_point );
+		//void computePointAttractV3( float r, std::vector<Point *> PointList, std::vector<int> traveled_point );
+
+		//version qui fontionne
+
+		void computePointAttractV4( float r, std::vector<Point *> PointList, std::vector<int> traveled_point );
+
+		//=============Point Attract Version brute============
+
+		void computePointAttractBrut( float r, std::vector<Point *> PointList );
+
+
+
+		float getDistance( Point * point );
 
 		
 

@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <algorithm>
 
 namespace tetrasearch
 {
@@ -87,6 +88,29 @@ namespace tetrasearch
 		}
 	}
 
+	void Point::computeNeighboursV2( std::vector<Tetrahedron *> tetraList )
+	{
+		Tetrahedron * tetrahedron;
+
+		for ( int i = 0; i < (int)tetra.size(); i++ )
+		{
+			tetrahedron = findTetra( tetraList, tetra[ i ] );
+
+			for ( int j = 0; j < 4; j++ )
+			{
+				if ( this->id != tetrahedron->getPoints()[ j ] )
+				{
+					neighbours.push_back( tetrahedron->getPoints()[ j ] );
+				}
+			}
+		}
+
+		sort( neighbours.begin(), neighbours.end() );
+		auto last = std::unique( neighbours.begin(), neighbours.end() );
+		neighbours.erase( last, neighbours.end() );
+	}
+
+
 	Point * Point::findPoint( std::vector<Point *> pointList, int id ) { return pointList[ id ]; }
 
 	Tetrahedron * Point::findTetra( std::vector<Tetrahedron *> tetraList, int id ) { return tetraList[ id ]; }
@@ -129,7 +153,7 @@ namespace tetrasearch
 		}
 	}
 
-	void Point::computePointAttractV2( float r, std::vector<Point *> pointList )
+	/* void Point::computePointAttractV2( float r, std::vector<Point *> pointList )
 	{
 		std::vector<int> points			 = this->neighbours;
 		std::vector<int> traveled_points = this->neighbours;
@@ -219,6 +243,7 @@ namespace tetrasearch
 				p = findPoint( pointList, points[ i ] );
 				if ( this->isAttract( p, r ) )
 				{
+					
 					this->point_attract.push_back( p->id );
 					nbPointsAttrac += 1;
 				}
@@ -248,8 +273,65 @@ namespace tetrasearch
 				points.clear();
 			}
 		}
+	}*/
+
+	void Point::computePointAttractV4( float r, std::vector<Point *> pointList, std::vector<int> traveled_point )
+	{
+		std::vector<int> points = this->neighbours;
+
+		// initialisation du tableau des points parcourus
+		for ( int i = 0; i < (int)points.size(); i++ )
+		{
+			traveled_point[ points[ i ] ] = this->id;
+		}
+		traveled_point[ this->id ] = this->id;
+		
+
+		Point * p;
+
+		while ( points.size() != 0 )
+		{
+			
+			p = findPoint( pointList, points[ 0 ] );
+			if ( this->isAttract( p, r ) )
+			{
+				this->point_attract.push_back( p->id );
+				for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
+				{
+					if ( p->getNeighbours()[ i ] != this->id && traveled_point[ p->getNeighbours()[ i ] ] != this->id )
+					{
+						points.push_back( p->getNeighbours()[ i ] );
+						traveled_point[ p->getNeighbours()[ i ] ] = this->id;
+					}
+				}
+				
+			}
+			points.erase( points.begin() );
+		}
 	}
 
-    
+    void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
+	{
+		int nb = 0;
+		
+		for (int i = 0; i < (int)pointList.size(); i++) 
+		{
+			if (i!= this->id && this->isAttract(pointList[i], r)) {
+				nb++;
+			}
+		}
+		std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
+	}
 
+	float Point::getDistance(Point* point) 
+	{
+		std::vector<float> p_coord;
+		p_coord = point->getCoord();
+
+		float x = p_coord[ 0 ] - this->x;
+		float y = p_coord[ 1 ] - this->y;
+		float z = p_coord[ 2 ] - this->z;
+
+		return sqrt( x * x + y * y + z * z );
+	}
 } // namespace tetrasearch
