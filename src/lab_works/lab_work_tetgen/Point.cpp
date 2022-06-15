@@ -1,9 +1,13 @@
+#include "GL/gl3w.h"
 #include "Point.hpp"
 #include "Tetrahedron.hpp"
 #include <cmath>
 #include <cstdio>
 #include <iostream>
 #include <algorithm>
+#include "define.hpp"
+#include "imgui_impl_glut.h"
+#include <random>
 
 namespace tetrasearch
 {
@@ -333,5 +337,45 @@ namespace tetrasearch
 		float z = p_coord[ 2 ] - this->z;
 
 		return sqrt( x * x + y * y + z * z );
+	}
+
+	void Point::bronien_mvt( float speed, int dimCage ) 
+	{ 
+		SIM_PART::Vec3f direction;
+		direction.x = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
+		direction.y = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
+		direction.z = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
+
+		if ( ( this->x == 10 && direction.x * speed + this->x > 10 ) || ( this->x == 0 && direction.x * speed + this->x < 0 ) )
+			this->x = -direction.x * speed + this->x;
+		else if ( direction.x * speed + this->x > 10 )
+				this->x = 10;
+		else if ( direction.x * speed + this->x < 0 )
+				this->x = 0;
+		else
+			this->x = direction.x * speed + this->x;
+
+
+		if ( ( this->y == 10 && direction.y * speed + this->y > 10 ) || ( this->y == 0 && direction.y * speed + this->y < 0 ) )
+			this->y = -direction.y * speed + this->y;
+		else if ( direction.y * speed + this->y > 10 )
+			this->y = 10;
+		else if ( direction.y * speed + this->y < 0 )
+			this->y = 0;
+		else
+			this->y = direction.y * speed + this->y;
+
+
+		if ( ( this->z == 10 && direction.z * speed + this->z > 10 ) || ( this->z == 0 && direction.z * speed + this->z < 0 ) )
+			this->z = -direction.z * speed + this->z;
+		else if ( direction.z * speed + this->z > 10 )
+			this->z = 10;
+		else if ( direction.z * speed + this->z < 0 )
+			this->z = 0;
+		else
+			this->z = direction.z * speed + this->z;
+
+
+
 	}
 } // namespace tetrasearch

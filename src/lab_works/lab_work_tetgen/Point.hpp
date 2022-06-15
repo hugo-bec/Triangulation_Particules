@@ -86,8 +86,9 @@ namespace tetrasearch
 		void computePointAttractBrut( float r, std::vector<Point *> PointList );
 
 
-
 		float getDistance( Point * point );
+
+		void bronien_mvt( float speed, int dimCage );
 
 		
 

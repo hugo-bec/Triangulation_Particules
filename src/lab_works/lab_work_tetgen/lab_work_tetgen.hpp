@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 #include "imgui_impl_glut.h"
-#include "tetgen/tetgen.h"
+#include "tetgen.h"
 #include "Point.hpp"
 
 namespace SIM_PART

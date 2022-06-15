@@ -1,5 +1,4 @@
 #include "lab_work_tetgen.hpp"
-//#include <tetgen.h>
 #include <iostream>
 #include <chrono>
 
@@ -94,6 +93,15 @@ namespace SIM_PART
 
 	void LabWorkTetgen::animate( const float p_deltaTime )
 	{
+		std::vector<float> coord;
+		for (int i = 0; i < (int)list_points.size(); i++) 
+		{
+			list_points[ i ]->bronien_mvt(0.1, 10);
+			coord						= list_points[ i ]->getCoord();
+			_particules._positions[ i ] = Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
+		}
+		_initBuffersParticules( &_particules );
+		render();
 	}
 
 	void LabWorkTetgen::render()
@@ -332,7 +340,7 @@ namespace SIM_PART
 	void LabWorkTetgen::_initCamera()
 	{
 		_camera->setScreenSize( _windowWidth, _windowHeight );
-		_camera->setPosition( Vec3f( 0, 1, 17 ) );
+		_camera->setPosition( Vec3f( 5, 5, 20 ) );
 		_updateViewMatrix();
 		_updateProjectionMatrix();
 	}
@@ -455,8 +463,8 @@ namespace SIM_PART
 
 		// Reading tetrahedrization mesh
 		start_reading = std::chrono::system_clock::now();
-		tetrasearch::TetraFileReader::readNodes( "data/tetgen1000points.node", list_points );
-		tetrasearch::TetraFileReader::readTetras( "data/tetgen1000points.ele", list_points, list_tetras );
+		tetrasearch::TetraFileReader::readNodes( "data/tetgen2000points.node", list_points );
+		tetrasearch::TetraFileReader::readTetras( "data/tetgen2000points.ele", list_points, list_tetras );
 		_nbparticules = list_points.size();
 		stop_reading = std::chrono::system_clock::now();
 
@@ -464,6 +472,7 @@ namespace SIM_PART
 		// Computing neighbours for each points
 		std::cout << "Computing neighbours from tetrahedrization..." << std::endl;
 		start_neighbours = std::chrono::system_clock::now();
+
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
 			list_points[ i ]->computeNeighboursV2( list_tetras );
@@ -478,6 +487,7 @@ namespace SIM_PART
 		std::cout << "Computing attract points from tetrahedrization..." << std::endl;
 		start_attract = std::chrono::system_clock::now();
 		std::vector<int> traveled_points( _nbparticules, -1 );
+
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
 			list_points[ i ]->computePointAttractV4( 2.5f, list_points, traveled_points );
@@ -558,15 +568,12 @@ namespace SIM_PART
 		std::cout << "Particule choisie : " << actif_point << std::endl;
 
 		for ( int i = 0; i < _nbparticules; i++ )
-		{
 			_particules._colors[i] =  Vec3f( 0 ) ;
-		}
 		
 		std::vector<int> point_attract = list_points[ actif_point ]->getPointAttract();
 		for ( int i = 0; i < point_attract.size(); i++ )
-		{
 			_particules._colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
-		}
+
 		_particules._colors[ actif_point ] = Vec3f( 0, 1, 1 );
 
 		
