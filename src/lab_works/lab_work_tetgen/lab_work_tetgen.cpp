@@ -21,6 +21,7 @@ namespace SIM_PART
 	TriangleMeshModel s1;
 	int				  actif_point = 0;
 	bool			  mode_edges  = true;
+	bool			  print_all_edges = false;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -179,7 +180,11 @@ namespace SIM_PART
 				render();
 				break;
 
-
+			case SDL_SCANCODE_T: 
+				print_all_edges = !print_all_edges;
+				_colorPoint();
+				_initBuffersParticules( &_particules );
+				break;
 			default: break;
 			}
 		}
@@ -446,14 +451,12 @@ namespace SIM_PART
 	LabWorkTetgen::Particules LabWorkTetgen::_createParticules() 
 	{ 
 		std::chrono::time_point<std::chrono::system_clock> start_reading, stop_reading, start_neighbours, stop_neighbours, start_attract, stop_attract;
-
 		Particules particules = Particules();
-		std::vector<tetrasearch::Tetrahedron *> list_tetras;
 
 		// Reading tetrahedrization mesh
 		start_reading = std::chrono::system_clock::now();
-		tetrasearch::TetraFileReader::readNodes( "data/tetgen10000points.node", list_points );
-		tetrasearch::TetraFileReader::readTetras( "data/tetgen10000points.ele", list_points, list_tetras );
+		tetrasearch::TetraFileReader::readNodes( "data/tetgen1000points.node", list_points );
+		tetrasearch::TetraFileReader::readTetras( "data/tetgen1000points.ele", list_points, list_tetras );
 		_nbparticules = list_points.size();
 		stop_reading = std::chrono::system_clock::now();
 
@@ -464,8 +467,10 @@ namespace SIM_PART
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
 			list_points[ i ]->computeNeighboursV2( list_tetras );
-			if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute neighbours: " << i << " / " << _nbparticules << std::endl;
+			if ( i % ( _nbparticules / 100 ) == 0 )
+				std::cout << "compute neighbours: " << i << " / " << _nbparticules << "\r" ;
 		}
+		std::cout << std::endl;
 		stop_neighbours = std::chrono::system_clock::now();
 
 
@@ -476,8 +481,10 @@ namespace SIM_PART
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
 			list_points[ i ]->computePointAttractV4( 2.5f, list_points, traveled_points );
-			if ( i % (_nbparticules / 100) == 0 ) std::cout << "compute attract points: " << i << " / " << _nbparticules << std::endl;
+			if ( i % ( _nbparticules / 100 ) == 0 )
+				std::cout << "compute attract points: " << i << " / " << _nbparticules << "\r";
 		}
+		std::cout << std::endl;
 		stop_attract = std::chrono::system_clock::now();
 
 		std::cout << " nb points attracts : " << list_points[ 550 ]->getPointAttract().size() << std::endl;
@@ -491,31 +498,6 @@ namespace SIM_PART
 			coord = list_points[ i ]->getCoord();
 			particules._positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
 		}
-
-		//_colorPoint();
-
-		//edges
-
-		std::vector<unsigned int> edges;
-		for (int i = 0; i < (int)list_tetras.size(); i++) 
-		{
-			edges.push_back( list_tetras[ i ]->getPoints()[ 0 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 1 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 0 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 2 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 0 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 3 ] );
-
-			edges.push_back( list_tetras[ i ]->getPoints()[ 1 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 2 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 1 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 3 ] );
-
-			edges.push_back( list_tetras[ i ]->getPoints()[ 2 ] );
-			edges.push_back( list_tetras[ i ]->getPoints()[ 3 ] );
-		}
-		
-		particules._indices.insert(particules._indices.end(), edges.begin(), edges.end() );
 
 
 		// Computing and printing nb particles and times
@@ -535,6 +517,43 @@ namespace SIM_PART
 
 	void LabWorkTetgen::_colorPoint() 
 	{
+		// edges
+		
+		std::vector<int> edges, tmp, tp;
+		if ( !print_all_edges )
+		{
+			std::vector<int> attract_actif_points = list_points[ actif_point ]->getPointAttract();
+			std::vector<int> tetra_actif_points, list_tetra_tmp;
+			for ( int i = 0; i < attract_actif_points.size(); i++ )
+			{
+				list_tetra_tmp = list_points[ attract_actif_points[ i ] ]->getTetrahedron();
+				tetra_actif_points.insert( tetra_actif_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
+			}
+			sort( tetra_actif_points.begin(), tetra_actif_points.end() );
+			auto last = std::unique( tetra_actif_points.begin(), tetra_actif_points.end() );
+			tetra_actif_points.erase( last, tetra_actif_points.end() );
+
+			for ( int i = 0; i < (int)tetra_actif_points.size(); i++ )
+			{
+				tp	= list_tetras[ tetra_actif_points[ i ] ]->getPoints();
+				tmp = { tp[ 0 ], tp[ 1 ], tp[ 0 ], tp[ 2 ], tp[ 0 ], tp[ 3 ],
+						tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
+				edges.insert( edges.end(), tmp.begin(), tmp.end() );
+			}
+		}
+		else
+		{
+			for ( int i = 0; i < (int)list_tetras.size(); i++ )
+			{
+				tp	= list_tetras[ i ]->getPoints();
+				tmp = { tp[ 0 ], tp[ 1 ], tp[ 0 ], tp[ 2 ], tp[ 0 ], tp[ 3 ],
+						tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
+				edges.insert( edges.end(), tmp.begin(), tmp.end() );
+			}
+		}
+		_particules._indices.clear();
+		_particules._indices.insert( _particules._indices.end(), edges.begin(), edges.end() );
+
 		// Change color of attracted point and center point
 		std::cout << "Particule choisie : " << actif_point << std::endl;
 

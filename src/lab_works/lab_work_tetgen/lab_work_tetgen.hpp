@@ -148,6 +148,8 @@ namespace SIM_PART
 		Particules		_particules;
 		int				_nbparticules;
 		std::vector<tetrasearch::Point*> list_points;
+		std::vector<tetrasearch::Tetrahedron *> list_tetras;
+
 
 		BaseCamera *	_camera;
 		time_t			current_time;
