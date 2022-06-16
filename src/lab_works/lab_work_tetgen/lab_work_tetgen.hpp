@@ -9,41 +9,12 @@
 #include "imgui_impl_glut.h"
 #include "tetgen.h"
 #include "Point.hpp"
+#include "WireMesh.hpp"
 
 namespace SIM_PART
 {
 	class LabWorkTetgen : public BaseLabWork
 	{
-		struct WireMesh
-		{
-			~WireMesh()
-			{
-				if ( _vao != GL_INVALID_INDEX )
-				{
-					glDisableVertexArrayAttrib( _vao, 0 );
-					glDisableVertexArrayAttrib( _vao, 1 );
-					glDeleteVertexArrays( 1, &_vao );
-				}
-				if ( _vboPoints != GL_INVALID_INDEX )
-					glDeleteBuffers( 1, &_vboPoints );
-				if ( _ebo != GL_INVALID_INDEX )
-					glDeleteBuffers( 1, &_ebo );
-			}
-			// ================ Geometric data.
-			std::vector<Vec3f>		  _vertices;
-			std::vector<unsigned int> _segments;
-			Mat4f					  _transformation = MAT4F_ID;
-			// ================
-
-			// ================ GL data.
-			GLuint _vao = GL_INVALID_INDEX; // Vertex Array Object
-			GLuint _ebo = GL_INVALID_INDEX; // Element Buffer Object
-
-			// Vertex Buffer Objects.
-			GLuint _vboPoints = GL_INVALID_INDEX;
-			// ================
-		};
-
 		struct Particules
 		{
 			~Particules()
@@ -130,21 +101,21 @@ namespace SIM_PART
 		bool _initProgram();
 		void _initCamera();
 
-		void _initBuffersCage( WireMesh * cage_ptr );
+		void _initBuffersCage( CageMesh * cage );
 		void _initBuffersParticules( Particules * part_ptr );
 
-		void tetrahedralize_particules();
+		void tetrahedralize_particules( tetgenio* out);
 		void _updateViewMatrix();
 		void _updateProjectionMatrix();
 
 		// Create a mesh representing a unit cage centerd in (0,0,0)
-		WireMesh _createCage();
+		CageMesh _createCage();
 		Particules _createParticules();
 		void	   _colorPoint();
 
 	  private:
 		// ================ Scene data.
-		WireMesh		_cage;
+		CageMesh		_cage;
 		Particules		_particules;
 		int				_nbparticules;
 		std::vector<tetrasearch::Point*> list_points;

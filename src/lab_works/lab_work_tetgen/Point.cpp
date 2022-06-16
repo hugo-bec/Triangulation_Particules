@@ -317,10 +317,11 @@ namespace tetrasearch
     void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
 	{
 		int nb = 0;
-		
+		std::cout << " Points attract brute :" << std::endl;
 		for (int i = 0; i < (int)pointList.size(); i++) 
 		{
 			if (i!= this->id && this->isAttract(pointList[i], r)) {
+				std::cout << pointList[ i ]->getId() << std::endl;
 				nb++;
 			}
 		}

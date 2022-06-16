@@ -11,7 +11,7 @@
 #include "Point.hpp"
 #include "Tetrahedron.hpp"
 #include "TetraFileReader.hpp"
-
+#include<array>
 
 namespace SIM_PART
 {
@@ -21,6 +21,7 @@ namespace SIM_PART
 	int				  actif_point = 0;
 	bool			  mode_edges  = true;
 	bool			  print_all_edges = false;
+	bool			  play			  = true;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -48,8 +49,9 @@ namespace SIM_PART
 			_particules._colors.push_back(Vec3f( 0 ));
 		}
 		_colorPoint();
-
 		_initBuffersParticules( &_particules );
+
+		//tetrahedralize_particules();
 
 		s1.load( "spherebg", "./data/model/icosphere3.obj" );
 		s1._transformation = glm::scale( s1._transformation, Vec3f(2.f));
@@ -67,41 +69,60 @@ namespace SIM_PART
 		return true;
 	}
 
-	void LabWorkTetgen::tetrahedralize_particules()
+	void LabWorkTetgen::tetrahedralize_particules( tetgenio* out)
 	{
-		/* tetgenio in, out;
-		in.initialize();
-		out.initialize();
-		in.numberofpoints = _nbparticules;
-		in.pointlist	  = new REAL[ in.numberofpoints * 3 ];
+		_nbparticules = 1000;
+		printf( "fonction \n" );
 
 		for ( int i = 0; i < _nbparticules; i++ )
 		{
-			in.pointlist[ 3 * i ]	  = _particules._vertices[ i ].x;
-			in.pointlist[ 3 * i + 1 ] = _particules._vertices[ i ].y;
-			in.pointlist[ 3 * i + 2 ] = _particules._vertices[ i ].z;
+			_particules._positions.push_back(Vec3f( getRandomFloat() * _dimCage.x,
+														getRandomFloat() * _dimCage.y, 
+														getRandomFloat() * _dimCage.z ) );
+        
 		}
 
+		tetgenio in;
+		in.initialize();
+		out->initialize();
+		in.numberofpoints = _nbparticules;
+		in.pointlist	  = new REAL[ in.numberofpoints * 3 ];
+		out->numberofpoints = _nbparticules;
+	
+
+		for ( int i = 0; i < _nbparticules; i++ )
+		{
+			in.pointlist[ 3 * i ]	  = _particules._positions[ i ].x;
+			in.pointlist[ 3 * i + 1 ] = _particules._positions[ i ].y;
+			in.pointlist[ 3 * i + 2 ] = _particules._positions[ i ].z;
+		}
+
+		out->pointlist = in.pointlist;
+		std::cout << "dans tetrahedralize_particules : " << out->pointlist[ 0 ] << std::endl;
+
 		char * param = new char[ 5 ];
-		param[ 0 ]	 = 'v';
-		param[ 1 ]	 = 'e';
-		param[ 2 ]	 = 'e';
-		param[ 3 ]	 = 'Q';
-		param[ 4 ]	 = '\0';*/
-		//tetrahedralize( param, &in, &out );
+		param[ 0 ]	 = '\0';
+		tetrahedralize( param, &in, out );
+
+		printf( "nombre tetrahedre: %d\n", out->numberoftetrahedra );
+		printf( "nombre points: %d\n", out->numberofpoints );
+		
 	}
 
 	void LabWorkTetgen::animate( const float p_deltaTime )
 	{
-		std::vector<float> coord;
-		for (int i = 0; i < (int)list_points.size(); i++) 
+		/* if ( play ) 
 		{
-			list_points[ i ]->bronien_mvt(0.1, 10);
-			coord						= list_points[ i ]->getCoord();
-			_particules._positions[ i ] = Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
-		}
-		_initBuffersParticules( &_particules );
-		render();
+			std::vector<float> coord;
+			for (int i = 0; i < (int)list_points.size(); i++) 
+			{
+				list_points[ i ]->bronien_mvt(0.1, 10);
+				coord						= list_points[ i ]->getCoord();
+				_particules._positions[ i ] = Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
+			}
+			_initBuffersParticules( &_particules );
+			render();
+		}*/
 	}
 
 	void LabWorkTetgen::render()
@@ -193,6 +214,11 @@ namespace SIM_PART
 				_colorPoint();
 				_initBuffersParticules( &_particules );
 				break;
+
+			case SDL_SCANCODE_P: 
+				play = !play; 
+
+
 			default: break;
 			}
 		}
@@ -345,7 +371,7 @@ namespace SIM_PART
 		_updateProjectionMatrix();
 	}
 
-	void LabWorkTetgen::_initBuffersCage( WireMesh * cage )
+	void LabWorkTetgen::_initBuffersCage( CageMesh * cage )
 	{ 
 		//VBO Points
 		glCreateBuffers( 1, &( *cage )._vboPoints );
@@ -443,10 +469,10 @@ namespace SIM_PART
 		glVertexArrayElementBuffer( ( *part )._vao, ( *part )._ebo );
 	}
 
-	LabWorkTetgen::WireMesh LabWorkTetgen::_createCage()
+	CageMesh LabWorkTetgen::_createCage()
 	{
 		// Creation du cage
-		WireMesh cage		   = WireMesh();
+		CageMesh cage		   = CageMesh();
 		cage._vertices	   = {	Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
 								Vec3f( 0, 1, 1 ), Vec3f( 0, 1, 0 ), Vec3f( 0, 0, 0 ), Vec3f( 0, 0, 1 ) };
 
@@ -458,14 +484,53 @@ namespace SIM_PART
 
 	LabWorkTetgen::Particules LabWorkTetgen::_createParticules() 
 	{ 
+			
+		// lecture de fichier
+		/* tetrasearch::TetraFileReader::readNodes( "data/tetgen1000points.node", list_points );
+		tetrasearch::TetraFileReader::readTetras( "data/tetgen1000points.ele", list_points, list_tetras );
+		_nbparticules = list_points.size();*/
+
 		std::chrono::time_point<std::chrono::system_clock> start_reading, stop_reading, start_neighbours, stop_neighbours, start_attract, stop_attract;
 		Particules particules = Particules();
 
 		// Reading tetrahedrization mesh
 		start_reading = std::chrono::system_clock::now();
-		tetrasearch::TetraFileReader::readNodes( "data/tetgen2000points.node", list_points );
-		tetrasearch::TetraFileReader::readTetras( "data/tetgen2000points.ele", list_points, list_tetras );
-		_nbparticules = list_points.size();
+		tetgenio out;
+		out.initialize();
+		tetrahedralize_particules( &out );
+
+		for (int i = 0; i < _nbparticules; i++) 
+		{	
+			list_points.push_back(
+				new tetrasearch::Point ( i, out.pointlist[ i * 3 ], out.pointlist[ i * 3 + 1 ], out.pointlist[ i * 3 + 2 ] ) );
+		}
+		
+		/* std::cout << "out.numberoftetrahedra: " << out.numberoftetrahedra
+				  << ", out.tetrahedronlist.size(): " << out.tetrahedronlist[ 25468 ] << " , " << out.tetrahedronlist[ 25471 ]
+				  << " , " << out.tetrahedronlist[ 25472 ] 
+				  << std::endl;*/
+		for ( int j = 0; j < out.numberoftetrahedra  ; j ++ ) 
+		{
+	
+			std::cout << "tetra numero " << j << " : " << out.tetrahedronlist[ j * 4 ] << " ,  "
+					  << out.tetrahedronlist[ j * 4 + 1 ] << ", " << out.tetrahedronlist[ j * 4 + 2 ] << " , "
+					  << out.tetrahedronlist[ j * 4 + 3 ]
+					  << std::endl;
+			list_tetras.push_back( new tetrasearch::Tetrahedron( j,
+																 out.tetrahedronlist[ j * 4 ],
+																 out.tetrahedronlist[ j * 4 + 1 ],
+																 out.tetrahedronlist[ j * 4 + 2 ],
+																 out.tetrahedronlist[ j * 4 + 3 ] ) );
+		}
+		std::vector<int> lp;
+		for(int i=0; i<list_tetras.size(); i++)
+		{
+			lp = list_tetras[ i ]->getPoints();
+			std::cout << "list_tetras points index: " << lp[ 0 ] << ", " << lp[ 1 ] << ", " << lp[ 2 ] << ", "
+					  << lp[ 3 ] << std::endl;
+		}
+	
+
 		stop_reading = std::chrono::system_clock::now();
 
 
@@ -473,15 +538,26 @@ namespace SIM_PART
 		std::cout << "Computing neighbours from tetrahedrization..." << std::endl;
 		start_neighbours = std::chrono::system_clock::now();
 
+		for ( int j = 0; j < list_tetras.size(); j++ )
+		{
+			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addTetrahedron( list_tetras[ j ]) ;	
+			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addTetrahedron( list_tetras[ j ]) ;	
+			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addTetrahedron( list_tetras[ j ]) ;	
+			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addTetrahedron( list_tetras[ j ]) ;	
+		}
+
+
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
 			list_points[ i ]->computeNeighboursV2( list_tetras );
-			if ( i % ( _nbparticules / 100 ) == 0 )
+			//if ( i % ( _nbparticules / 100 ) == 0 )
 				std::cout << "compute neighbours: " << i << " / " << _nbparticules << "\r" ;
+			
 		}
+		
+		
 		std::cout << std::endl;
 		stop_neighbours = std::chrono::system_clock::now();
-
 
 		// Computing attract points for each points
 		std::cout << "Computing attract points from tetrahedrization..." << std::endl;
@@ -490,17 +566,52 @@ namespace SIM_PART
 
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
-			list_points[ i ]->computePointAttractV4( 2.5f, list_points, traveled_points );
-			if ( i % ( _nbparticules / 100 ) == 0 )
+			list_points[ i ]->computePointAttractV4( 2.f, list_points, traveled_points );
+			//if ( i % ( _nbparticules / 100 ) == 0 )
 				std::cout << "compute attract points: " << i << " / " << _nbparticules << "\r";
 		}
 		std::cout << std::endl;
 		stop_attract = std::chrono::system_clock::now();
 
-		std::cout << " nb points attracts : " << list_points[ 550 ]->getPointAttract().size() << std::endl;
 
-		//list_points[550 ]->computePointAttractBrut( 2.5f, list_points );
+		//============================test affichage================================================================================================
 
+
+		std::cout << "nombre de tetra : " << list_tetras.size() << std::endl;
+
+		std::vector<float> c1 = list_points[ 1 ]->getCoord();
+		for (int i = 0; i < list_points.size(); i++) 
+		{
+			std::vector<float> c = list_points[ i ]->getCoord();
+			std::cout << "point numero " << i << " : " << c[ 0 ] << " , " << c[ 1 ] << ", " << c[ 2 ] << std::endl;
+			if (i != 1) {
+				std::cout << " distance avec 1 : "
+						  << sqrt( ( c1[ 0 ] - c[ 0 ] ) * ( c1[ 0 ] - c[ 0 ] )
+								   + ( c1[ 1 ] - c[ 1 ] ) * ( c1[ 1 ] - c[ 1 ] )
+								   + ( c1[ 2 ] - c[ 2 ] ) * ( c1[ 2 ] - c[ 2 ] ) )
+						  << std::endl;
+			}
+		}
+
+		std::cout << "liste tetra point 1 : " << list_points[ 1 ]->getTetrahedron().size() << std::endl;
+		
+		std::cout << "nb voisin point 1 " << list_points[ 1 ]->getNeighbours().size() << std::endl;
+
+		std::cout << " nb points attracts : " << list_points[ 1 ]->getPointAttract().size() << std::endl;
+
+
+		list_points[ 1 ]->computePointAttractBrut( 2.f, list_points );
+
+		std::cout << "Point attract notre methode : " ;
+		for (int i = 0; i < (int)list_points[1]->getPointAttract().size(); i++)
+		{
+			std::cout << list_points[ 1 ]->getPointAttract()[ i ] << std::endl;
+		}
+
+
+		//==========================fin test==========================================================================================================
+		 
+		
 		// Assign position of the point for OpenGL
 		std::vector<float> coord;
 		for ( int i = 0; i < _nbparticules; i++ ) 
@@ -528,7 +639,6 @@ namespace SIM_PART
 	void LabWorkTetgen::_colorPoint() 
 	{
 		// edges
-		
 		std::vector<int> edges, tmp, tp;
 		if ( !print_all_edges )
 		{

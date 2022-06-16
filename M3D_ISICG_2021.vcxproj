@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\lab_works\lab_work_tetgen\Particules.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\Point.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\lab_work_tetgen.cpp" />
     <ClCompile Include="src\lab_works\lab_work_cgal\lab_work_cgal.cpp" />
@@ -40,8 +41,10 @@
     <ClCompile Include="src\utils\image.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\Tetrahedron.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\TetraFileReader.cpp" />
+    <ClCompile Include="src\lab_works\lab_work_tetgen\WireMesh.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\lab_works\lab_work_tetgen\Particules.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\Point.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\lab_work_tetgen.hpp" />
     <ClInclude Include="src\lab_works\lab_work_cgal\lab_work_cgal.hpp" />
@@ -68,6 +71,7 @@
     <ClInclude Include="src\utils\read_file.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\Tetrahedron.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\TetraFileReader.hpp" />
+    <ClInclude Include="src\lab_works\lab_work_tetgen\WireMesh.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\lab_works\lab_work_cgal\shaders\triangle.frag" />
