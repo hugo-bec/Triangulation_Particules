@@ -111,7 +111,7 @@ namespace SIM_PART
 
 	void LabWorkTetgen::animate( const float p_deltaTime )
 	{
-		/* if ( play ) 
+		if ( play ) 
 		{
 			std::vector<float> coord;
 			for (int i = 0; i < (int)list_points.size(); i++) 
@@ -122,7 +122,7 @@ namespace SIM_PART
 			}
 			_initBuffersParticules( &_particules );
 			render();
-		}*/
+		}
 	}
 
 	void LabWorkTetgen::render()
@@ -505,30 +505,16 @@ namespace SIM_PART
 				new tetrasearch::Point ( i, out.pointlist[ i * 3 ], out.pointlist[ i * 3 + 1 ], out.pointlist[ i * 3 + 2 ] ) );
 		}
 		
-		/* std::cout << "out.numberoftetrahedra: " << out.numberoftetrahedra
-				  << ", out.tetrahedronlist.size(): " << out.tetrahedronlist[ 25468 ] << " , " << out.tetrahedronlist[ 25471 ]
-				  << " , " << out.tetrahedronlist[ 25472 ] 
-				  << std::endl;*/
+	
 		for ( int j = 0; j < out.numberoftetrahedra  ; j ++ ) 
 		{
-	
-			std::cout << "tetra numero " << j << " : " << out.tetrahedronlist[ j * 4 ] << " ,  "
-					  << out.tetrahedronlist[ j * 4 + 1 ] << ", " << out.tetrahedronlist[ j * 4 + 2 ] << " , "
-					  << out.tetrahedronlist[ j * 4 + 3 ]
-					  << std::endl;
 			list_tetras.push_back( new tetrasearch::Tetrahedron( j,
 																 out.tetrahedronlist[ j * 4 ],
 																 out.tetrahedronlist[ j * 4 + 1 ],
 																 out.tetrahedronlist[ j * 4 + 2 ],
 																 out.tetrahedronlist[ j * 4 + 3 ] ) );
 		}
-		std::vector<int> lp;
-		for(int i=0; i<list_tetras.size(); i++)
-		{
-			lp = list_tetras[ i ]->getPoints();
-			std::cout << "list_tetras points index: " << lp[ 0 ] << ", " << lp[ 1 ] << ", " << lp[ 2 ] << ", "
-					  << lp[ 3 ] << std::endl;
-		}
+	
 	
 
 		stop_reading = std::chrono::system_clock::now();
@@ -574,43 +560,6 @@ namespace SIM_PART
 		stop_attract = std::chrono::system_clock::now();
 
 
-		//============================test affichage================================================================================================
-
-
-		std::cout << "nombre de tetra : " << list_tetras.size() << std::endl;
-
-		std::vector<float> c1 = list_points[ 1 ]->getCoord();
-		for (int i = 0; i < list_points.size(); i++) 
-		{
-			std::vector<float> c = list_points[ i ]->getCoord();
-			std::cout << "point numero " << i << " : " << c[ 0 ] << " , " << c[ 1 ] << ", " << c[ 2 ] << std::endl;
-			if (i != 1) {
-				std::cout << " distance avec 1 : "
-						  << sqrt( ( c1[ 0 ] - c[ 0 ] ) * ( c1[ 0 ] - c[ 0 ] )
-								   + ( c1[ 1 ] - c[ 1 ] ) * ( c1[ 1 ] - c[ 1 ] )
-								   + ( c1[ 2 ] - c[ 2 ] ) * ( c1[ 2 ] - c[ 2 ] ) )
-						  << std::endl;
-			}
-		}
-
-		std::cout << "liste tetra point 1 : " << list_points[ 1 ]->getTetrahedron().size() << std::endl;
-		
-		std::cout << "nb voisin point 1 " << list_points[ 1 ]->getNeighbours().size() << std::endl;
-
-		std::cout << " nb points attracts : " << list_points[ 1 ]->getPointAttract().size() << std::endl;
-
-
-		list_points[ 1 ]->computePointAttractBrut( 2.f, list_points );
-
-		std::cout << "Point attract notre methode : " ;
-		for (int i = 0; i < (int)list_points[1]->getPointAttract().size(); i++)
-		{
-			std::cout << list_points[ 1 ]->getPointAttract()[ i ] << std::endl;
-		}
-
-
-		//==========================fin test==========================================================================================================
-		 
 		
 		// Assign position of the point for OpenGL
 		std::vector<float> coord;
