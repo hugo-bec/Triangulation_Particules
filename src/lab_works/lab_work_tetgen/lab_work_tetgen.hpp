@@ -34,34 +34,19 @@ namespace SIM_PART
 		bool _initProgram();
 		void _initCamera();
 
-		void _initBuffersParticules( DelaunayStructure * part_ptr );
-
-		void tetrahedralize_particules( tetgenio * in, tetgenio * out );
 		void _updateViewMatrix();
 		void _updateProjectionMatrix();
 
 		// Create a mesh representing a unit cage centerd in (0,0,0)
-		void	   _createParticules();
-		void	   _colorPoint();
-		void	   init_particules( tetgenio * in );
-		void	   update_particules( tetgenio * out );
-		void	   update_points_tetras( tetgenio * out );
-		void	   compute_neighbours();
-		void	   compute_attract_points();
+		
 
 	  private:
 		// ================ Scene data.
-		CageMesh		_cage;
-		DelaunayStructure		_particules;
-		int				_nbparticules = 1000;
-		std::vector<tetrasearch::Point*> list_points;
-		std::vector<tetrasearch::Tetrahedron *> list_tetras;
-		tetgenio								tetgenMesh;
-
+		CageMesh			_cage;
+		DelaunayStructure	_particules;
 
 		BaseCamera *	_camera;
 		time_t			current_time;
-		Vec3f			_dimCage = Vec3f(10);
 		// ================
 
 		// ================ Settings.

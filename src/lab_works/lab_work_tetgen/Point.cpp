@@ -9,7 +9,7 @@
 #include "imgui_impl_glut.h"
 #include <random>
 
-namespace tetrasearch
+namespace SIM_PART
 {
 
 	std::vector<float> Point::getCoord() const

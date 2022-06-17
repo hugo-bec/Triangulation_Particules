@@ -8,7 +8,7 @@
 #include <iterator>
 
 
-namespace tetrasearch
+namespace SIM_PART
 {
 	//=====================Nodes=======================
 	void TetraFileReader::readNodes( std::string fileName, std::vector<Point*>& points )

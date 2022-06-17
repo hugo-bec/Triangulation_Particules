@@ -4,7 +4,7 @@
 #include "Point.hpp"
 #include <vector>
 
-namespace tetrasearch
+namespace SIM_PART
 {
 
 	class Tetrahedron

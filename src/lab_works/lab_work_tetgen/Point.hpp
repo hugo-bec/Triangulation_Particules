@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <set>
 
-namespace tetrasearch
+namespace SIM_PART
 {
 	class Tetrahedron;
 

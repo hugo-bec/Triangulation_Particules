@@ -5,7 +5,7 @@
 #include "Tetrahedron.hpp"
 
 
-namespace tetrasearch
+namespace SIM_PART
 {
 	class TetraFileReader
 	{

@@ -1,6 +1,6 @@
 #include "Tetrahedron.hpp"
 
-namespace tetrasearch
+namespace SIM_PART
 {
 	std::vector<int> Tetrahedron::getPoints() { return points; }
 
