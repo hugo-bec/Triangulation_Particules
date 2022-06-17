@@ -11,7 +11,7 @@
 #include "Point.hpp"
 #include "Tetrahedron.hpp"
 #include "TetraFileReader.hpp"
-#include<array>
+#include <array>
 
 namespace SIM_PART
 {
@@ -21,7 +21,7 @@ namespace SIM_PART
 	int				  actif_point = 0;
 	bool			  mode_edges  = true;
 	bool			  print_all_edges = false;
-	bool			  play			  = true;
+	bool			  play			  = false;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -33,17 +33,15 @@ namespace SIM_PART
 		glEnable( GL_DEPTH_TEST );
 		glEnable( GL_VERTEX_PROGRAM_POINT_SIZE );
 
-		//_camera = new Camera();
-
 		if ( !_initProgram() )
 			return false;
 
 		// init objects
-		_cage  = _createCage();
+		_cage  = CageMesh::_createCage();
 		_cage._transformation = glm::scale( _cage._transformation, _dimCage );
-		_initBuffersCage( &_cage );
+		_cage._initBuffersCage();
 
-		_particules = _createParticules();
+		_createParticules();
 		for ( int i = 0; i < _nbparticules; i++ )
 		{
 			_particules._colors.push_back(Vec3f( 0 ));
@@ -69,40 +67,40 @@ namespace SIM_PART
 		return true;
 	}
 
-	void LabWorkTetgen::tetrahedralize_particules( tetgenio* out)
+	void LabWorkTetgen::init_particules(tetgenio* in) 
 	{
-		_nbparticules = 1000;
-		printf( "fonction \n" );
+		for ( int i = 0; i < _nbparticules; i++ )
+		{
+			_particules._positions.push_back(
+				Vec3f( getRandomFloat() * _dimCage.x, getRandomFloat() * _dimCage.y, getRandomFloat() * _dimCage.z ) );
+		}
+
+		in->initialize();
+		in->numberofpoints = _nbparticules;
+		in->pointlist	  = new REAL[ in->numberofpoints * 3 ];
 
 		for ( int i = 0; i < _nbparticules; i++ )
 		{
-			_particules._positions.push_back(Vec3f( getRandomFloat() * _dimCage.x,
-														getRandomFloat() * _dimCage.y, 
-														getRandomFloat() * _dimCage.z ) );
-        
+			in->pointlist[ 3 * i ]	  = _particules._positions[ i ].x;
+			in->pointlist[ 3 * i + 1 ] = _particules._positions[ i ].y;
+			in->pointlist[ 3 * i + 2 ] = _particules._positions[ i ].z;
 		}
+	}
 
-		tetgenio in;
-		in.initialize();
-		out->initialize();
-		in.numberofpoints = _nbparticules;
-		in.pointlist	  = new REAL[ in.numberofpoints * 3 ];
-		out->numberofpoints = _nbparticules;
+	void LabWorkTetgen::tetrahedralize_particules( tetgenio* in, tetgenio* out)
+	{
 	
 
-		for ( int i = 0; i < _nbparticules; i++ )
-		{
-			in.pointlist[ 3 * i ]	  = _particules._positions[ i ].x;
-			in.pointlist[ 3 * i + 1 ] = _particules._positions[ i ].y;
-			in.pointlist[ 3 * i + 2 ] = _particules._positions[ i ].z;
-		}
-
-		out->pointlist = in.pointlist;
+		out->initialize();
+		
+		out->numberofpoints = _nbparticules;
+	
+		out->pointlist = in->pointlist;
 		std::cout << "dans tetrahedralize_particules : " << out->pointlist[ 0 ] << std::endl;
 
 		char * param = new char[ 5 ];
 		param[ 0 ]	 = '\0';
-		tetrahedralize( param, &in, out );
+		tetrahedralize( param, in, out );
 
 		printf( "nombre tetrahedre: %d\n", out->numberoftetrahedra );
 		printf( "nombre points: %d\n", out->numberofpoints );
@@ -119,7 +117,14 @@ namespace SIM_PART
 				list_points[ i ]->bronien_mvt(0.1, 10);
 				coord						= list_points[ i ]->getCoord();
 				_particules._positions[ i ] = Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
+				tetgenMesh.pointlist[ i * 3 ] = coord[ 0 ];
+				tetgenMesh.pointlist[ i * 3 + 1 ] = coord[ 1 ];
+				tetgenMesh.pointlist[ i * 3 + 2 ]	  = coord[ 2 ];
+
 			}
+			tetgenio out;
+			tetrahedralize_particules( &tetgenMesh, &out );
+			update_particules( &out );
 			_initBuffersParticules( &_particules );
 			render();
 		}
@@ -150,10 +155,7 @@ namespace SIM_PART
 			glDrawElements( GL_LINES, _particules._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
 			glBindVertexArray( 0 );
 		}
-
-
 		//s1.render( _program );
-
 	}
 
 	void LabWorkTetgen::handleEvents( const SDL_Event & p_event )
@@ -371,45 +373,8 @@ namespace SIM_PART
 		_updateProjectionMatrix();
 	}
 
-	void LabWorkTetgen::_initBuffersCage( CageMesh * cage )
-	{ 
-		//VBO Points
-		glCreateBuffers( 1, &( *cage )._vboPoints );
-		glNamedBufferData( ( *cage )._vboPoints,
-						   ( *cage )._vertices.size() * sizeof( Vec3f ),
-						   ( *cage )._vertices.data(),
-						   GL_STATIC_DRAW );
 
-		//EBO segments
-		glCreateBuffers( 1, &( *cage )._ebo );
-		glNamedBufferData( ( *cage )._ebo,
-						   ( *cage )._segments.size() * sizeof( unsigned int ),
-						   ( *cage )._segments.data(),
-						   GL_STATIC_DRAW );
-
-		//VAO
-		GLuint indexVBO_points = 0;
-		glCreateVertexArrays( 1, &( *cage )._vao );
-
-		// liaison VAO avec VBO Points
-		glEnableVertexArrayAttrib( ( *cage )._vao, indexVBO_points );
-		glVertexArrayAttribFormat( ( *cage )._vao,
-								   indexVBO_points,
-								   3 /*car Vec3f*/,
-								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE, /*non normalisé*/
-								   0 /*aucune sparation entre les elements*/ );
-
-
-		glVertexArrayVertexBuffer( ( *cage )._vao, indexVBO_points, ( *cage )._vboPoints, 0 /*dbute 0*/, sizeof( Vec3f ) );
-		//connexion avec le shader (layout(location = 0))
-		glVertexArrayAttribBinding( ( *cage )._vao, 0, indexVBO_points ); 
-
-		// liaison VAO avec l'EBO
-		glVertexArrayElementBuffer( ( *cage )._vao, ( *cage )._ebo );
-	}
-
-	void LabWorkTetgen::_initBuffersParticules( Particules * part )
+	void LabWorkTetgen::_initBuffersParticules( DelaunayStructure * part )
 	{
 		// VBO Points
 		glCreateBuffers( 1, &( *part )._vboPoints );
@@ -469,20 +434,9 @@ namespace SIM_PART
 		glVertexArrayElementBuffer( ( *part )._vao, ( *part )._ebo );
 	}
 
-	CageMesh LabWorkTetgen::_createCage()
-	{
-		// Creation du cage
-		CageMesh cage		   = CageMesh();
-		cage._vertices	   = {	Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
-								Vec3f( 0, 1, 1 ), Vec3f( 0, 1, 0 ), Vec3f( 0, 0, 0 ), Vec3f( 0, 0, 1 ) };
+	
 
-		cage._segments = {	0, 1, 1, 2, 2, 3, 3, 0, 
-							4, 5, 5, 6, 6, 7, 7, 4, 
-							0, 4, 1, 5, 2, 6, 3, 7 };
-		return cage;
-	}
-
-	LabWorkTetgen::Particules LabWorkTetgen::_createParticules() 
+	void LabWorkTetgen::_createParticules() 
 	{ 
 			
 		// lecture de fichier
@@ -490,57 +444,80 @@ namespace SIM_PART
 		tetrasearch::TetraFileReader::readTetras( "data/tetgen1000points.ele", list_points, list_tetras );
 		_nbparticules = list_points.size();*/
 
-		std::chrono::time_point<std::chrono::system_clock> start_reading, stop_reading, start_neighbours, stop_neighbours, start_attract, stop_attract;
-		Particules particules = Particules();
-
+		std::chrono::time_point<std::chrono::system_clock> start_reading, stop_reading;
+		
 		// Reading tetrahedrization mesh
 		start_reading = std::chrono::system_clock::now();
 		tetgenio out;
 		out.initialize();
-		tetrahedralize_particules( &out );
+		init_particules( &tetgenMesh );
+		tetrahedralize_particules( &tetgenMesh, &out );
+		stop_reading = std::chrono::system_clock::now();
+		std::chrono::duration<double> time_reading = stop_reading - start_reading;
+		std::cout << "Time reading: \t\t\t\t" << time_reading.count() << "s" << std::endl;
+		update_particules( &out );
 
-		for (int i = 0; i < _nbparticules; i++) 
-		{	
-			list_points.push_back(
-				new tetrasearch::Point ( i, out.pointlist[ i * 3 ], out.pointlist[ i * 3 + 1 ], out.pointlist[ i * 3 + 2 ] ) );
+	}
+
+	void LabWorkTetgen::update_points_tetras( tetgenio* out ) 
+	{
+		for ( int i = 0; i < _nbparticules; i++ )
+		{
+			list_points.push_back( new tetrasearch::Point(
+				i, out->pointlist[ i * 3 ], out->pointlist[ i * 3 + 1 ], out->pointlist[ i * 3 + 2 ] ) );
 		}
-		
-	
-		for ( int j = 0; j < out.numberoftetrahedra  ; j ++ ) 
+
+		for ( int j = 0; j < out->numberoftetrahedra; j++ )
 		{
 			list_tetras.push_back( new tetrasearch::Tetrahedron( j,
-																 out.tetrahedronlist[ j * 4 ],
-																 out.tetrahedronlist[ j * 4 + 1 ],
-																 out.tetrahedronlist[ j * 4 + 2 ],
-																 out.tetrahedronlist[ j * 4 + 3 ] ) );
+																 out->tetrahedronlist[ j * 4 ],
+																 out->tetrahedronlist[ j * 4 + 1 ],
+																 out->tetrahedronlist[ j * 4 + 2 ],
+																 out->tetrahedronlist[ j * 4 + 3 ] ) );
 		}
-	
-	
 
-		stop_reading = std::chrono::system_clock::now();
+		for ( int j = 0; j < list_tetras.size(); j++ )
+		{
+			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addTetrahedron( list_tetras[ j ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addTetrahedron( list_tetras[ j ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addTetrahedron( list_tetras[ j ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addTetrahedron( list_tetras[ j ] );
+		}
+	}
 
+	void LabWorkTetgen::compute_neighbours() 
+	{
+		for ( int i = 0; i < (int)list_points.size(); i++ )
+		{
+			list_points[ i ]->computeNeighboursV2( list_tetras );
+			// if ( i % ( _nbparticules / 100 ) == 0 )
+			std::cout << "compute neighbours: " << i << " / " << _nbparticules << "\r";
+		}
+	}
+	void LabWorkTetgen::compute_attract_points() 
+	{
+		std::vector<int> traveled_points( _nbparticules, -1 );
 
+		for ( int i = 0; i < (int)list_points.size(); i++ )
+		{
+			list_points[ i ]->computePointAttractV4( 2.f, list_points, traveled_points );
+			// if ( i % ( _nbparticules / 100 ) == 0 )
+			std::cout << "compute attract points: " << i << " / " << _nbparticules << "\r";
+		}
+	}
+
+	void LabWorkTetgen::update_particules(tetgenio* out) 
+	{
+		std::chrono::time_point<std::chrono::system_clock>  start_neighbours,
+			stop_neighbours, start_attract, stop_attract;
+		
+		update_points_tetras( out );
+		
 		// Computing neighbours for each points
 		std::cout << "Computing neighbours from tetrahedrization..." << std::endl;
 		start_neighbours = std::chrono::system_clock::now();
 
-		for ( int j = 0; j < list_tetras.size(); j++ )
-		{
-			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addTetrahedron( list_tetras[ j ]) ;	
-			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addTetrahedron( list_tetras[ j ]) ;	
-			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addTetrahedron( list_tetras[ j ]) ;	
-			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addTetrahedron( list_tetras[ j ]) ;	
-		}
-
-
-		for ( int i = 0; i < (int)list_points.size(); i++ )
-		{
-			list_points[ i ]->computeNeighboursV2( list_tetras );
-			//if ( i % ( _nbparticules / 100 ) == 0 )
-				std::cout << "compute neighbours: " << i << " / " << _nbparticules << "\r" ;
-			
-		}
-		
+		compute_neighbours();
 		
 		std::cout << std::endl;
 		stop_neighbours = std::chrono::system_clock::now();
@@ -548,41 +525,28 @@ namespace SIM_PART
 		// Computing attract points for each points
 		std::cout << "Computing attract points from tetrahedrization..." << std::endl;
 		start_attract = std::chrono::system_clock::now();
-		std::vector<int> traveled_points( _nbparticules, -1 );
+		
+		compute_attract_points();
 
-		for ( int i = 0; i < (int)list_points.size(); i++ )
-		{
-			list_points[ i ]->computePointAttractV4( 2.f, list_points, traveled_points );
-			//if ( i % ( _nbparticules / 100 ) == 0 )
-				std::cout << "compute attract points: " << i << " / " << _nbparticules << "\r";
-		}
 		std::cout << std::endl;
 		stop_attract = std::chrono::system_clock::now();
 
-
-		
 		// Assign position of the point for OpenGL
 		std::vector<float> coord;
-		for ( int i = 0; i < _nbparticules; i++ ) 
+		for ( int i = 0; i < _nbparticules; i++ )
 		{
 			coord = list_points[ i ]->getCoord();
-			particules._positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
+			_particules._positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
 		}
 
-
 		// Computing and printing nb particles and times
-		std::chrono::duration<double>	time_reading	= stop_reading - start_reading, 
-										time_neighbours = stop_neighbours - start_neighbours,
-										time_attract	= stop_attract - start_attract;
+		std::chrono::duration<double> time_neighbours = stop_neighbours - start_neighbours,
+									  time_attract	  = stop_attract - start_attract;
 
 		std::cout << "Number of particles: " << _nbparticules << std::endl;
-		std::cout << "Time reading: \t\t\t\t" << time_reading.count() << "s" << std::endl;
+
 		std::cout << "Time computing neighbours: \t\t" << time_neighbours.count() << "s" << std::endl;
 		std::cout << "Time computing attracted points: \t" << time_attract.count() << "s" << std::endl;
-
-
-
-		return particules;
 	}
 
 	void LabWorkTetgen::_colorPoint() 

@@ -8,6 +8,10 @@ namespace SIM_PART
 	class CageMesh
 	{
 	  public:
+		/*CageMesh(std::vector<Vec3f> p_vertices, std::vector<unsigned int> p_segments)
+			: _vertices
+		{}*/
+
 		~CageMesh()
 		{
 			if ( _vao != GL_INVALID_INDEX )
@@ -22,7 +26,9 @@ namespace SIM_PART
 				glDeleteBuffers( 1, &_ebo );
 		}
 
-			
+		static CageMesh _createCage();
+		void			_initBuffersCage();
+
 		// ================ Geometric data.
 		std::vector<Vec3f>		  _vertices;
 		std::vector<unsigned int> _segments;

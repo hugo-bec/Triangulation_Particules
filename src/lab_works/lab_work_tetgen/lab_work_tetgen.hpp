@@ -8,82 +8,15 @@
 #include <vector>
 #include "imgui_impl_glut.h"
 #include "tetgen.h"
+
 #include "Point.hpp"
-#include "WireMesh.hpp"
+#include "CageMesh.hpp"
+#include "DelaunayStructure.hpp"
 
 namespace SIM_PART
 {
 	class LabWorkTetgen : public BaseLabWork
 	{
-		struct Particules
-		{
-			~Particules()
-			{
-				if ( _vao != GL_INVALID_INDEX )
-				{
-					glDisableVertexArrayAttrib( _vao, 0 );
-					glDisableVertexArrayAttrib( _vao, 1 );
-					glDeleteVertexArrays( 1, &_vao );
-				}
-				if ( _vboPoints != GL_INVALID_INDEX )
-					glDeleteBuffers( 1, &_vboPoints );
-			}
-			// ================ Geometric data.
-			std::vector<Vec3f>		  _positions;
-			std::vector<Vec3f>		  _colors;
-			std::vector<unsigned int> _indices;
-			//std::vector<gluSphere> ;
-			Mat4f					  _transformation = MAT4F_ID;
-			// ================
-
-			// ================ GL data.
-			GLuint _vao = GL_INVALID_INDEX; // Vertex Array Object
-			GLuint _ebo = GL_INVALID_INDEX; // Element Buffer Object
-
-			// Vertex Buffer Objects.
-			GLuint _vboPoints = GL_INVALID_INDEX;
-			GLuint _vboColors = GL_INVALID_INDEX;
-			// ================
-		};
-
-		struct Edge
-		{
-			tetrasearch::Point * p1;
-			tetrasearch::Point * p2;
-			Vec3f				 color;
-		};
-
-		struct Edges
-		{
-			~Edges()
-			{
-				if ( _vao != GL_INVALID_INDEX )
-				{
-					glDisableVertexArrayAttrib( _vao, 0 );
-					glDisableVertexArrayAttrib( _vao, 1 );
-					glDeleteVertexArrays( 1, &_vao );
-				}
-				if ( _vboPoints != GL_INVALID_INDEX )
-					glDeleteBuffers( 1, &_vboPoints );
-			}
-			// ================ Geometric data.
-			std::vector<Edge>				  _edges;
-			std::vector<Vec3f>				  _colors;
-			std::vector<unsigned int>		  _indices;
-			// std::vector<gluSphere> ;
-			Mat4f _transformation = MAT4F_ID;
-			// ================
-
-			// ================ GL data.
-			GLuint _vao = GL_INVALID_INDEX; // Vertex Array Object
-			GLuint _ebo = GL_INVALID_INDEX; // Element Buffer Object
-
-			// Vertex Buffer Objects.
-			GLuint _vboPoints = GL_INVALID_INDEX;
-			GLuint _vboColors = GL_INVALID_INDEX;
-			// ================
-		};
-
 	  public:
 		LabWorkTetgen() : BaseLabWork() { _camera = new Camera(); }
 		~LabWorkTetgen();
@@ -101,30 +34,33 @@ namespace SIM_PART
 		bool _initProgram();
 		void _initCamera();
 
-		void _initBuffersCage( CageMesh * cage );
-		void _initBuffersParticules( Particules * part_ptr );
+		void _initBuffersParticules( DelaunayStructure * part_ptr );
 
-		void tetrahedralize_particules( tetgenio* out);
+		void tetrahedralize_particules( tetgenio * in, tetgenio * out );
 		void _updateViewMatrix();
 		void _updateProjectionMatrix();
 
 		// Create a mesh representing a unit cage centerd in (0,0,0)
-		CageMesh _createCage();
-		Particules _createParticules();
+		void	   _createParticules();
 		void	   _colorPoint();
+		void	   init_particules( tetgenio * in );
+		void	   update_particules( tetgenio * out );
+		void	   update_points_tetras( tetgenio * out );
+		void	   compute_neighbours();
+		void	   compute_attract_points();
 
 	  private:
 		// ================ Scene data.
 		CageMesh		_cage;
-		Particules		_particules;
-		int				_nbparticules;
+		DelaunayStructure		_particules;
+		int				_nbparticules = 1000;
 		std::vector<tetrasearch::Point*> list_points;
 		std::vector<tetrasearch::Tetrahedron *> list_tetras;
+		tetgenio								tetgenMesh;
 
 
 		BaseCamera *	_camera;
 		time_t			current_time;
-		//Vec3f			_dimCage = Vec3f(5, 2, 3.021);
 		Vec3f			_dimCage = Vec3f(10);
 		// ================
 
