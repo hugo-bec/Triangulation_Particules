@@ -42,6 +42,7 @@
     <ClCompile Include="src\utils\image.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\Tetrahedron.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\TetraFileReader.cpp" />
+    <ClCompile Include="src\utils\Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\lab_works\lab_work_tetgen\CageMesh.hpp" />
@@ -72,6 +73,7 @@
     <ClInclude Include="src\utils\read_file.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\Tetrahedron.hpp" />
     <ClInclude Include="src\lab_works\lab_work_tetgen\TetraFileReader.hpp" />
+    <ClInclude Include="src\utils\Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\lab_works\lab_work_cgal\shaders\triangle.frag" />

@@ -1,5 +1,6 @@
 #include "DelaunayStructure.hpp"
 #include "utils/random.hpp"
+#include "../utils/Utils.hpp"
 #include <chrono>
 
 namespace SIM_PART
@@ -35,10 +36,11 @@ namespace SIM_PART
 		out->numberofpoints = _nbparticules;
 
 		out->pointlist = in->pointlist;
-		std::cout << "dans tetrahedralize_particules : " << out->pointlist[ 0 ] << std::endl;
+		std::cout << "TETGEN: Tetrahedralize..." << std::endl;
 
 		char * param = new char[ 5 ];
-		param[ 0 ]	 = '\0';
+		param[ 0 ]	 = 'Q';
+		param[ 1 ]	 = '\0';
 		tetrahedralize( param, in, out );
 
 		printf( "nombre tetrahedre: %d\n", out->numberoftetrahedra );
@@ -106,10 +108,13 @@ namespace SIM_PART
 
 	void DelaunayStructure::update_particules( tetgenio * out )
 	{
-		std::chrono::time_point<std::chrono::system_clock> start_neighbours, stop_neighbours, start_attract,
+		std::chrono::time_point<std::chrono::system_clock> start_tetra, stop_tetra, start_neighbours, stop_neighbours, start_attract,
 			stop_attract;
 
+		start_tetra = std::chrono::system_clock::now();
 		update_points_tetras( out );
+		stop_tetra = std::chrono::system_clock::now();
+		Utils::print_time( "time reading and interpreting tetgenio: ", start_tetra, stop_tetra );
 
 		// Computing neighbours for each points
 		std::cout << "Computing neighbours from tetrahedrization..." << std::endl;
@@ -131,8 +136,7 @@ namespace SIM_PART
 
 		// Assign position of the point for OpenGL
 		std::vector<float> coord;
-		for ( int i = 0; i < _nbparticules; i++ )
-		{
+		for ( int i = 0; i < _nbparticules; i++ ) {
 			coord = list_points[ i ]->getCoord();
 			this->_positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
 		}
@@ -232,7 +236,7 @@ namespace SIM_PART
 								   indexVBO_points,
 								   3 /*car Vec3f*/,
 								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE /*non normalisé*/,
+								   GL_FALSE /*non normalisï¿½*/,
 								   0 /*aucune sparation entre les elements*/ );
 
 		glVertexArrayVertexBuffer(
@@ -246,7 +250,7 @@ namespace SIM_PART
 								   indexVBO_colors,
 								   3 /*car Vec3f*/,
 								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE /*non normalisé*/,
+								   GL_FALSE /*non normalisï¿½*/,
 								   0 /*aucune sparation entre les lments*/ );
 		glVertexArrayVertexBuffer( _vao, indexVBO_colors, _vboColors, 0, sizeof( Vec3f ) );
 		// connexion avec le shader (layout(location = 0))

@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "utils/random.hpp"
 #include "utils/read_file.hpp"
+#include "../utils/Utils.hpp"
 
 #include "Point.hpp"
 #include "Tetrahedron.hpp"
@@ -24,6 +25,7 @@ namespace SIM_PART
 	bool			  print_all_edges = false;
 	bool			  play			  = false;
 	int				  iteration		  = 3;
+	std::chrono::time_point<std::chrono::system_clock> start_rend, stop_rend;
 
 	//bool			firstTime = true;
 
@@ -60,6 +62,7 @@ namespace SIM_PART
 		_updateProjectionMatrix();
 
 		std::cout << "Done!" << std::endl;
+		start_rend = std::chrono::system_clock::now();
 		return true;
 	}
 
@@ -68,6 +71,14 @@ namespace SIM_PART
 	
 		if ( play ) 
 		{
+			stop_rend = std::chrono::system_clock::now();
+			Utils::print_time( "time rendering: ", start_rend, stop_rend );
+
+			std::cout << "-------------------------------------------------------------------------------" << std::endl;
+			std::chrono::time_point<std::chrono::system_clock> start_bro, stop_bro, start_tet, stop_tet, start_update,
+				stop_update, start_adr, stop_adr, start_color, stop_color, start_buf, stop_buf;
+
+			start_bro = std::chrono::system_clock::now();
 			std::vector<float> coord;
 			for (int i = 0; i < (int)_particules.list_points.size(); i++) 
 			{
@@ -79,27 +90,46 @@ namespace SIM_PART
 				_particules.tetgenMesh.pointlist[ i * 3 + 2 ] = coord[ 2 ];
 
 			}
+			stop_bro = std::chrono::system_clock::now();
+			Utils::print_time( "time brownian: ", start_bro, stop_bro );
 			
 			if ( iteration % _particules.refresh_frame == 0 )
 			{
 				tetgenio out;
+
+				start_tet = std::chrono::system_clock::now();
 				_particules.tetrahedralize_particules( &_particules.tetgenMesh, &out );
+				stop_tet = std::chrono::system_clock::now();
+				Utils::print_time( "time TETGEN tetrahedralize: ", start_tet, stop_tet );
+
+				start_update = std::chrono::system_clock::now();
 				_particules.update_particules( &out );
+				stop_update = std::chrono::system_clock::now();
+				Utils::print_time( "time update particles: ", start_update, stop_update );
 				iteration = 0;
 			}
 
 			else
 			{
+				start_adr = std::chrono::system_clock::now();
 				for ( int j = 0; j < _particules.list_points.size(); j++ )
-				{
-					_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
-				}
+					_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( 
+						_particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
+				stop_adr = std::chrono::system_clock::now();
+				Utils::print_time( "time compute attract double radius: ", start_adr, stop_adr );
 			}
+			start_color = std::chrono::system_clock::now();
 			_particules._colorPoint( print_all_edges, actif_point );
+			stop_color = std::chrono::system_clock::now();
+			Utils::print_time( "time coloring points and generating edges: ", start_color, stop_color );
+
+			start_buf = std::chrono::system_clock::now();
 			_particules._initBuffersParticules();
-			render();
+			stop_buf = std::chrono::system_clock::now();
+			Utils::print_time( "time updates buffers: ", start_buf, stop_buf );
 			iteration++;
 		}
+		start_rend = std::chrono::system_clock::now();
 	}
 
 	void LabWorkTetgen::render()
