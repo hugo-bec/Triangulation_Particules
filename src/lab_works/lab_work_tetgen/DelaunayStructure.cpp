@@ -57,6 +57,7 @@ namespace SIM_PART
 
 	void DelaunayStructure::update_points_tetras( tetgenio * out )
 	{
+		std::chrono::time_point<std::chrono::system_clock> start_neighbours, stop_neighbours;
 		list_points.clear();
 		list_tetras.clear();
 
@@ -75,13 +76,48 @@ namespace SIM_PART
 																 out->tetrahedronlist[ j * 4 + 3 ] ) );
 		}
 
+		// Computing neighbours for each points
+		std::cout << "Computing neighbours from tetrahedrization..." << std::endl;
+		start_neighbours = std::chrono::system_clock::now();
 		for ( int j = 0; j < list_tetras.size(); j++ )
 		{
 			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addTetrahedron( list_tetras[ j ] );
 			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addTetrahedron( list_tetras[ j ] );
 			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addTetrahedron( list_tetras[ j ] );
 			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addTetrahedron( list_tetras[ j ] );
+
+			/* list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->getNeighbours().insert(
+				list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->getNeighbours().end(),
+				{ list_tetras[ j ]->getPoints()[ 1 ],
+				  list_tetras[ j ]->getPoints()[ 2 ],
+				  list_tetras[ j ]->getPoints()[ 3 ] } );*/
+			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 1 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 2 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 3 ] );
+
+			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 0 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 2 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 3 ] );
+
+			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 0 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 1 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 3 ] );
+
+			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 0 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 1 ] );
+			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 2 ] );
 		}
+
+
+		for ( int k = 0; k < list_points.size(); k++ ) 
+		{
+			list_points[ k ]->tri_voisin();	
+		}
+
+		std::cout << std::endl;
+		stop_neighbours = std::chrono::system_clock::now();
+		std::chrono::duration<double> time_neighbours = stop_neighbours - start_neighbours;
+		std::cout << "Time computing neighbours: \t\t" << time_neighbours.count() << "s" << std::endl;
 	}
 
 	void DelaunayStructure::compute_neighbours()
@@ -106,19 +142,13 @@ namespace SIM_PART
 
 	void DelaunayStructure::update_particules( tetgenio * out )
 	{
-		std::chrono::time_point<std::chrono::system_clock> start_neighbours, stop_neighbours, start_attract,
-			stop_attract;
+		std::chrono::time_point<std::chrono::system_clock> start_attract, stop_attract;
 
 		update_points_tetras( out );
 
-		// Computing neighbours for each points
-		std::cout << "Computing neighbours from tetrahedrization..." << std::endl;
-		start_neighbours = std::chrono::system_clock::now();
+		//compute_neighbours();
 
-		compute_neighbours();
-
-		std::cout << std::endl;
-		stop_neighbours = std::chrono::system_clock::now();
+		
 
 		// Computing attract points for each points
 		std::cout << "Computing attract points from tetrahedrization..." << std::endl;
@@ -138,10 +168,8 @@ namespace SIM_PART
 		}
 
 		// Computing and printing nb particles and times
-		std::chrono::duration<double> time_neighbours = stop_neighbours - start_neighbours,
-									  time_attract	  = stop_attract - start_attract;
+		std::chrono::duration<double> time_attract	  = stop_attract - start_attract;
 		std::cout << "Number of particles: " << _nbparticules << std::endl;
-		std::cout << "Time computing neighbours: \t\t" << time_neighbours.count() << "s" << std::endl;
 		std::cout << "Time computing attracted points: \t" << time_attract.count() << "s" << std::endl;
 	}
 
@@ -204,14 +232,14 @@ namespace SIM_PART
 		glNamedBufferData( _vboPoints,
 						   _positions.size() * sizeof( Vec3f ),
 						   _positions.data(),
-						   GL_STATIC_DRAW );	//attention!
+						   GL_DYNAMIC_DRAW );	//attention!
 
 		// VBO couleurs
 		glCreateBuffers( 1, &_vboColors );
 		glNamedBufferData( _vboColors,
 						   _colors.size() * sizeof( Vec3f ),
 						   _colors.data(),
-						   GL_STATIC_DRAW );
+						   GL_DYNAMIC_DRAW );
 
 		// EBO segments
 		//for ( int i = 0; i < ( *part )._positions.size(); i++ ) ( *part )._indices.push_back( i );
@@ -219,7 +247,7 @@ namespace SIM_PART
 		glNamedBufferData( _ebo,
 						   _indices.size() * sizeof( unsigned int ),
 						   _indices.data(),
-						   GL_STATIC_DRAW );
+						   GL_DYNAMIC_DRAW );
 
 		// VAO
 		GLuint indexVBO_points = 0;

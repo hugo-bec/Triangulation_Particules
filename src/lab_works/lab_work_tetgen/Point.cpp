@@ -52,6 +52,13 @@ namespace SIM_PART
 		else
 			return true;
 	}
+	
+	void Point::tri_voisin()
+	{
+		sort( neighbours.begin(), neighbours.end() );
+		auto last = std::unique( neighbours.begin(), neighbours.end() );
+		neighbours.erase( last,neighbours.end() );
+	}
 
 	void Point::computeNeighbours( std::vector<Tetrahedron *> tetraList )
 	{
