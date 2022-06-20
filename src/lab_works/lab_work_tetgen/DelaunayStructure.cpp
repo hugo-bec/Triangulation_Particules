@@ -10,6 +10,7 @@ namespace SIM_PART
 		{
 			this->_positions.push_back(
 				Vec3f( getRandomFloat() * _dimCage.x, getRandomFloat() * _dimCage.y, getRandomFloat() * _dimCage.z ) );
+			_traveled_point.push_back( -1 );
 		}
 
 		in->initialize();
@@ -21,11 +22,10 @@ namespace SIM_PART
 			in->pointlist[ 3 * i ]	   = this->_positions[ i ].x;
 			in->pointlist[ 3 * i + 1 ] = this->_positions[ i ].y;
 			in->pointlist[ 3 * i + 2 ] = this->_positions[ i ].z;
+			_colors.push_back(Vec3f( 0 ) );
 		}
 
-		for ( int i = 0; i < _nbparticules; i++ )
-			_colors.push_back(Vec3f( 0 ));
-
+		
 	}
 
 	void DelaunayStructure::tetrahedralize_particules( tetgenio * in, tetgenio * out )
@@ -92,13 +92,14 @@ namespace SIM_PART
 			std::cout << "compute neighbours: " << i+1 << " / " << _nbparticules << "\r";
 		}
 	}
+
 	void DelaunayStructure::compute_attract_points()
 	{
 		std::vector<int> traveled_points( _nbparticules, -1 );
 
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
-			list_points[ i ]->computePointAttractV4( 2.f, list_points, traveled_points );
+			list_points[ i ]->computePointAttractV4( rayon_attract, list_points, traveled_points, refresh_frame );
 			std::cout << "compute attract points: " << i+1 << " / " << _nbparticules << "\r";
 		}
 	}
@@ -184,7 +185,7 @@ namespace SIM_PART
 		this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 
 		// Change color of attracted point and center point
-		std::cout << "Particule choisie : " << actif_point << std::endl;
+		
 
 		for ( int i = 0; i < _nbparticules; i++ )
 			this->_colors[ i ] = Vec3f( 0 );
@@ -255,5 +256,6 @@ namespace SIM_PART
 		// liaison VAO avec l'EBO
 		glVertexArrayElementBuffer( _vao, _ebo );
 	}
+
 
 }

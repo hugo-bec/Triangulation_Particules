@@ -68,22 +68,24 @@ namespace SIM_PART
 
 		Tetrahedron * findTetra( std::vector<Tetrahedron *> PointList, int id );
 
-		// ne fonctionne pas
-		//============Point Attract V2============
+		
 
-		//void computePointAttractV2( float r, std::vector<Point *> PointList );
-
-		//============Point Attract V3============
-
-		//void computePointAttractV3( float r, std::vector<Point *> PointList, std::vector<int> traveled_point );
-
-		//version qui fontionne
-
-		void computePointAttractV4( float r, std::vector<Point *> PointList, std::vector<int> traveled_point );
+		void computePointAttractV4( float				 r,
+									std::vector<Point *> PointList,
+									std::vector<int>	 traveled_point,
+									int					 refresh_frame );
 
 		//=============Point Attract Version brute============
 
 		void computePointAttractBrut( float r, std::vector<Point *> PointList );
+
+		//=============Trouver point attract sans refaire les tétrahèdres============
+		
+		void computeAttractMethodeDoubleRayon( std::vector<Point *> pointList,
+											   std::vector<int>		traveled_point,
+											   int					iteration,
+											   int					refresh_frame );
+
 
 
 		float getDistance( Point * point );
@@ -97,10 +99,13 @@ namespace SIM_PART
 		float x;
 		float y;
 		float z;
+		float speed = 0.01f;
+		float rayon = 2.f;
 
 		std::vector<int> tetra;
 		std::vector<int> point_attract;
 		std::vector<int> neighbours;
+		std::vector<int> possible_futur_attract;
 
 		//===========test set================
 		// std::set<point, decltype(comparatorSet)> neighbours;

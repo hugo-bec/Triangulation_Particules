@@ -37,16 +37,19 @@ namespace SIM_PART
 
 		// ================ Geometric data.
 		Vec3f _dimCage = Vec3f(10);
-		int	  _nbparticules = 1000;
+		int	  _nbparticules = 10000;
+		float rayon_attract = 2.f;
 
 		std::vector<Point*>		list_points;
 		std::vector<Tetrahedron *> list_tetras;
-		tetgenio								tetgenMesh;
+		tetgenio					tetgenMesh;
 		
 
 		std::vector<Vec3f>		  _positions;
 		std::vector<Vec3f>		  _colors;
 		std::vector<unsigned int> _indices;
+		std::vector<int>		  _traveled_point;
+		int						  refresh_frame=100;
 
 		Mat4f _transformation = MAT4F_ID;
 		// ================

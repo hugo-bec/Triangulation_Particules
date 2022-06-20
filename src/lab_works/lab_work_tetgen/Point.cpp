@@ -33,18 +33,11 @@ namespace SIM_PART
 
 	bool Point::isAttract( Point * p, float attract_distance )
 	{
-		std::vector<float> p_coord;
-		p_coord = p->getCoord();
-
-		float x = p_coord[ 0 ] - this->x;
-		float y = p_coord[ 1 ] - this->y;
-		float z = p_coord[ 2 ] - this->z;
-
-		if ( sqrt( x * x + y * y + z * z ) > attract_distance )
-			return false;
-
-		else
-			return true;
+		std::vector<float> p_coord = p->getCoord();
+		float dx = p_coord[ 0 ] - this->x;
+		float dy = p_coord[ 1 ] - this->y;
+		float dz = p_coord[ 2 ] - this->z;
+		return ( sqrt( dx * dx + dy * dy + dz * dz ) < attract_distance );
 	}
 
 	void Point::addPoint( Point * p ) { point_attract.push_back( p->getId() ); }
@@ -157,158 +150,40 @@ namespace SIM_PART
 		}
 	}
 
-	/* void Point::computePointAttractV2( float r, std::vector<Point *> pointList )
-	{
-		std::vector<int> points			 = this->neighbours;
-		std::vector<int> traveled_points = this->neighbours;
 
-		int tailleActu;
-
-		int nbPointsAttrac;
-
-		bool	belongs = false;
-		Point * p;
-
-		while ( points.size() != 0 )
-		{
-			nbPointsAttrac = 0;
-			tailleActu	   = (int)points.size();
-			for ( int i = 0; i < tailleActu; i++ )
-			{
-				p = findPoint( pointList, points[ i ] );
-				if ( this->isAttract( p, r ) )
-				{
-					this->point_attract.push_back( p->id );
-					nbPointsAttrac += 1;
-				}
-			}
-			if ( nbPointsAttrac == tailleActu )
-			{
-				while ( tailleActu != 0 )
-				{
-					p = findPoint( pointList, points[ 0 ] );
-					for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
-					{
-						belongs = false;
-
-						for ( int j = 0; j < (int)traveled_points.size(); j++ )
-						{
-							if ( p->getNeighbours()[ i ] == traveled_points[ j ]
-								 || this->id == p->getNeighbours()[ i ] )
-							{
-								belongs = true;
-								break;
-							}
-						}
-
-						if ( !belongs )
-						{
-							traveled_points.push_back( p->getNeighbours()[ i ] );
-							points.push_back( p->getNeighbours()[ i ] );
-						}
-					}
-					points.erase( points.begin() );
-					tailleActu--;
-				}
-
-				tailleActu = (int)points.size();
-			}
-
-			else
-			{
-				points.clear();
-			}
-		}
-	}
-
-	void Point::computePointAttractV3( float r, std::vector<Point *> pointList, std::vector<int> traveled_point )
+	void Point::computePointAttractV4( float				r,
+									   std::vector<Point *> pointList,
+									   std::vector<int>		traveled_point,
+									   int refresh_frame )
 	{
 		std::vector<int> points = this->neighbours;
 
 		// initialisation du tableau des points parcourus
-		for ( int i = 0; i < (int)points.size(); i++ )
-		{
-			traveled_point[ points[ i ] ] = this->id;
-		}
-		traveled_point[ this->id ] = this->id;
-
-		int tailleActu;
-
-		int		nbPointsAttrac;
-		Point * p;
-
-		while ( points.size() != 0 )
-		{
-			nbPointsAttrac = 0;
-			tailleActu	   = (int)points.size();
-
-			for ( int i = 0; i < tailleActu; i++ )
-			{
-				p = findPoint( pointList, points[ i ] );
-				if ( this->isAttract( p, r ) )
-				{
-					
-					this->point_attract.push_back( p->id );
-					nbPointsAttrac += 1;
-				}
-			}
-
-			if ( nbPointsAttrac == tailleActu )
-			{
-				while ( tailleActu != 0 )
-				{
-					p = findPoint( pointList, points[ 0 ] );
-					for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
-					{
-						if ( p->getNeighbours()[ i ] != this->id )
-						{
-							points.push_back( p->getNeighbours()[ i ] );
-						}
-					}
-					points.erase( points.begin() );
-					tailleActu--;
-				}
-
-				tailleActu = (int)points.size();
-			}
-
-			else
-			{
-				points.clear();
-			}
-		}
-	}*/
-
-	void Point::computePointAttractV4( float r, std::vector<Point *> pointList, std::vector<int> traveled_point )
-	{
-		std::vector<int> points = this->neighbours;
-
-		// initialisation du tableau des points parcourus
-		for ( int i = 0; i < (int)points.size(); i++ )
-		{
+		for ( int i = 0; i < (int)points.size(); i++ ) {
 			traveled_point[ points[ i ] ] = this->id;
 		}
 		traveled_point[ this->id ] = this->id;
 		
-
 		Point * p;
-
 		while ( points.size() != 0 )
 		{
-			
-			p = findPoint( pointList, points[ 0 ] );
-			if ( this->isAttract( p, r ) )
+			p = pointList[ points[ 0 ] ];
+			if ( this->isAttract( p, r + 2 * speed * refresh_frame ) )
 			{
-				this->point_attract.push_back( p->id );
-				for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
+				possible_futur_attract.push_back( p->id );
+				if ( this->isAttract( p, r ) )
 				{
-					if ( p->getNeighbours()[ i ] != this->id && traveled_point[ p->getNeighbours()[ i ] ] != this->id )
+					this->point_attract.push_back( p->id );
+					std::vector<int> p_neigbours = p->getNeighbours();
+					for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
 					{
-						points.push_back( p->getNeighbours()[ i ] );
-						traveled_point[ p->getNeighbours()[ i ] ] = this->id;
+						if ( traveled_point[ p_neigbours[ i ] ] != this->id )
+						{
+							points.push_back( p_neigbours[ i ] );
+							traveled_point[ p_neigbours[ i ] ] = this->id;
+						}
 					}
 				}
-				
 			}
 			points.erase( points.begin() );
 		}
@@ -317,15 +192,17 @@ namespace SIM_PART
     void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
 	{
 		int nb = 0;
-		std::cout << " Points attract brute :" << std::endl;
+		possible_futur_attract.clear();
+		//std::cout << " Points attract brute :" << std::endl;
 		for (int i = 0; i < (int)pointList.size(); i++) 
 		{
 			if (i!= this->id && this->isAttract(pointList[i], r)) {
-				std::cout << pointList[ i ]->getId() << std::endl;
+				//std::cout << pointList[ i ]->getId() << std::endl;
+				possible_futur_attract.push_back( i );
 				nb++;
 			}
 		}
-		std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
+		//std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
 	}
 
 	float Point::getDistance(Point* point) 
@@ -376,7 +253,33 @@ namespace SIM_PART
 		else
 			this->z = direction.z * speed + this->z;
 
-
-
 	}
-} // namespace tetrasearch
+
+	//===============test==================
+
+
+	void Point::computeAttractMethodeDoubleRayon( std::vector<Point *> pointList, std::vector<int>	traveled_point, int iteration, int refresh_frame ) 
+	{ 
+		std::vector<int> points = this->possible_futur_attract;
+		point_attract.clear();
+
+		Point * p;
+
+		while ( points.size() != 0 )
+		{
+			p = pointList[ points[ 0 ] ];
+
+			if ( this->isAttract( p, rayon ) )
+			{
+				this->point_attract.push_back( p->id );
+			}
+			points.erase( points.begin() );
+		}
+		
+	}
+
+
+	
+
+
+} // namespace SIM_PART

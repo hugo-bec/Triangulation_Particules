@@ -23,6 +23,9 @@ namespace SIM_PART
 	bool			  mode_edges  = true;
 	bool			  print_all_edges = false;
 	bool			  play			  = false;
+	int				  iteration		  = 3;
+
+	//bool			firstTime = true;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -62,6 +65,7 @@ namespace SIM_PART
 
 	void LabWorkTetgen::animate( const float p_deltaTime )
 	{
+	
 		if ( play ) 
 		{
 			std::vector<float> coord;
@@ -75,12 +79,26 @@ namespace SIM_PART
 				_particules.tetgenMesh.pointlist[ i * 3 + 2 ] = coord[ 2 ];
 
 			}
-			tetgenio out;
-			_particules.tetrahedralize_particules( &_particules.tetgenMesh, &out );
-			_particules.update_particules( &out );
+			
+			if ( iteration % _particules.refresh_frame == 0 )
+			{
+				tetgenio out;
+				_particules.tetrahedralize_particules( &_particules.tetgenMesh, &out );
+				_particules.update_particules( &out );
+				iteration = 0;
+			}
+
+			else
+			{
+				for ( int j = 0; j < _particules.list_points.size(); j++ )
+				{
+					_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
+				}
+			}
 			_particules._colorPoint( print_all_edges, actif_point );
 			_particules._initBuffersParticules();
 			render();
+			iteration++;
 		}
 	}
 
@@ -151,6 +169,7 @@ namespace SIM_PART
 					actif_point++;
 				_particules._colorPoint( print_all_edges, actif_point );
 				_particules._initBuffersParticules();
+				std::cout << "Particule choisie : " << actif_point << std::endl;
 				break;
 			case SDL_SCANCODE_KP_MINUS: // arrow right
 				if ( actif_point == 0 )
@@ -159,6 +178,7 @@ namespace SIM_PART
 					actif_point--;
 				_particules._colorPoint( print_all_edges, actif_point );
 				_particules._initBuffersParticules();
+				std::cout << "Particule choisie : " << actif_point << std::endl;
 				break;
 			case SDL_SCANCODE_E: 
 				mode_edges = !mode_edges;
