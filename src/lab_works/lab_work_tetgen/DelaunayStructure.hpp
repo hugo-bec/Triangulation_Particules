@@ -36,7 +36,7 @@ namespace SIM_PART
 		void compute_attract_points();
 
 		// ================ Geometric data.
-		Vec3f _dimCage = Vec3f(-4310);
+		Vec3f _dimCage = Vec3f(10);
 		int	  _nbparticules = 10000;
 		float rayon_attract = 2.f;
 
