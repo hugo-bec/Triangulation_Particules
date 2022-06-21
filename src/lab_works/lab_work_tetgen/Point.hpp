@@ -45,7 +45,9 @@ namespace SIM_PART
 		std::vector<int>   getTetrahedron();
 		std::vector<int>   getPointAttract();
 		std::vector<int>   getNeighbours();
-
+		void			   addNeighbour( int i ) { neighbours.push_back( i ); }
+		void			   tri_voisin();
+		
 		inline void printCoord() { printf( "(x: %lf, y: %lf, z: %lf\n)", x, y, z ); };
 
 		bool isAttract( Point * p, float attract_distance );
