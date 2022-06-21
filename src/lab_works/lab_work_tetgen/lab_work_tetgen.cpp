@@ -68,6 +68,7 @@ namespace SIM_PART
 	
 		if ( play ) 
 		{
+			int				   degre = 3;
 			std::vector<float> coord;
 			for (int i = 0; i < (int)_particules.list_points.size(); i++) 
 			{
@@ -92,7 +93,8 @@ namespace SIM_PART
 			{
 				for ( int j = 0; j < _particules.list_points.size(); j++ )
 				{
-					_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
+					//_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
+					_particules.list_points[ j ]->computeAttractMethodeInondation( _particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame, degre );
 				}
 			}
 			_particules._colorPoint( print_all_edges, actif_point );

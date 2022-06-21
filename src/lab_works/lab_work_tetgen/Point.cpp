@@ -8,9 +8,11 @@
 #include "define.hpp"
 #include "imgui_impl_glut.h"
 #include <random>
+#include <chrono>
 
 namespace SIM_PART
 {
+
 
 	std::vector<float> Point::getCoord() const
 	{
@@ -37,7 +39,8 @@ namespace SIM_PART
 		float dx = p_coord[ 0 ] - this->x;
 		float dy = p_coord[ 1 ] - this->y;
 		float dz = p_coord[ 2 ] - this->z;
-		return ( sqrt( dx * dx + dy * dy + dz * dz ) < attract_distance );
+		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
+		
 	}
 
 	void Point::addPoint( Point * p ) { point_attract.push_back( p->getId() ); }
@@ -94,6 +97,7 @@ namespace SIM_PART
 
 	void Point::computeNeighboursV2( std::vector<Tetrahedron *> tetraList )
 	{
+
 		Tetrahedron * tetrahedron;
 
 		for ( int i = 0; i < (int)tetra.size(); i++ )
@@ -159,30 +163,66 @@ namespace SIM_PART
 
 
 	void Point::computePointAttractV4( float				r,
-									   std::vector<Point *> pointList,
-									   std::vector<int>		traveled_point,
+									   const std::vector<Point *> &pointList,
+									   std::vector<int> &traveled_point,
 									   int refresh_frame )
 	{
+
+		std::chrono::time_point<std::chrono::system_clock> start_init_traveled_points, stop_init_traveled_points,
+			start_comparaison, stop_comparaison,  start_parcours_voisin, stop_parcours_voisin;
+		std::chrono::duration<double> time_init, time_parcours, time_comparaison;
+
+		start_init_traveled_points	= std::chrono::system_clock::now();
 		std::vector<int> points = this->neighbours;
 
 		// initialisation du tableau des points parcourus
-		for ( int i = 0; i < (int)points.size(); i++ ) {
+		for ( int i = 0; i < (int)points.size(); i++ ) 
+		{
 			traveled_point[ points[ i ] ] = this->id;
 		}
 		traveled_point[ this->id ] = this->id;
 		
+		stop_init_traveled_points = std::chrono::system_clock::now();
+		time_init				  += stop_init_traveled_points - start_init_traveled_points;
 		Point * p;
 		while ( points.size() != 0 )
 		{
 			p = pointList[ points[ 0 ] ];
-			if ( this->isAttract( p, r + 2 * speed * refresh_frame ) )
+			start_comparaison = std::chrono::system_clock::now();
+			float d			  = this->getDistance( p );
+			if ( p->getId() > id )
 			{
-				possible_futur_attract.push_back( p->id );
-				if ( this->isAttract( p, r ) )
+				if ( d <= r + 2 * speed * refresh_frame )
 				{
-					this->point_attract.push_back( p->id );
+					possible_futur_attract.push_back( p->id );
+					p->addPossibleAttract( id );
+					if ( d <= r )
+					{
+						stop_comparaison = std::chrono::system_clock::now();
+						time_comparaison += stop_comparaison - start_comparaison;
+						this->point_attract.push_back( p->id );
+						p->addAttract( id );
+						start_parcours_voisin		 = std::chrono::system_clock::now();
+						std::vector<int> p_neigbours = p->getNeighbours();
+						for ( int i = 0; i < p_neigbours.size(); i++ )
+						{
+							if ( traveled_point[ p_neigbours[ i ] ] != this->id )
+							{
+								points.push_back( p_neigbours[ i ] );
+								traveled_point[ p_neigbours[ i ] ] = this->id;
+							}
+						}
+						stop_parcours_voisin = std::chrono::system_clock::now();
+						time_parcours += stop_parcours_voisin - start_parcours_voisin;
+					}
+				}
+			}
+
+			else
+			{
+				if ( d <= r ) {
 					std::vector<int> p_neigbours = p->getNeighbours();
-					for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
+					for ( int i = 0; i < p_neigbours.size(); i++ )
 					{
 						if ( traveled_point[ p_neigbours[ i ] ] != this->id )
 						{
@@ -193,10 +233,17 @@ namespace SIM_PART
 				}
 			}
 			points.erase( points.begin() );
+			
 		}
+
+		//std::cout << " Fonction computeAttractPoint : " << std::endl;
+		//std::cout << " Temps initialisation traveled point : " << time_init.count() << " s" << std::endl;
+		//std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
+		//std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
 	}
 
-    void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
+    
+		void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
 	{
 		int nb = 0;
 		possible_futur_attract.clear();
@@ -265,28 +312,67 @@ namespace SIM_PART
 	//===============test==================
 
 
-	void Point::computeAttractMethodeDoubleRayon( std::vector<Point *> pointList, std::vector<int>	traveled_point, int iteration, int refresh_frame ) 
-	{ 
+	void Point::computeAttractMethodeDoubleRayon( const std::vector<Point *> &pointList,
+												  std::vector<int>	   &traveled_point,
+												  int				   iteration,
+												  int				   refresh_frame )
+	{
 		std::vector<int> points = this->possible_futur_attract;
 		point_attract.clear();
-
 		Point * p;
-
-		while ( points.size() != 0 )
+		for ( int i = 0; i < points.size(); i++ )
 		{
-			p = pointList[ points[ 0 ] ];
-
+			p = pointList[ points[ i ] ];
 			if ( this->isAttract( p, rayon ) )
-			{
 				this->point_attract.push_back( p->id );
-			}
-			points.erase( points.begin() );
 		}
-		
 	}
 
 
-	
+	void Point::computeAttractMethodeInondation( const std::vector<Point *> &pointList,
+												 std::vector<int>	  &traveled_point,
+												 int				  iteration,
+												 int				  refresh_frame,
+												 int				  degre_voisinage)
+	{
+		point_attract.clear();
+		for ( int i = 0; i < traveled_point.size(); i++ )
+		{
+			traveled_point[ i ] = -1;
+		}
+		traveled_point[ this->id ] = this->id;
 
+		for ( int i = 0; i < neighbours.size(); i++ )
+		{
+			traveled_point[ neighbours[ i ]  ] = id;
+		}
+			
+		std::vector<int> n = neighbours;
+		std::vector<int> n2;
+		Point *			 p;
+		while (degre_voisinage != 0) 
+		{
+			for (int i = 0; i < n.size(); i++) 
+			{
+				p  = pointList[ n[ i ] ];
+				if ( this->isAttract( p, rayon ) )
+				{
+					this->point_attract.push_back( p->getId() );
+				}
+				
+				std::vector<int> neighbourg_i = pointList[ n[ i ] ]->getNeighbours();
+				for ( int j = 0; j < neighbourg_i.size(); j++ ) 
+				{
+					if ( traveled_point[ neighbourg_i[ j ] ] != id )
+						n2.push_back( neighbourg_i[ j ] );
 
+				}
+			}
+
+			n.clear();
+			n = n2;
+			n2.clear();
+			degre_voisinage--;
+		}
+	}
 } // namespace SIM_PART
