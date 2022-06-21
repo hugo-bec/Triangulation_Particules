@@ -75,8 +75,8 @@ namespace SIM_PART
 		
 
 		void computePointAttractV4( float				 r,
-									std::vector<Point *> PointList,
-									std::vector<int>	 traveled_point,
+									const std::vector<Point *> &PointList,
+									std::vector<int>	 &traveled_point,
 									int					 refresh_frame );
 
 		//=============Point Attract Version brute============
@@ -85,14 +85,14 @@ namespace SIM_PART
 
 		//=============Trouver point attract sans refaire les tétrahèdres============
 		
-		void computeAttractMethodeDoubleRayon( std::vector<Point *> pointList,
-											   std::vector<int>		traveled_point,
+		void computeAttractMethodeDoubleRayon( const std::vector<Point *> &pointList,
+											   std::vector<int>		&traveled_point,
 											   int					iteration,
 											   int					refresh_frame );
 
 
-		void computeAttractMethodeInondation( std::vector<Point *> pointList,
-													 std::vector<int>	  traveled_point,
+		void computeAttractMethodeInondation( const std::vector<Point *> &pointList,
+													 std::vector<int>	  &traveled_point,
 													 int				  iteration,
 													 int				  refresh_frame, 
 											int degre_voisinage );

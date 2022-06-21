@@ -163,8 +163,8 @@ namespace SIM_PART
 
 
 	void Point::computePointAttractV4( float				r,
-									   std::vector<Point *> pointList,
-									   std::vector<int>		traveled_point,
+									   const std::vector<Point *> &pointList,
+									   std::vector<int> &traveled_point,
 									   int refresh_frame )
 	{
 
@@ -312,8 +312,8 @@ namespace SIM_PART
 	//===============test==================
 
 
-	void Point::computeAttractMethodeDoubleRayon( std::vector<Point *> pointList,
-												  std::vector<int>	   traveled_point,
+	void Point::computeAttractMethodeDoubleRayon( const std::vector<Point *> &pointList,
+												  std::vector<int>	   &traveled_point,
 												  int				   iteration,
 												  int				   refresh_frame )
 	{
@@ -329,55 +329,50 @@ namespace SIM_PART
 	}
 
 
-	void Point::computeAttractMethodeInondation( std::vector<Point *> pointList,
-												 std::vector<int>	  traveled_point,
+	void Point::computeAttractMethodeInondation( const std::vector<Point *> &pointList,
+												 std::vector<int>	  &traveled_point,
 												 int				  iteration,
 												 int				  refresh_frame,
 												 int				  degre_voisinage)
 	{
-		if ( iteration % refresh_frame != 0 )
+		point_attract.clear();
+		for ( int i = 0; i < traveled_point.size(); i++ )
 		{
-			for ( int i = 0; i < traveled_point.size(); i++ )
-			{
-				traveled_point[ i ] = -1;
-			}
-			traveled_point[ this->id ] = this->id;
-
-			for ( int i = 0; i < neighbours.size(); i++ )
-			{
-				traveled_point[ neighbours[ i ]  ] = id;
-			}
-			
-			std::vector<int> n = neighbours;
-			std::vector<int> n2;
-			Point *			 p;
-			while (degre_voisinage != 0) 
-			{
-				for (int i = 0; i < n.size(); i++) 
-				{
-					p  = pointList[ n[ i ] ];
-					if ( this->isAttract( p, rayon ) )
-					{
-						this->point_attract.push_back( p->getId() );
-					}
-					
-					for ( int j = 0; j < pointList[ n[ i ] ]->getNeighbours().size(); j++ ) 
-					{
-						if ( traveled_point[ pointList[ n[ i ] ]->getNeighbours()[ j ] ] != id )
-							n2.push_back( pointList[ n[ i ] ]->getNeighbours()[ j ] );
-
-					}
-				}
-
-				n.clear();
-				n = n2;
-				n2.clear();
-				degre_voisinage--;
-			}
-
+			traveled_point[ i ] = -1;
 		}
+		traveled_point[ this->id ] = this->id;
 
+		for ( int i = 0; i < neighbours.size(); i++ )
+		{
+			traveled_point[ neighbours[ i ]  ] = id;
+		}
+			
+		std::vector<int> n = neighbours;
+		std::vector<int> n2;
+		Point *			 p;
+		while (degre_voisinage != 0) 
+		{
+			for (int i = 0; i < n.size(); i++) 
+			{
+				p  = pointList[ n[ i ] ];
+				if ( this->isAttract( p, rayon ) )
+				{
+					this->point_attract.push_back( p->getId() );
+				}
+				
+				std::vector<int> neighbourg_i = pointList[ n[ i ] ]->getNeighbours();
+				for ( int j = 0; j < neighbourg_i.size(); j++ ) 
+				{
+					if ( traveled_point[ neighbourg_i[ j ] ] != id )
+						n2.push_back( neighbourg_i[ j ] );
 
+				}
+			}
 
+			n.clear();
+			n = n2;
+			n2.clear();
+			degre_voisinage--;
+		}
 	}
 } // namespace SIM_PART
