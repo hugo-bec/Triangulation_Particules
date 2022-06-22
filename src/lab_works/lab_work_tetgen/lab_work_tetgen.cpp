@@ -113,7 +113,7 @@ namespace SIM_PART
 			{
 				start_adr = std::chrono::system_clock::now();
 				for ( int j = 0; j < _particules.list_points.size(); j++ )
-					_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( 
+					_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.rayon_attract,
 						_particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
 				stop_adr = std::chrono::system_clock::now();
 				Utils::print_time( "time compute attract double radius: ", start_adr, stop_adr );

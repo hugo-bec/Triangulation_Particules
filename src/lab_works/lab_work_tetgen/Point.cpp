@@ -167,7 +167,7 @@ namespace SIM_PART
 									   std::vector<int> &traveled_point,
 									   int refresh_frame )
 	{
-
+		
 		std::chrono::time_point<std::chrono::system_clock> start_init_traveled_points, stop_init_traveled_points,
 			start_comparaison, stop_comparaison,  start_parcours_voisin, stop_parcours_voisin;
 		std::chrono::duration<double> time_init, time_parcours, time_comparaison;
@@ -176,12 +176,21 @@ namespace SIM_PART
 		std::vector<int> points = this->neighbours;
 
 		// initialisation du tableau des points parcourus
+
+		for ( int i = 0; i <= id; i++ )
+		{
+				traveled_point[ i ] = id;
+		}
+		for ( int i = id + 1; i < traveled_point.size(); i++ )
+		{
+			traveled_point[ i ] = -1;
+		}
 		for ( int i = 0; i < (int)points.size(); i++ ) 
 		{
 			traveled_point[ points[ i ] ] = this->id;
 		}
-		traveled_point[ this->id ] = this->id;
-		
+	
+
 		stop_init_traveled_points = std::chrono::system_clock::now();
 		time_init				  += stop_init_traveled_points - start_init_traveled_points;
 		Point * p;
@@ -312,7 +321,8 @@ namespace SIM_PART
 	//===============test==================
 
 
-	void Point::computeAttractMethodeDoubleRayon( const std::vector<Point *> &pointList,
+	void Point::computeAttractMethodeDoubleRayon( const float				   rayon, 
+												  const std::vector<Point *> &pointList,
 												  std::vector<int>	   &traveled_point,
 												  int				   iteration,
 												  int				   refresh_frame )
@@ -329,7 +339,8 @@ namespace SIM_PART
 	}
 
 
-	void Point::computeAttractMethodeInondation( const std::vector<Point *> &pointList,
+	void Point::computeAttractMethodeInondation(const float rayon, 
+												const std::vector<Point *> &pointList,
 												 std::vector<int>	  &traveled_point,
 												 int				  iteration,
 												 int				  refresh_frame,

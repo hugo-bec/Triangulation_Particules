@@ -85,17 +85,19 @@ namespace SIM_PART
 
 		//=============Trouver point attract sans refaire les tétrahèdres============
 		
-		void computeAttractMethodeDoubleRayon( const std::vector<Point *> &pointList,
+		void computeAttractMethodeDoubleRayon( const float					rayon, 
+											   const std::vector<Point *> &pointList,
 											   std::vector<int>		&traveled_point,
 											   int					iteration,
 											   int					refresh_frame );
 
 
-		void computeAttractMethodeInondation( const std::vector<Point *> &pointList,
-													 std::vector<int>	  &traveled_point,
-													 int				  iteration,
-													 int				  refresh_frame, 
-											int degre_voisinage );
+		void computeAttractMethodeInondation(	const float				   rayon, 
+												const std::vector<Point *> &pointList,
+												std::vector<int>	  &traveled_point,
+												int				  iteration,
+												int				  refresh_frame, 
+												int degre_voisinage );
 		
 		float getDistance( Point * point );
 
@@ -109,7 +111,7 @@ namespace SIM_PART
 		float y;
 		float z;
 		float speed = 0.01f;
-		float rayon = 2.f;
+		//float rayon = 2.f;
 
 		std::vector<int> tetra;
 		std::vector<int> point_attract;
