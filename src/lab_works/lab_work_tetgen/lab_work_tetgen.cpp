@@ -79,7 +79,7 @@ namespace SIM_PART
 				stop_update, start_adr, stop_adr, start_color, stop_color, start_buf, stop_buf;
 
 			start_bro = std::chrono::system_clock::now();
-			std::vector<float> coord;
+			const float * coord;
 			for (int i = 0; i < (int)_particules.list_points.size(); i++) 
 			{
 				_particules.list_points[ i ]->bronien_mvt(0.1, 10);

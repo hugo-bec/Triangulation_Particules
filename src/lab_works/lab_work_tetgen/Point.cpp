@@ -14,13 +14,8 @@ namespace SIM_PART
 {
 
 
-	std::vector<float> Point::getCoord() const
+	const float* Point::getCoord() const
 	{
-		std::vector<float> coord;
-		coord.push_back( this->x );
-		coord.push_back( this->y );
-		coord.push_back( this->z );
-
 		return coord;
 	}
 
@@ -35,19 +30,21 @@ namespace SIM_PART
 
 	bool Point::isAttract( Point * p, float attract_distance )
 	{
-		std::vector<float> p_coord = p->getCoord();
-		float dx = p_coord[ 0 ] - this->x;
-		float dy = p_coord[ 1 ] - this->y;
-		float dz = p_coord[ 2 ] - this->z;
-		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
-		//return true;
+		const float * p_coord = p->getCoord();
+
+		float dx = p_coord[ 0 ] - x;
+		float dy = p_coord[ 1 ] - y;
+		float dz = p_coord[ 2 ] - z;
+
+		//return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
+		return true;
 	}
 
 	void Point::addPoint( Point * p ) { point_attract.emplace_back( p->getId() ); }
 
 	bool Point::samePoints( Point * p )
 	{
-		std::vector<float> pCoords = p->getCoord();
+		const float * pCoords = p->getCoord();
 
 		if ( pCoords[ 0 ] != this->x || pCoords[ 1 ] != this->y || pCoords[ 2 ] != this->z )
 			return false;
@@ -214,13 +211,13 @@ namespace SIM_PART
 					{
 						p->addAttract( id );
 
-						std::vector<int> p_neighbours = (*p->getNeighbours());
-						for ( int j = 0; j < p_neighbours.size(); j++ )
+						const std::vector<int>* p_neighbours = p->getNeighbours();
+						for ( int j = 0; j < p_neighbours->size(); j++ )
 						{
-							if ( traveled_point[ p_neighbours[ j ] ] != this->id )
+							if ( traveled_point[ (*p_neighbours)[ j ] ] != this->id )
 							{
-								point_attract.emplace_back( p_neighbours[ j ] );
-								traveled_point[ p_neighbours[ j ] ] = this->id;
+								point_attract.emplace_back( (*p_neighbours)[ j ] );
+								traveled_point[ (*p_neighbours)[ j ] ] = this->id;
 							}
 							
 						}
@@ -246,7 +243,7 @@ namespace SIM_PART
 		}
 		taille_attract = point_attract.size();
 		
-		/* while ( points.size() != 0 )
+		/*while ( points.size() != 0 )
 		{
 			p = pointList[ points[ 0 ] ];
 			//p				  = pointList[ points.pop_back() ];
@@ -296,104 +293,16 @@ namespace SIM_PART
 			}
 			points.erase( points.begin() );
 			
-		}
+		}*/
 
 		//std::cout << " Fonction computeAttractPoint : " << std::endl;
 		//std::cout << " Temps initialisation traveled point : " << time_init.count() << " s" << std::endl;
 		//std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
 		//std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
 	}
-
-	void Point::computePointAttractV5( float						r,
-									   const std::vector<Point *> & pointList,
-									   std::vector<int> &			traveled_point,
-									   int							refresh_frame )
-	{
-		/* std::chrono::time_point<std::chrono::system_clock> start_init_traveled_points, stop_init_traveled_points,
-			start_comparaison, stop_comparaison, start_parcours_voisin, stop_parcours_voisin;
-		std::chrono::duration<double> time_init, time_parcours, time_comparaison;
-
-		start_init_traveled_points = std::chrono::system_clock::now();
-		std::vector<int> points	   = this->neighbours;
-
-		// initialisation du tableau des points parcourus
-
-		for ( int i = 0; i <= id; i++ )
-			traveled_point[ i ] = id;
-		
-		for ( int i = id + 1; i < traveled_point.size(); i++ )
-			traveled_point[ i ] = -1;
-
-		for ( int i = 0; i < (int)points.size(); i++ )
-			traveled_point[ points[ i ] ] = this->id;
-
-		stop_init_traveled_points = std::chrono::system_clock::now();
-		time_init += stop_init_traveled_points - start_init_traveled_points;
-		Point * p;
-		while ( points.size() != 0 )
-		{
-			p = pointList[ points[ 0 ] ];
-			// p				  = pointList[ points.pop_back() ];
-			start_comparaison = std::chrono::system_clock::now();
-			float d			  = this->getDistance( p );
-			if ( p->getId() > id )
-			{
-				if ( d <= r + 2 * speed * refresh_frame )
-				{
-					possible_futur_attract.push_back( p->id );
-					p->addPossibleAttract( id );
-					if ( d <= r )
-					{
-						stop_comparaison = std::chrono::system_clock::now();
-						time_comparaison += stop_comparaison - start_comparaison;
-						this->point_attract.push_back( p->id );
-						p->addAttract( id );
-						start_parcours_voisin		 = std::chrono::system_clock::now();
-						std::vector<int> p_neigbours = p->getNeighbours();
-						for ( int i = 0; i < p_neigbours.size(); i++ )
-						{
-							if ( traveled_point[ p_neigbours[ i ] ] != this->id )
-							{
-								points.emplace_back( p_neigbours[ i ] );
-								traveled_point[ p_neigbours[ i ] ] = this->id;
-							}
-						}
-						stop_parcours_voisin = std::chrono::system_clock::now();
-						time_parcours += stop_parcours_voisin - start_parcours_voisin;
-					}
-				}
-			}
-
-			else
-			{
-				if ( d <= r )
-				{
-					std::vector<int> p_neigbours = p->getNeighbours();
-					for ( int i = 0; i < p_neigbours.size(); i++ )
-					{
-						if ( traveled_point[ p_neigbours[ i ] ] != this->id )
-						{
-							points.emplace_back( p_neigbours[ i ] );
-							traveled_point[ p_neigbours[ i ] ] = this->id;
-						}
-					}
-				}
-			}
-			points.erase( points.begin() );
-<<<<<<< HEAD
-=======
-			
->>>>>>> 0a263eb10f18375d7a909cd7049eebdf62e92d9a
-		}*/
-
-		// std::cout << " Fonction computeAttractPoint : " << std::endl;
-		// std::cout << " Temps initialisation traveled point : " << time_init.count() << " s" << std::endl;
-		// std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
-		// std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
-	}
-
+	
     
-		void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
+	void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
 	{
 		int nb = 0;
 		possible_futur_attract.clear();
@@ -411,12 +320,11 @@ namespace SIM_PART
 
 	float Point::getDistance(Point* point) 
 	{
-		std::vector<float> p_coord;
-		p_coord = point->getCoord();
+		const float* p_coord = point->getCoord();
 
-		float x = p_coord[ 0 ] - this->x;
-		float y = p_coord[ 1 ] - this->y;
-		float z = p_coord[ 2 ] - this->z;
+		float x = p_coord[ 0 ] - x;
+		float y = p_coord[ 1 ] - y;
+		float z = p_coord[ 2 ] - z;
 
 		return sqrt( x * x + y * y + z * z );
 		//return 1.;
@@ -424,15 +332,15 @@ namespace SIM_PART
 
 	float Point::getDistance2( Point * point )
 	{
-		std::vector<float> p_coord;
-		p_coord = point->getCoord();
+		//return 1.;
+		const float * p_coord = point->getCoord();
 
-		float x = p_coord[ 0 ] - this->x;
-		float y = p_coord[ 1 ] - this->y;
-		float z = p_coord[ 2 ] - this->z;
+		float dx = p_coord[ 0 ] - x;
+		float dy = p_coord[ 1 ] - y;
+		float dz = p_coord[ 2 ] - z;
 
-		return  x * x + y * y + z * z;
-		// return 1.;
+		return  dx * dx + dy * dy + dz * dz;
+		
 	}
 
 	void Point::bronien_mvt( float speed, int dimCage ) 

@@ -163,7 +163,7 @@ namespace SIM_PART
 		stop_attract = std::chrono::system_clock::now();
 
 		// Assign position of the point for OpenGL
-		std::vector<float> coord;
+		const float * coord;
 		for ( int i = 0; i < _nbparticules; i++ ) {
 			coord = list_points[ i ]->getCoord();
 			this->_positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );

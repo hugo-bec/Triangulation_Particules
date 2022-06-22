@@ -13,40 +13,30 @@ namespace SIM_PART
 
 	class Point
 	{
-		struct compare
-		{
-			bool operator()( const Point * pa, const Point * pb ) const
-			{
-				std::vector<float> a = pa->getCoord();
-				std::vector<float> b = pb->getCoord();
-				if ( a[ 0 ] != b[ 0 ] || a[ 1 ] != b[ 1 ] || a[ 2 ] != b[ 2 ] )
-					return true;
-				else
-					return false;
-				/*return  a[0] != b[0] ? a[0] < b[0] :
-							(a[1] != b[1] ? a[1] < b[1] :
-								(a[2] != b[2] ? a[2] < b[2] : true ) ); */
-			}
-		};
 
 	  public:
 		Point() {};
 		/*Point( float _x, float _y, float _z, std::vector<tetrahedron> _tetra )
 		: x( _x ), y( _y ), z( _z ), tetra( _tetra ) {};*/
 
-		Point( int _id, float _x, float _y, float _z ) : id( _id ), x( _x ), y( _y ), z( _z ) {};
+		Point( int _id, float _x, float _y, float _z ) : id( _id ), x( _x ), y( _y ), z( _z ) 
+		{
+			coord[ 0 ] = x;
+			coord[ 1 ] = y;
+			coord[ 2 ] = z;
+		};
 
 		~Point() {};
 
 		// static bool comparatorSet(Point a, Point b){ return a.samePoints(&b); }
 
-		std::vector<float> getCoord() const;
+		const float* getCoord() const;
 		int				   getId();
 		const std::vector<int>*   getTetrahedron();
 		const std::vector<int>*   getPointAttract();
 		const std::vector<int>*   getNeighbours();
 		void			   addNeighbour( int i ) { neighbours.push_back( i ); }
-		void			   addPossibleAttract( int i ) { possible_futur_attract.push_back( i ); }
+		inline void		   addPossibleAttract( int i ) { possible_futur_attract.push_back( i ); }
 		void			   addAttract( int i ) { point_attract.push_back( i ); }
 		void			   tri_voisin();
 		
@@ -104,9 +94,9 @@ namespace SIM_PART
 												int				  refresh_frame, 
 												int degre_voisinage );
 		
-		float getDistance( Point * point );
+		inline float getDistance( Point * point );
 
-		float getDistance2( Point * point );
+		inline float getDistance2( Point * point );
 
 		void bronien_mvt( float speed, int dimCage );
 
@@ -117,6 +107,7 @@ namespace SIM_PART
 		float x;
 		float y;
 		float z;
+		float coord[ 3 ];
 		float speed = 0.01f;
 		//float rayon = 2.f;
 

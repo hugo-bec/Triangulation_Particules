@@ -8,7 +8,7 @@ namespace SIM_PART
 
 	void Tetrahedron::printPoints( std::vector<Point *> list_points )
 	{
-		std::vector<float> coord;
+		const float * coord;
 		for ( int i = 0; i < (int)points.size(); i++ )
 		{
 			coord = list_points[ points[ i ] ]->getCoord();
