@@ -40,7 +40,7 @@ namespace SIM_PART
 		float dy = p_coord[ 1 ] - this->y;
 		float dz = p_coord[ 2 ] - this->z;
 		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
-		
+		//return true;
 	}
 
 	void Point::addPoint( Point * p ) { point_attract.push_back( p->getId() ); }
@@ -188,6 +188,7 @@ namespace SIM_PART
 		while ( points.size() != 0 )
 		{
 			p = pointList[ points[ 0 ] ];
+			//p				  = pointList[ points.pop_back() ];
 			start_comparaison = std::chrono::system_clock::now();
 			float d			  = this->getDistance( p );
 			if ( p->getId() > id )
@@ -269,6 +270,7 @@ namespace SIM_PART
 		float z = p_coord[ 2 ] - this->z;
 
 		return sqrt( x * x + y * y + z * z );
+		//return 1.;
 	}
 
 	void Point::bronien_mvt( float speed, int dimCage ) 
