@@ -101,6 +101,8 @@ namespace SIM_PART
 		
 		float getDistance( Point * point );
 
+		float getDistance2( Point * point );
+
 		void bronien_mvt( float speed, int dimCage );
 
 		

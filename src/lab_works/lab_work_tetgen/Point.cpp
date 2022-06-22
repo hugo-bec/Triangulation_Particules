@@ -25,7 +25,7 @@ namespace SIM_PART
 	}
 
 	int	 Point::getId() { return this->id; }
-	void Point::addTetrahedron( Tetrahedron * t ) { this->tetra.push_back( t->getId() ); }
+	void Point::addTetrahedron( Tetrahedron * t ) { this->tetra.emplace_back( t->getId() ); }
 
 	std::vector<int> Point::getTetrahedron() { return this->tetra; }
 
@@ -43,7 +43,7 @@ namespace SIM_PART
 		//return true;
 	}
 
-	void Point::addPoint( Point * p ) { point_attract.push_back( p->getId() ); }
+	void Point::addPoint( Point * p ) { point_attract.emplace_back( p->getId() ); }
 
 	bool Point::samePoints( Point * p )
 	{
@@ -89,7 +89,7 @@ namespace SIM_PART
 					}
 
 					if ( !belongs )
-						neighbours.push_back( tetrahedron->getPoints()[ j ] );
+						neighbours.emplace_back( tetrahedron->getPoints()[ j ] );
 				}
 			}
 		}
@@ -108,7 +108,7 @@ namespace SIM_PART
 			{
 				if ( this->id != tetrahedron->getPoints()[ j ] )
 				{
-					neighbours.push_back( tetrahedron->getPoints()[ j ] );
+					neighbours.emplace_back( tetrahedron->getPoints()[ j ] );
 				}
 			}
 		}
@@ -135,7 +135,7 @@ namespace SIM_PART
 			p = findPoint( pointList, points[ 0 ] );
 			if ( this->isAttract( p, r ) )
 			{
-				this->point_attract.push_back( points[ 0 ] );
+				this->point_attract.emplace_back( points[ 0 ] );
 				for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
 				{
 					belongs = false;
@@ -151,8 +151,8 @@ namespace SIM_PART
 
 					if ( !belongs )
 					{
-						traveled_points.push_back( p->getNeighbours()[ i ] );
-						points.push_back( p->getNeighbours()[ i ] );
+						traveled_points.emplace_back( p->getNeighbours()[ i ] );
+						points.emplace_back( p->getNeighbours()[ i ] );
 					}
 				}
 			}
@@ -202,14 +202,15 @@ namespace SIM_PART
 			p		= pointList[ point_attract[ i ] ];
 			if ( p->getId() > id )
 			{
-				float d = this->getDistance( p );
+				float d = this->getDistance2( p );
+				float radius_futur = r + 2 * speed * refresh_frame;
 			
-				if ( d <= r + 2 * speed * refresh_frame )
+				if ( d <= radius_futur * radius_futur )
 				{
 					possible_futur_attract.emplace_back( p->id );
 					p->addPossibleAttract( id );
 
-					if ( d <= r )
+					if ( d <= r*r )
 					{
 						p->addAttract( id );
 
@@ -313,7 +314,7 @@ namespace SIM_PART
 		{
 			if (i!= this->id && this->isAttract(pointList[i], r)) {
 				//std::cout << pointList[ i ]->getId() << std::endl;
-				possible_futur_attract.push_back( i );
+				possible_futur_attract.emplace_back( i );
 				nb++;
 			}
 		}
@@ -331,6 +332,19 @@ namespace SIM_PART
 
 		return sqrt( x * x + y * y + z * z );
 		//return 1.;
+	}
+
+	float Point::getDistance2( Point * point )
+	{
+		std::vector<float> p_coord;
+		p_coord = point->getCoord();
+
+		float x = p_coord[ 0 ] - this->x;
+		float y = p_coord[ 1 ] - this->y;
+		float z = p_coord[ 2 ] - this->z;
+
+		return  x * x + y * y + z * z;
+		// return 1.;
 	}
 
 	void Point::bronien_mvt( float speed, int dimCage ) 
@@ -428,14 +442,14 @@ namespace SIM_PART
 				p  = pointList[ n[ i ] ];
 				if ( this->isAttract( p, rayon ) )
 				{
-					this->point_attract.push_back( p->getId() );
+					this->point_attract.emplace_back( p->getId() );
 				}
 				
 				std::vector<int> neighbourg_i = pointList[ n[ i ] ]->getNeighbours();
 				for ( int j = 0; j < neighbourg_i.size(); j++ ) 
 				{
 					if ( traveled_point[ neighbourg_i[ j ] ] != id )
-						n2.push_back( neighbourg_i[ j ] );
+						n2.emplace_back( neighbourg_i[ j ] );
 
 				}
 			}
