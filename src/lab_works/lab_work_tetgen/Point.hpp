@@ -69,10 +69,6 @@ namespace SIM_PART
 									std::vector<int>	 &traveled_point,
 									int					 refresh_frame );
 
-		void computePointAttractV5( float						 r,
-									const std::vector<Point *> & PointList,
-									std::vector<int> &			 traveled_point,
-									int							 refresh_frame );
 
 		//=============Point Attract Version brute============
 
@@ -101,7 +97,7 @@ namespace SIM_PART
 		void bronien_mvt( float speed, int dimCage );
 
 		
-
+		
 	  private:
 		int	  id;
 		float x;
@@ -116,7 +112,7 @@ namespace SIM_PART
 		std::vector<int> neighbours;
 		std::vector<int> possible_futur_attract;
 		int				 taille_attract;
-
+		
 		//===========test set================
 		// std::set<point, decltype(comparatorSet)> neighbours;
 	};

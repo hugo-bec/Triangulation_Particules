@@ -12,9 +12,13 @@
 
 namespace SIM_PART
 {
+<<<<<<< HEAD
 
 
 	const float* Point::getCoord() const
+=======
+	std::vector<float> Point::getCoord() const
+>>>>>>> 0839e7192c61baa438e105d68a13f4a91336e1e1
 	{
 		return coord;
 	}
@@ -188,7 +192,7 @@ namespace SIM_PART
 			}
 
 		}
-		point_attract			  = neighbours;
+		//point_attract			  = neighbours;
 		stop_init_traveled_points = std::chrono::system_clock::now();
 		time_init				  += stop_init_traveled_points - start_init_traveled_points;
 		Point * p;
@@ -207,7 +211,7 @@ namespace SIM_PART
 					possible_futur_attract.emplace_back( p->id );
 					p->addPossibleAttract( id );
 
-					if ( d <= r*r )
+					if ( d <= r * r )
 					{
 						p->addAttract( id );
 
@@ -236,14 +240,29 @@ namespace SIM_PART
 			}
 			else
 			{
+				std::vector<int> p_neighbours = ( *p->getNeighbours() );
+				for ( int j = 0; j < p_neighbours.size(); j++ )
+				{
+					if ( traveled_point[ p_neighbours[ j ] ] != this->id )
+					{
+						point_attract.emplace_back( p_neighbours[ j ] );
+						traveled_point[ p_neighbours[ j ] ] = this->id;
+					}
+				}
 				i++;
 			}
 
 
 		}
 		taille_attract = point_attract.size();
+<<<<<<< HEAD
 		
 		/*while ( points.size() != 0 )
+=======
+		/* std::vector<int> points = neighbours;
+		Point*			 p;
+		while ( points.size() != 0 )
+>>>>>>> 0839e7192c61baa438e105d68a13f4a91336e1e1
 		{
 			p = pointList[ points[ 0 ] ];
 			//p				  = pointList[ points.pop_back() ];
@@ -300,7 +319,11 @@ namespace SIM_PART
 		//std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
 		//std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
 	}
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> 0839e7192c61baa438e105d68a13f4a91336e1e1
     
 	void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
 	{
@@ -311,11 +334,11 @@ namespace SIM_PART
 		{
 			if (i!= this->id && this->isAttract(pointList[i], r)) {
 				//std::cout << pointList[ i ]->getId() << std::endl;
-				possible_futur_attract.emplace_back( i );
+				//possible_futur_attract.emplace_back( i );
 				nb++;
 			}
 		}
-		//std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
+		std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
 	}
 
 	float Point::getDistance(Point* point) 
