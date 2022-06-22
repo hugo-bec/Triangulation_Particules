@@ -182,11 +182,11 @@ namespace SIM_PART
 		std::vector<int> edges, tmp, tp;
 		if ( !print_all_edges )
 		{
-			std::vector<int> attract_actif_points = list_points[ actif_point ]->getPointAttract();
+			std::vector<int> attract_actif_points = (*list_points[ actif_point ]->getPointAttract());
 			std::vector<int> tetra_actif_points, list_tetra_tmp;
 			for ( int i = 0; i < attract_actif_points.size(); i++ )
 			{
-				list_tetra_tmp = list_points[ attract_actif_points[ i ] ]->getTetrahedron();
+				list_tetra_tmp = (*list_points[ attract_actif_points[ i ] ]->getTetrahedron());
 				tetra_actif_points.insert( tetra_actif_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
 			}
 			sort( tetra_actif_points.begin(), tetra_actif_points.end() );
@@ -220,7 +220,7 @@ namespace SIM_PART
 		for ( int i = 0; i < _nbparticules; i++ )
 			this->_colors[ i ] = Vec3f( 0 );
 
-		std::vector<int> point_attract = list_points[ actif_point ]->getPointAttract();
+		std::vector<int> point_attract = (*list_points[ actif_point ]->getPointAttract());
 		for ( int i = 0; i < point_attract.size(); i++ )
 			this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
 

@@ -27,11 +27,11 @@ namespace SIM_PART
 	int	 Point::getId() { return this->id; }
 	void Point::addTetrahedron( Tetrahedron * t ) { this->tetra.emplace_back( t->getId() ); }
 
-	std::vector<int> Point::getTetrahedron() { return this->tetra; }
+	const std::vector<int>* Point::getTetrahedron() { return &tetra; }
 
-	std::vector<int> Point::getPointAttract() { return this->point_attract; }
+	const std::vector<int>* Point::getPointAttract() { return &point_attract; }
 
-	std::vector<int> Point::getNeighbours() { return this->neighbours; }
+	const std::vector<int>* Point::getNeighbours() { return &neighbours; }
 
 	bool Point::isAttract( Point * p, float attract_distance )
 	{
@@ -135,14 +135,19 @@ namespace SIM_PART
 			p = findPoint( pointList, points[ 0 ] );
 			if ( this->isAttract( p, r ) )
 			{
+<<<<<<< HEAD
 				this->point_attract.emplace_back( points[ 0 ] );
 				for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
+=======
+				this->point_attract.push_back( points[ 0 ] );
+				for ( int i = 0; i < (*p->getNeighbours()).size(); i++ )
+>>>>>>> f431abef01d33673cf43d44b355fd8894657cdb8
 				{
 					belongs = false;
 
 					for ( int j = 0; j < (int)traveled_points.size(); j++ )
 					{
-						if ( p->getNeighbours()[ i ] == traveled_points[ j ] || this->id == p->getNeighbours()[ i ] )
+						if ( (*p->getNeighbours())[ i ] == traveled_points[ j ] || this->id == (*p->getNeighbours())[ i ] )
 						{
 							belongs = true;
 							break;
@@ -151,8 +156,13 @@ namespace SIM_PART
 
 					if ( !belongs )
 					{
+<<<<<<< HEAD
 						traveled_points.emplace_back( p->getNeighbours()[ i ] );
 						points.emplace_back( p->getNeighbours()[ i ] );
+=======
+						traveled_points.push_back( (*p->getNeighbours())[ i ] );
+						points.push_back( (*p->getNeighbours())[ i ] );
+>>>>>>> f431abef01d33673cf43d44b355fd8894657cdb8
 					}
 				}
 			}
@@ -214,7 +224,7 @@ namespace SIM_PART
 					{
 						p->addAttract( id );
 
-						std::vector<int> p_neighbours = p->getNeighbours();
+						std::vector<int> p_neighbours = (*p->getNeighbours());
 						for ( int j = 0; j < p_neighbours.size(); j++ )
 						{
 							if ( traveled_point[ p_neighbours[ j ] ] != this->id )
@@ -265,6 +275,90 @@ namespace SIM_PART
 						this->point_attract.emplace_back( p->id );
 						p->addAttract( id );
 						start_parcours_voisin		 = std::chrono::system_clock::now();
+						const std::vector<int>* p_neigbours = p->getNeighbours();
+						for ( int i = 0; i < (*p_neigbours).size(); i++ )
+						{
+							if ( traveled_point[ (*p_neigbours)[ i ] ] != this->id )
+							{
+								points.push_back( (*p_neigbours)[ i ] );
+								traveled_point[ (*p_neigbours)[ i ] ] = this->id;
+							}
+						}
+						stop_parcours_voisin = std::chrono::system_clock::now();
+						time_parcours += stop_parcours_voisin - start_parcours_voisin;
+					}
+				}
+			}
+
+			else
+			{
+				if ( d <= r ) {
+					const std::vector<int>* p_neigbours = p->getNeighbours();
+					for ( int i = 0; i < (*p_neigbours).size(); i++ )
+					{
+						if ( traveled_point[ (*p_neigbours)[ i ] ] != this->id )
+						{
+							points.push_back( (*p_neigbours)[ i ] );
+							traveled_point[ (*p_neigbours)[ i ] ] = this->id;
+						}
+					}
+				}
+			}
+			points.erase( points.begin() );
+			
+		}
+
+		//std::cout << " Fonction computeAttractPoint : " << std::endl;
+		//std::cout << " Temps initialisation traveled point : " << time_init.count() << " s" << std::endl;
+		//std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
+		//std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
+	}
+
+	void Point::computePointAttractV5( float						r,
+									   const std::vector<Point *> & pointList,
+									   std::vector<int> &			traveled_point,
+									   int							refresh_frame )
+	{
+		/* std::chrono::time_point<std::chrono::system_clock> start_init_traveled_points, stop_init_traveled_points,
+			start_comparaison, stop_comparaison, start_parcours_voisin, stop_parcours_voisin;
+		std::chrono::duration<double> time_init, time_parcours, time_comparaison;
+
+		start_init_traveled_points = std::chrono::system_clock::now();
+		std::vector<int> points	   = this->neighbours;
+
+		// initialisation du tableau des points parcourus
+
+		for ( int i = 0; i <= id; i++ )
+			traveled_point[ i ] = id;
+		
+		for ( int i = id + 1; i < traveled_point.size(); i++ )
+			traveled_point[ i ] = -1;
+
+		for ( int i = 0; i < (int)points.size(); i++ )
+			traveled_point[ points[ i ] ] = this->id;
+
+		stop_init_traveled_points = std::chrono::system_clock::now();
+		time_init += stop_init_traveled_points - start_init_traveled_points;
+		Point * p;
+		while ( points.size() != 0 )
+		{
+			p = pointList[ points[ 0 ] ];
+			// p				  = pointList[ points.pop_back() ];
+			start_comparaison = std::chrono::system_clock::now();
+			float d			  = this->getDistance( p );
+			if ( p->getId() > id )
+			{
+				if ( d <= r + 2 * speed * refresh_frame )
+				{
+					possible_futur_attract.push_back( p->id );
+					p->addPossibleAttract( id );
+					if ( d <= r )
+					{
+						stop_comparaison = std::chrono::system_clock::now();
+						time_comparaison += stop_comparaison - start_comparaison;
+						this->point_attract.push_back( p->id );
+						p->addAttract( id );
+						start_parcours_voisin		 = std::chrono::system_clock::now();
 						std::vector<int> p_neigbours = p->getNeighbours();
 						for ( int i = 0; i < p_neigbours.size(); i++ )
 						{
@@ -282,7 +376,8 @@ namespace SIM_PART
 
 			else
 			{
-				if ( d <= r ) {
+				if ( d <= r )
+				{
 					std::vector<int> p_neigbours = p->getNeighbours();
 					for ( int i = 0; i < p_neigbours.size(); i++ )
 					{
@@ -295,13 +390,16 @@ namespace SIM_PART
 				}
 			}
 			points.erase( points.begin() );
+<<<<<<< HEAD
+=======
 			
+>>>>>>> 0a263eb10f18375d7a909cd7049eebdf62e92d9a
 		}*/
 
-		//std::cout << " Fonction computeAttractPoint : " << std::endl;
-		//std::cout << " Temps initialisation traveled point : " << time_init.count() << " s" << std::endl;
-		//std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
-		//std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
+		// std::cout << " Fonction computeAttractPoint : " << std::endl;
+		// std::cout << " Temps initialisation traveled point : " << time_init.count() << " s" << std::endl;
+		// std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
+		// std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
 	}
 
     
@@ -445,7 +543,7 @@ namespace SIM_PART
 					this->point_attract.emplace_back( p->getId() );
 				}
 				
-				std::vector<int> neighbourg_i = pointList[ n[ i ] ]->getNeighbours();
+				std::vector<int> neighbourg_i = (*pointList[ n[ i ] ]->getNeighbours());
 				for ( int j = 0; j < neighbourg_i.size(); j++ ) 
 				{
 					if ( traveled_point[ neighbourg_i[ j ] ] != id )
