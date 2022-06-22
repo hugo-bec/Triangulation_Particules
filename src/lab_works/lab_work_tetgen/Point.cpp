@@ -167,16 +167,13 @@ namespace SIM_PART
 									   std::vector<int> &traveled_point,
 									   int refresh_frame )
 	{
-		
+
 		std::chrono::time_point<std::chrono::system_clock> start_init_traveled_points, stop_init_traveled_points,
 			start_comparaison, stop_comparaison,  start_parcours_voisin, stop_parcours_voisin;
 		std::chrono::duration<double> time_init, time_parcours, time_comparaison;
 
 		start_init_traveled_points	= std::chrono::system_clock::now();
-		std::vector<int> points = this->neighbours;
-
-		// initialisation du tableau des points parcourus
-
+	
 		for ( int i = 0; i <= id; i++ )
 		{
 				traveled_point[ i ] = id;
@@ -185,16 +182,70 @@ namespace SIM_PART
 		{
 			traveled_point[ i ] = -1;
 		}
-		for ( int i = 0; i < (int)points.size(); i++ ) 
+		for ( int i = 0; i < (int)neighbours.size(); i++ ) 
 		{
-			traveled_point[ points[ i ] ] = this->id;
-		}
-	
+			if (neighbours[i] > id) 
+			{
+				traveled_point[ neighbours[ i ] ] = this->id;
+				point_attract.emplace_back( neighbours[ i ] );
+			}
 
+		}
+		point_attract			  = neighbours;
 		stop_init_traveled_points = std::chrono::system_clock::now();
 		time_init				  += stop_init_traveled_points - start_init_traveled_points;
 		Point * p;
-		while ( points.size() != 0 )
+		int		i = 0;
+
+		while (i < point_attract.size()) 
+		{
+			p		= pointList[ point_attract[ i ] ];
+			if ( p->getId() > id )
+			{
+				float d = this->getDistance( p );
+			
+				if ( d <= r + 2 * speed * refresh_frame )
+				{
+					possible_futur_attract.emplace_back( p->id );
+					p->addPossibleAttract( id );
+
+					if ( d <= r )
+					{
+						p->addAttract( id );
+
+						std::vector<int> p_neighbours = (*p->getNeighbours());
+						for ( int j = 0; j < p_neighbours.size(); j++ )
+						{
+							if ( traveled_point[ p_neighbours[ j ] ] != this->id )
+							{
+								point_attract.emplace_back( p_neighbours[ j ] );
+								traveled_point[ p_neighbours[ j ] ] = this->id;
+							}
+							
+						}
+						i++;
+					}
+
+					else
+					{
+						point_attract.erase( point_attract.begin() + i );
+					}
+				}
+				else
+				{
+					point_attract.erase( point_attract.begin() + i );
+				}
+			}
+			else
+			{
+				i++;
+			}
+
+
+		}
+		taille_attract = point_attract.size();
+		
+		/* while ( points.size() != 0 )
 		{
 			p = pointList[ points[ 0 ] ];
 			//p				  = pointList[ points.pop_back() ];
@@ -204,13 +255,13 @@ namespace SIM_PART
 			{
 				if ( d <= r + 2 * speed * refresh_frame )
 				{
-					possible_futur_attract.push_back( p->id );
+					possible_futur_attract.emplace_back( p->id );
 					p->addPossibleAttract( id );
 					if ( d <= r )
 					{
 						stop_comparaison = std::chrono::system_clock::now();
 						time_comparaison += stop_comparaison - start_comparaison;
-						this->point_attract.push_back( p->id );
+						this->point_attract.emplace_back( p->id );
 						p->addAttract( id );
 						start_parcours_voisin		 = std::chrono::system_clock::now();
 						const std::vector<int>* p_neigbours = p->getNeighbours();
@@ -302,7 +353,7 @@ namespace SIM_PART
 						{
 							if ( traveled_point[ p_neigbours[ i ] ] != this->id )
 							{
-								points.push_back( p_neigbours[ i ] );
+								points.emplace_back( p_neigbours[ i ] );
 								traveled_point[ p_neigbours[ i ] ] = this->id;
 							}
 						}
@@ -321,13 +372,17 @@ namespace SIM_PART
 					{
 						if ( traveled_point[ p_neigbours[ i ] ] != this->id )
 						{
-							points.push_back( p_neigbours[ i ] );
+							points.emplace_back( p_neigbours[ i ] );
 							traveled_point[ p_neigbours[ i ] ] = this->id;
 						}
 					}
 				}
 			}
 			points.erase( points.begin() );
+<<<<<<< HEAD
+=======
+			
+>>>>>>> 0a263eb10f18375d7a909cd7049eebdf62e92d9a
 		}*/
 
 		// std::cout << " Fonction computeAttractPoint : " << std::endl;
@@ -413,15 +468,22 @@ namespace SIM_PART
 												  int				   iteration,
 												  int				   refresh_frame )
 	{
-		std::vector<int> points = this->possible_futur_attract;
-		point_attract.clear();
+		point_attract.erase(point_attract.begin(), (point_attract.begin() + taille_attract - 1));
 		Point * p;
-		for ( int i = 0; i < points.size(); i++ )
+		for ( int i = 0; i < possible_futur_attract.size(); i++ )
 		{
-			p = pointList[ points[ i ] ];
-			if ( this->isAttract( p, rayon ) )
-				this->point_attract.push_back( p->id );
+			if ( possible_futur_attract[ i ] > id )
+			{
+				p = pointList[ possible_futur_attract[ i ] ];
+				if ( this->isAttract( p, rayon ) )
+				{
+					this->point_attract.emplace_back( p->id );
+				
+				}
+			}
+				
 		}
+		taille_attract = point_attract.size();
 	}
 
 

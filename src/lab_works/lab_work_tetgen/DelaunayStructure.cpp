@@ -134,7 +134,8 @@ namespace SIM_PART
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
 			list_points[ i ]->computePointAttractV4( rayon_attract, list_points, traveled_points, refresh_frame );
-			std::cout << "compute attract points: " << i+1 << " / " << _nbparticules << "\r";
+			if (i % 1000 == 0)
+				std::cout << "compute attract points: " << i+1000 << " / " << _nbparticules << "\r";
 		}
 	}
 
