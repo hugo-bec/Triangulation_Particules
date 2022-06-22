@@ -135,13 +135,8 @@ namespace SIM_PART
 			p = findPoint( pointList, points[ 0 ] );
 			if ( this->isAttract( p, r ) )
 			{
-<<<<<<< HEAD
-				this->point_attract.emplace_back( points[ 0 ] );
-				for ( int i = 0; i < (int)p->getNeighbours().size(); i++ )
-=======
 				this->point_attract.push_back( points[ 0 ] );
 				for ( int i = 0; i < (*p->getNeighbours()).size(); i++ )
->>>>>>> f431abef01d33673cf43d44b355fd8894657cdb8
 				{
 					belongs = false;
 
@@ -156,13 +151,8 @@ namespace SIM_PART
 
 					if ( !belongs )
 					{
-<<<<<<< HEAD
-						traveled_points.emplace_back( p->getNeighbours()[ i ] );
-						points.emplace_back( p->getNeighbours()[ i ] );
-=======
 						traveled_points.push_back( (*p->getNeighbours())[ i ] );
 						points.push_back( (*p->getNeighbours())[ i ] );
->>>>>>> f431abef01d33673cf43d44b355fd8894657cdb8
 					}
 				}
 			}
