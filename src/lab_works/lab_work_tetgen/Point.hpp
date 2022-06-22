@@ -117,6 +117,7 @@ namespace SIM_PART
 		std::vector<int> point_attract;
 		std::vector<int> neighbours;
 		std::vector<int> possible_futur_attract;
+		int				 taille_attract;
 
 		//===========test set================
 		// std::set<point, decltype(comparatorSet)> neighbours;
