@@ -83,31 +83,27 @@ namespace SIM_PART
 		start_neighbours = std::chrono::system_clock::now();
 		for ( int j = 0; j < list_tetras.size(); j++ )
 		{
-			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addTetrahedron( list_tetras[ j ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addTetrahedron( list_tetras[ j ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addTetrahedron( list_tetras[ j ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addTetrahedron( list_tetras[ j ] );
+			std::vector<int> lp = list_tetras[ j ]->getPoints();
+			list_points[ lp[ 0 ] ]->addTetrahedron( list_tetras[ j ] );
+			list_points[ lp[ 1 ] ]->addTetrahedron( list_tetras[ j ] );
+			list_points[ lp[ 2 ] ]->addTetrahedron( list_tetras[ j ] );
+			list_points[ lp[ 3 ] ]->addTetrahedron( list_tetras[ j ] );
 
-			/* list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->getNeighbours().insert(
-				list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->getNeighbours().end(),
-				{ list_tetras[ j ]->getPoints()[ 1 ],
-				  list_tetras[ j ]->getPoints()[ 2 ],
-				  list_tetras[ j ]->getPoints()[ 3 ] } );*/
-			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 1 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 2 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 0 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 3 ] );
+			list_points[ lp[ 0 ] ]->addNeighbour( lp[ 1 ] );
+			list_points[ lp[ 0 ] ]->addNeighbour( lp[ 2 ] );
+			list_points[ lp[ 0 ] ]->addNeighbour( lp[ 3 ] );
 
-			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 0 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 2 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 1 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 3 ] );
+			list_points[ lp[ 1 ] ]->addNeighbour( lp[ 0 ] );
+			list_points[ lp[ 1 ] ]->addNeighbour( lp[ 2 ] );
+			list_points[ lp[ 1 ] ]->addNeighbour( lp[ 3 ] );
 
-			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 0 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 1 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 2 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 3 ] );
+			list_points[ lp[ 2 ] ]->addNeighbour( lp[ 0 ] );
+			list_points[ lp[ 2 ] ]->addNeighbour( lp[ 1 ] );
+			list_points[ lp[ 2 ] ]->addNeighbour( lp[ 3 ] );
 
-			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 0 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 1 ] );
-			list_points[ list_tetras[ j ]->getPoints()[ 3 ] ]->addNeighbour( list_tetras[ j ]->getPoints()[ 2 ] );
+			list_points[ lp[ 3 ] ]->addNeighbour( lp[ 0 ] );
+			list_points[ lp[ 3 ] ]->addNeighbour( lp[ 1 ] );
+			list_points[ lp[ 3 ] ]->addNeighbour( lp[ 2 ] );
 		}
 
 
