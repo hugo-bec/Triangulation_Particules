@@ -12,13 +12,9 @@
 
 namespace SIM_PART
 {
-<<<<<<< HEAD
 
 
 	const float* Point::getCoord() const
-=======
-	std::vector<float> Point::getCoord() const
->>>>>>> 0839e7192c61baa438e105d68a13f4a91336e1e1
 	{
 		return coord;
 	}
@@ -255,14 +251,9 @@ namespace SIM_PART
 
 		}
 		taille_attract = point_attract.size();
-<<<<<<< HEAD
-		
-		/*while ( points.size() != 0 )
-=======
 		/* std::vector<int> points = neighbours;
 		Point*			 p;
 		while ( points.size() != 0 )
->>>>>>> 0839e7192c61baa438e105d68a13f4a91336e1e1
 		{
 			p = pointList[ points[ 0 ] ];
 			//p				  = pointList[ points.pop_back() ];
@@ -319,11 +310,7 @@ namespace SIM_PART
 		//std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
 		//std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
 	}
-<<<<<<< HEAD
 	
-=======
-
->>>>>>> 0839e7192c61baa438e105d68a13f4a91336e1e1
     
 	void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
 	{
