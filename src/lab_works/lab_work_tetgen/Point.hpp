@@ -42,9 +42,9 @@ namespace SIM_PART
 
 		std::vector<float> getCoord() const;
 		int				   getId();
-		std::vector<int>   getTetrahedron();
-		std::vector<int>   getPointAttract();
-		std::vector<int>   getNeighbours();
+		const std::vector<int>*   getTetrahedron();
+		const std::vector<int>*   getPointAttract();
+		const std::vector<int>*   getNeighbours();
 		void			   addNeighbour( int i ) { neighbours.push_back( i ); }
 		void			   addPossibleAttract( int i ) { possible_futur_attract.push_back( i ); }
 		void			   addAttract( int i ) { point_attract.push_back( i ); }
@@ -78,6 +78,11 @@ namespace SIM_PART
 									const std::vector<Point *> &PointList,
 									std::vector<int>	 &traveled_point,
 									int					 refresh_frame );
+
+		void computePointAttractV5( float						 r,
+									const std::vector<Point *> & PointList,
+									std::vector<int> &			 traveled_point,
+									int							 refresh_frame );
 
 		//=============Point Attract Version brute============
 

@@ -174,6 +174,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -213,6 +214,7 @@ xcopy /y /d  "$(ProjectDir)lib\zlib1.dll" "$(OutDir)"</Command>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)\lib\SDL2\lib\x64;$(ProjectDir)\lib\assimp;$(ProjectDir)\lib\tetgen\lib\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>assimp-vc142-mt.lib;SDL2main.lib;SDL2.lib;tetgen.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /y /d  "$(ProjectDir)lib\SDL2\lib\x64\SDL2.dll" "$(OutDir)"
