@@ -118,6 +118,13 @@ namespace SIM_PART
 				stop_adr = std::chrono::system_clock::now();
 				Utils::print_time( "time compute attract double radius: ", start_adr, stop_adr );
 			}
+
+			_particules.list_points[ actif_point ]->computePointAttractBrut( _particules.rayon_attract,
+																			 _particules.list_points );
+			std::cout << "nb voisin notre methode : "
+					  << _particules.list_points[ actif_point ]->getPointAttract()->size()<<std::endl;
+
+
 			start_color = std::chrono::system_clock::now();
 			_particules._colorPoint( print_all_edges, actif_point );
 			stop_color = std::chrono::system_clock::now();
@@ -200,6 +207,7 @@ namespace SIM_PART
 				_particules._colorPoint( print_all_edges, actif_point );
 				_particules._initBuffersParticules();
 				std::cout << "Particule choisie : " << actif_point << std::endl;
+				
 				break;
 			case SDL_SCANCODE_KP_MINUS: // arrow right
 				if ( actif_point == 0 )
@@ -209,6 +217,7 @@ namespace SIM_PART
 				_particules._colorPoint( print_all_edges, actif_point );
 				_particules._initBuffersParticules();
 				std::cout << "Particule choisie : " << actif_point << std::endl;
+
 				break;
 			case SDL_SCANCODE_E: 
 				mode_edges = !mode_edges;
