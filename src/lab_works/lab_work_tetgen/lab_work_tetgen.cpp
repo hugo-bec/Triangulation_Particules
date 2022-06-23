@@ -83,7 +83,7 @@ namespace SIM_PART
 			for (int i = 0; i < (int)_particules.list_points.size(); i++) 
 			{
 				_particules.list_points[ i ]->bronien_mvt(0.1, 10);
-				coord										  = _particules.list_points[ i ]->getCoord();
+				coord	= _particules.list_points[ i ]->getCoord();
 				_particules._positions[ i ] = Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] );
 				_particules.tetgenMesh.pointlist[ i * 3 ] = coord[ 0 ];
 				_particules.tetgenMesh.pointlist[ i * 3 + 1 ] = coord[ 1 ];
@@ -119,10 +119,8 @@ namespace SIM_PART
 				Utils::print_time( "time compute attract double radius: ", start_adr, stop_adr );
 			}
 
-			_particules.list_points[ actif_point ]->computePointAttractBrut( _particules.rayon_attract,
-																			 _particules.list_points );
-			std::cout << "nb voisin notre methode : "
-					  << _particules.list_points[ actif_point ]->getPointAttract()->size()<<std::endl;
+			//_particules.list_points[ actif_point ]->computePointAttractBrut( _particules.rayon_attract, _particules.list_points );
+			//std::cout << "nb voisin notre methode : " << _particules.list_points[ actif_point ]->getPointAttract()->size()<<std::endl;
 
 
 			start_color = std::chrono::system_clock::now();

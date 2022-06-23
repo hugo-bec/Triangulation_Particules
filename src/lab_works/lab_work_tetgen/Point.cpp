@@ -36,8 +36,8 @@ namespace SIM_PART
 		float dy = p_coord[ 1 ] - y;
 		float dz = p_coord[ 2 ] - z;
 
-		//return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
-		return true;
+		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
+	
 	}
 
 	void Point::addPoint( Point * p ) { point_attract.emplace_back( p->getId() ); }
@@ -315,7 +315,7 @@ namespace SIM_PART
 	void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
 	{
 		int nb = 0;
-		possible_futur_attract.clear();
+		//possible_futur_attract.clear();
 		//std::cout << " Points attract brute :" << std::endl;
 		for (int i = 0; i < (int)pointList.size(); i++) 
 		{
@@ -337,7 +337,6 @@ namespace SIM_PART
 		float z = p_coord[ 2 ] - z;
 
 		return sqrt( x * x + y * y + z * z );
-		//return 1.;
 	}
 
 	float Point::getDistance2( Point * point )
@@ -389,6 +388,9 @@ namespace SIM_PART
 		else
 			this->z = direction.z * speed + this->z;
 
+		coord[ 0 ] = x;
+		coord[ 1 ] = y;
+		coord[ 2 ] = z;
 	}
 
 	//===============test==================
@@ -410,6 +412,7 @@ namespace SIM_PART
 				if ( this->isAttract( p, rayon ) )
 				{
 					this->point_attract.emplace_back( p->id );
+					p->addAttract( id );
 				
 				}
 			}
