@@ -35,8 +35,8 @@ namespace SIM_PART
 		const std::vector<int>*   getTetrahedron();
 		const std::vector<int>*   getPointAttract();
 		const std::vector<int>*   getNeighbours();
-		void			   addNeighbour( int i ) { neighbours.push_back( i ); }
-		inline void		   addPossibleAttract( int i ) { possible_futur_attract.push_back( i ); }
+		void			   addNeighbour( int i ) { neighbours.emplace_back( i ); }
+		inline void		   addPossibleAttract( int i ) { possible_futur_attract.emplace_back( i ); }
 		void			   addAttract( int i ) { point_attract.push_back( i ); }
 		void			   tri_voisin();
 		
@@ -94,7 +94,19 @@ namespace SIM_PART
 
 		inline float getDistance2( Point * point );
 
+		bool getFix() { return fix; }
+
 		void bronien_mvt( float speed, int dimCage );
+
+		void setCoord( const float px, const float py, const float pz );
+
+		void setFix() { fix = true;  }
+
+		void computeDiffusionLimitedAggregation( const float				  rayon,
+												 const std::vector<Point *> & pointList,
+												 std::vector<int> &			  traveled_point,
+												 int						  iteration,
+												 int						  refresh_frame );
 
 		
 		
@@ -112,6 +124,10 @@ namespace SIM_PART
 		std::vector<int> neighbours;
 		std::vector<int> possible_futur_attract;
 		int				 taille_attract;
+
+		//Diffusion Limited Aggregation
+
+		bool fix=false;
 		
 		//===========test set================
 		// std::set<point, decltype(comparatorSet)> neighbours;

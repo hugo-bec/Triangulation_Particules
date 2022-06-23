@@ -60,14 +60,20 @@ namespace SIM_PART
 	void DelaunayStructure::update_points_tetras( tetgenio * out )
 	{
 		std::chrono::time_point<std::chrono::system_clock> start_neighbours, stop_neighbours;
-		list_points.clear();
+		//list_points.clear();
 		list_tetras.clear();
 
-		for ( int i = 0; i < _nbparticules; i++ )
+		if ( list_points.empty() )
 		{
-			list_points.push_back( new Point(
-				i, out->pointlist[ i * 3 ], out->pointlist[ i * 3 + 1 ], out->pointlist[ i * 3 + 2 ] ) );
+			for ( int i = 0; i < _nbparticules; i++ )
+				list_points.push_back(	new Point( i, out->pointlist[ i * 3 ], out->pointlist[ i * 3 + 1 ], out->pointlist[ i * 3 + 2 ] ) );
 		}
+		else
+		{
+			for ( int i = 0; i < _nbparticules; i++ )
+				list_points[ i ]->setCoord( out->pointlist[ i * 3 ], out->pointlist[ i * 3 + 1 ], out->pointlist[ i * 3 + 2 ] );
+		}
+
 
 		for ( int j = 0; j < out->numberoftetrahedra; j++ )
 		{
@@ -130,7 +136,7 @@ namespace SIM_PART
 	void DelaunayStructure::compute_attract_points()
 	{
 		std::vector<int> traveled_points( _nbparticules, -1 );
-
+		
 		for ( int i = 0; i < (int)list_points.size(); i++ )
 		{
 			list_points[ i ]->computePointAttractV4( rayon_attract, list_points, traveled_points, refresh_frame );
@@ -180,26 +186,32 @@ namespace SIM_PART
 	{
 		// edges
 		std::vector<int> edges, tmp, tp;
+
+		
 		if ( !print_all_edges )
 		{
-			std::vector<int> attract_actif_points = (*list_points[ actif_point ]->getPointAttract());
-			std::vector<int> tetra_actif_points, list_tetra_tmp;
-			for ( int i = 0; i < attract_actif_points.size(); i++ )
-			{
-				list_tetra_tmp = (*list_points[ attract_actif_points[ i ] ]->getTetrahedron());
-				tetra_actif_points.insert( tetra_actif_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
-			}
-			sort( tetra_actif_points.begin(), tetra_actif_points.end() );
-			auto last = std::unique( tetra_actif_points.begin(), tetra_actif_points.end() );
-			tetra_actif_points.erase( last, tetra_actif_points.end() );
+			
+				std::vector<int> attract_actif_points = ( *list_points[ actif_point ]->getPointAttract() );
+				std::vector<int> tetra_actif_points, list_tetra_tmp;
+				for ( int i = 0; i < attract_actif_points.size(); i++ )
+				{
+					list_tetra_tmp = ( *list_points[ attract_actif_points[ i ] ]->getTetrahedron() );
+					tetra_actif_points.insert( tetra_actif_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
+				}
+				sort( tetra_actif_points.begin(), tetra_actif_points.end() );
+				auto last = std::unique( tetra_actif_points.begin(), tetra_actif_points.end() );
+				tetra_actif_points.erase( last, tetra_actif_points.end() );
 
-			for ( int i = 0; i < (int)tetra_actif_points.size(); i++ )
-			{
-				tp	= list_tetras[ tetra_actif_points[ i ] ]->getPoints();
-				tmp = { tp[ 0 ], tp[ 1 ], tp[ 0 ], tp[ 2 ], tp[ 0 ], tp[ 3 ],
-						tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
-				edges.insert( edges.end(), tmp.begin(), tmp.end() );
-			}
+				for ( int i = 0; i < (int)tetra_actif_points.size(); i++ )
+				{
+					tp	= list_tetras[ tetra_actif_points[ i ] ]->getPoints();
+					tmp = { tp[ 0 ], tp[ 1 ], tp[ 0 ], tp[ 2 ], tp[ 0 ], tp[ 3 ],
+							tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
+					edges.insert( edges.end(), tmp.begin(), tmp.end() );
+				}
+				this->_indices.clear();
+				this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
+			
 		}
 		else
 		{
@@ -210,21 +222,28 @@ namespace SIM_PART
 						tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
 				edges.insert( edges.end(), tmp.begin(), tmp.end() );
 			}
+			this->_indices.clear();
+			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 		}
-		this->_indices.clear();
-		this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
+	
 
 		// Change color of attracted point and center point
-		
-
+		if ( list_points[ actif_point ]->getPointAttract()->size() == 0 )
+		{
+			_indices.push_back( actif_point );
+		}
 		for ( int i = 0; i < _nbparticules; i++ )
 			this->_colors[ i ] = Vec3f( 0 );
 
 		std::vector<int> point_attract = (*list_points[ actif_point ]->getPointAttract());
 		for ( int i = 0; i < point_attract.size(); i++ )
 			this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
-
+		for (int i = 0; i < 50; i++) 
+		{
+			this->_colors[ i ] = Vec3f( 0, 1, 0 );
+		}
 		this->_colors[ actif_point ] = Vec3f( 0, 1, 1 );
+		
 	}
 
 	void DelaunayStructure::_initBuffersParticules()
@@ -285,6 +304,13 @@ namespace SIM_PART
 
 		// liaison VAO avec l'EBO
 		glVertexArrayElementBuffer( _vao, _ebo );
+	}
+
+	void DelaunayStructure::fix_point(int nb_points) 
+	{ 
+		for (int i = 0; i < nb_points; i++) {
+			list_points[ i ]->setFix();
+		}
 	}
 
 

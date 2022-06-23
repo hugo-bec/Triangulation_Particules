@@ -206,6 +206,7 @@ xcopy /y /d  "$(ProjectDir)lib\zlib1.dll" "$(OutDir)"</Command>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)\src\lab_works;$(ProjectDir)\src;$(ProjectDir)\lib;$(ProjectDir)\lib\glm;$(ProjectDir)\lib\SDL2\include;$(ProjectDir)\lib\gl3w;$(ProjectDir)\lib\imgui;$(ProjectDir)\lib\imgui\backends;$(ProjectDir)\lib\assimp;$(ProjectDir)\lib\tetgen\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

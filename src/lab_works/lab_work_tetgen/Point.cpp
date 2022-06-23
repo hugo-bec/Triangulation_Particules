@@ -39,6 +39,15 @@ namespace SIM_PART
 		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
 	
 	}
+	void Point::setCoord( const float px, const float py, const float pz ) 
+	{ 
+		x = px;
+		y = py;
+		z = pz;
+		coord[ 0 ] = px;
+		coord[ 1 ] = py;
+		coord[ 2 ] = pz;
+	}
 
 	void Point::addPoint( Point * p ) { point_attract.emplace_back( p->getId() ); }
 
@@ -354,55 +363,55 @@ namespace SIM_PART
 
 	void Point::bronien_mvt( float speed, int dimCage ) 
 	{ 
-		SIM_PART::Vec3f direction;
-		direction.x = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
-		direction.y = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
-		direction.z = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
+		if ( !fix )
+		{
+			SIM_PART::Vec3f direction;
+			direction.x = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
+			direction.y = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
+			direction.z = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
 
-		if ( ( this->x == 10 && direction.x * speed + this->x > 10 ) || ( this->x == 0 && direction.x * speed + this->x < 0 ) )
-			this->x = -direction.x * speed + this->x;
-		else if ( direction.x * speed + this->x > 10 )
+			if ( ( this->x == 10 && direction.x * speed + this->x > 10 )
+				 || ( this->x == 0 && direction.x * speed + this->x < 0 ) )
+				this->x = -direction.x * speed + this->x;
+			else if ( direction.x * speed + this->x > 10 )
 				this->x = 10;
-		else if ( direction.x * speed + this->x < 0 )
+			else if ( direction.x * speed + this->x < 0 )
 				this->x = 0;
-		else
-			this->x = direction.x * speed + this->x;
+			else
+				this->x = direction.x * speed + this->x;
 
+			if ( ( this->y == 10 && direction.y * speed + this->y > 10 )
+				 || ( this->y == 0 && direction.y * speed + this->y < 0 ) )
+				this->y = -direction.y * speed + this->y;
+			else if ( direction.y * speed + this->y > 10 )
+				this->y = 10;
+			else if ( direction.y * speed + this->y < 0 )
+				this->y = 0;
+			else
+				this->y = direction.y * speed + this->y;
 
-		if ( ( this->y == 10 && direction.y * speed + this->y > 10 ) || ( this->y == 0 && direction.y * speed + this->y < 0 ) )
-			this->y = -direction.y * speed + this->y;
-		else if ( direction.y * speed + this->y > 10 )
-			this->y = 10;
-		else if ( direction.y * speed + this->y < 0 )
-			this->y = 0;
-		else
-			this->y = direction.y * speed + this->y;
+			if ( ( this->z == 10 && direction.z * speed + this->z > 10 )
+				 || ( this->z == 0 && direction.z * speed + this->z < 0 ) )
+				this->z = -direction.z * speed + this->z;
+			else if ( direction.z * speed + this->z > 10 )
+				this->z = 10;
+			else if ( direction.z * speed + this->z < 0 )
+				this->z = 0;
+			else
+				this->z = direction.z * speed + this->z;
 
-
-		if ( ( this->z == 10 && direction.z * speed + this->z > 10 ) || ( this->z == 0 && direction.z * speed + this->z < 0 ) )
-			this->z = -direction.z * speed + this->z;
-		else if ( direction.z * speed + this->z > 10 )
-			this->z = 10;
-		else if ( direction.z * speed + this->z < 0 )
-			this->z = 0;
-		else
-			this->z = direction.z * speed + this->z;
-
-		coord[ 0 ] = x;
-		coord[ 1 ] = y;
-		coord[ 2 ] = z;
+			coord[ 0 ] = x;
+			coord[ 1 ] = y;
+			coord[ 2 ] = z;
+		}
 	}
-
-	//===============test==================
-
-
-	void Point::computeAttractMethodeDoubleRayon( const float				   rayon, 
-												  const std::vector<Point *> &pointList,
-												  std::vector<int>	   &traveled_point,
-												  int				   iteration,
-												  int				   refresh_frame )
+	void Point::computeAttractMethodeDoubleRayon( const float				   rayon,
+												  const std::vector<Point *> & pointList,
+												  std::vector<int> &		   traveled_point,
+												  int						   iteration,
+												  int						   refresh_frame )
 	{
-		point_attract.erase(point_attract.begin(), (point_attract.begin() + taille_attract - 1));
+		point_attract.erase( point_attract.begin(), ( point_attract.begin() + taille_attract - 1 ) );
 		Point * p;
 		for ( int i = 0; i < possible_futur_attract.size(); i++ )
 		{
@@ -413,12 +422,49 @@ namespace SIM_PART
 				{
 					this->point_attract.emplace_back( p->id );
 					p->addAttract( id );
-				
 				}
 			}
-				
 		}
 		taille_attract = point_attract.size();
+	}
+	//===============test==================
+
+
+	void Point::computeDiffusionLimitedAggregation( const float				   rayon, 
+												  const std::vector<Point *> &pointList,
+												  std::vector<int>	   &traveled_point,
+												  int				   iteration,
+												  int				   refresh_frame )
+	{
+		if ( !fix )
+		{
+			if (taille_attract != 0 )
+			{
+				point_attract.erase( point_attract.begin(), ( point_attract.begin() + taille_attract - 1 ) );
+			}
+			Point * p;
+			for ( int i = 0; i < possible_futur_attract.size(); i++ )
+			{
+				if ( possible_futur_attract[ i ] > id )
+				{	
+					p = pointList[ possible_futur_attract[ i ] ];
+					if ( this->isAttract( p, rayon ) )
+					{
+						this->point_attract.push_back( p->id );
+						//std::cout << "taille attract " << p->getPointAttract()->size() << std::endl << std::flush;
+						p->addAttract( id );
+						if ( p->getFix()==true )
+						{
+							std::cout << "FIXED !: " << this->id << std::endl;
+							fix = true;
+						}
+						
+							
+					}
+				}
+			}
+			taille_attract = point_attract.size();
+		}
 	}
 
 
@@ -469,4 +515,6 @@ namespace SIM_PART
 			degre_voisinage--;
 		}
 	}
+
+	
 } // namespace SIM_PART

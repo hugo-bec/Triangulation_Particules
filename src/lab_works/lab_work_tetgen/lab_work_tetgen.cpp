@@ -49,6 +49,7 @@ namespace SIM_PART
 
 		// Init Particules
 		_particules._createParticules();
+		_particules.fix_point( 50 );
 		_particules._colorPoint( print_all_edges, actif_point);
 		_particules._initBuffersParticules();
 
@@ -80,6 +81,7 @@ namespace SIM_PART
 
 			start_bro = std::chrono::system_clock::now();
 			const float * coord;
+			
 			for (int i = 0; i < (int)_particules.list_points.size(); i++) 
 			{
 				_particules.list_points[ i ]->bronien_mvt(0.1, 10);
@@ -112,11 +114,18 @@ namespace SIM_PART
 			else
 			{
 				start_adr = std::chrono::system_clock::now();
+
+				
 				for ( int j = 0; j < _particules.list_points.size(); j++ )
-					_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.rayon_attract,
-						_particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
+					//_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.rayon_attract, _particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
+					_particules.list_points[ j ]->computeDiffusionLimitedAggregation( _particules.rayon_attract,
+																					_particules.list_points,
+																					_particules._traveled_point,
+																					iteration,
+																					_particules.refresh_frame );
 				stop_adr = std::chrono::system_clock::now();
 				Utils::print_time( "time compute attract double radius: ", start_adr, stop_adr );
+				
 			}
 
 			//_particules.list_points[ actif_point ]->computePointAttractBrut( _particules.rayon_attract, _particules.list_points );

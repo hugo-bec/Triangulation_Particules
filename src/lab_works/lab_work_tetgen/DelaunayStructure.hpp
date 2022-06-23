@@ -34,11 +34,13 @@ namespace SIM_PART
 		void update_points_tetras( tetgenio * out );
 		void compute_neighbours();
 		void compute_attract_points();
+		void fix_point( int nb_points );
+	
 
 		// ================ Geometric data.
 		Vec3f _dimCage = Vec3f(10);
-		int	  _nbparticules = 50000;
-		float rayon_attract = 2.f;
+		int	  _nbparticules = 10000;
+		float rayon_attract = 0.1f;
 
 		std::vector<Point*>		list_points;
 		std::vector<Tetrahedron *> list_tetras;
