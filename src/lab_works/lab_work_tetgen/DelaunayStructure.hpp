@@ -1,11 +1,14 @@
 #pragma once
-#include "define.hpp"
-#include "gl3w/GL/gl3w.h"
+#include <iostream>
 #include <vector>
+#include "gl3w/GL/gl3w.h"
+
+#include "define.hpp"
+#include "utils/Chrono.hpp"
 #include "tetgen.h"
 #include "Point.hpp"
 #include "Tetrahedron.hpp"
-#include <iostream>
+
 
 namespace SIM_PART
 {
@@ -25,16 +28,22 @@ namespace SIM_PART
 				glDeleteBuffers( 1, &_vboPoints );
 		}
 
-		void _initBuffersParticules();
-		void tetrahedralize_particules( tetgenio * in, tetgenio * out );
-		void _createParticules();
-		void _colorPoint( bool print_all_edges, int actif_point  );
-		void init_particules( tetgenio * in );
-		void update_particules( tetgenio * out );
-		void update_points_tetras( tetgenio * out );
+		void init_structure();
+		void init_particules( unsigned int p_nbparticules );
+		void init_buffers();
+		void tetrahedralize_particules( char * tetgen_parameters );
+
+		void update_position_particules( float speed );
+		void update_structure();
+		void update_rendering( bool print_all_edges, int actif_point );
+		void update_tetras();
+		void update_buffers();
+
 		void compute_neighbours();
 		void compute_attract_points();
-		void fix_point( int nb_points );
+
+		void fix_first_points( int nb_points );
+		void set_verbose( bool v );
 	
 
 		// ================ Geometric data.
@@ -44,8 +53,7 @@ namespace SIM_PART
 
 		std::vector<Point*>		list_points;
 		std::vector<Tetrahedron *> list_tetras;
-		tetgenio					tetgenMesh;
-		
+		tetgenio				   _tetgen_mesh;
 
 		std::vector<Vec3f>		  _positions;
 		std::vector<Vec3f>		  _colors;
@@ -53,7 +61,9 @@ namespace SIM_PART
 		std::vector<int>		  _traveled_point;
 		int						  refresh_frame=100;
 
-		Mat4f _transformation = MAT4F_ID;
+		Mat4f  _transformation = MAT4F_ID;
+		Chrono _chrono;
+		bool   verbose = false;
 		// ================
 
 		// ================ GL data.

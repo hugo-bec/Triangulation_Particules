@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdio>
 #include <set>
+#include "define.hpp"
 
 namespace SIM_PART
 {
@@ -96,7 +97,7 @@ namespace SIM_PART
 
 		bool getFix() { return fix; }
 
-		void bronien_mvt( float speed, int dimCage );
+		void apply_brownian_mvt( float speed, Vec3f dimCage );
 
 		void setCoord( const float px, const float py, const float pz );
 

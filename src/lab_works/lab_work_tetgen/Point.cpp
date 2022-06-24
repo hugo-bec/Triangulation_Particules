@@ -1,14 +1,17 @@
-#include "GL/gl3w.h"
-#include "Point.hpp"
-#include "Tetrahedron.hpp"
 #include <cmath>
 #include <cstdio>
+#include <chrono>
 #include <iostream>
 #include <algorithm>
-#include "define.hpp"
+#include "GL/gl3w.h"
 #include "imgui_impl_glut.h"
-#include <random>
-#include <chrono>
+
+#include "Point.hpp"
+#include "Tetrahedron.hpp"
+#include "define.hpp"
+#include "utils/random.hpp"
+
+
 
 namespace SIM_PART
 {
@@ -72,22 +75,20 @@ namespace SIM_PART
 	void Point::computeNeighbours( std::vector<Tetrahedron *> tetraList )
 	{
 		bool belongs = false;
-
 		Tetrahedron * tetrahedron;
 
 		for ( int i = 0; i < (int)tetra.size(); i++ )
 		{
 			tetrahedron = findTetra( tetraList, tetra[ i ] );
-
 			for ( int j = 0; j < 4; j++ )
 			{
 				belongs = false;
-
-				if ( this->id != tetrahedron->getPoints()[ j ] )
+				const std::vector<int> * tetra_points = tetrahedron->getPoints();
+				if ( this->id != (*tetra_points)[ j ] )
 				{
 					for ( int k = 0; k < (int)neighbours.size(); k++ )
 					{
-						if ( this->neighbours[ k ] == tetrahedron->getPoints()[ j ] )
+						if ( this->neighbours[ k ] == (*tetra_points)[ j ] )
 						{
 							belongs = true;
 							break;
@@ -95,7 +96,7 @@ namespace SIM_PART
 					}
 
 					if ( !belongs )
-						neighbours.emplace_back( tetrahedron->getPoints()[ j ] );
+						neighbours.emplace_back( (*tetra_points)[ j ] );
 				}
 			}
 		}
@@ -105,16 +106,15 @@ namespace SIM_PART
 	{
 
 		Tetrahedron * tetrahedron;
-
 		for ( int i = 0; i < (int)tetra.size(); i++ )
 		{
 			tetrahedron = findTetra( tetraList, tetra[ i ] );
-
+			const std::vector<int> * tetra_points = tetrahedron->getPoints();
 			for ( int j = 0; j < 4; j++ )
 			{
-				if ( this->id != tetrahedron->getPoints()[ j ] )
+				if ( this->id != (*tetra_points)[ j ] )
 				{
-					neighbours.emplace_back( tetrahedron->getPoints()[ j ] );
+					neighbours.emplace_back( (*tetra_points)[ j ] );
 				}
 			}
 		}
@@ -361,44 +361,26 @@ namespace SIM_PART
 		
 	}
 
-	void Point::bronien_mvt( float speed, int dimCage ) 
+	void Point::apply_brownian_mvt( float speed, Vec3f cage_dim ) 
 	{ 
 		if ( !fix )
 		{
-			SIM_PART::Vec3f direction;
-			direction.x = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
-			direction.y = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
-			direction.z = static_cast<float>( rand() ) / static_cast<float>( RAND_MAX ) * 2 - 1;
+			SIM_PART::Vec3f dir;
+			dir.x = ( ( getRandomFloat() * 2.f ) - 1.f ) * speed;
+			dir.y = ( ( getRandomFloat() * 2.f ) - 1.f ) * speed;
+			dir.z = ( ( getRandomFloat() * 2.f ) - 1.f ) * speed;
 
-			if ( ( this->x == 10 && direction.x * speed + this->x > 10 )
-				 || ( this->x == 0 && direction.x * speed + this->x < 0 ) )
-				this->x = -direction.x * speed + this->x;
-			else if ( direction.x * speed + this->x > 10 )
-				this->x = 10;
-			else if ( direction.x * speed + this->x < 0 )
-				this->x = 0;
-			else
-				this->x = direction.x * speed + this->x;
+			x += dir.x;
+			y += dir.y;
+			z += dir.z;
 
-			if ( ( this->y == 10 && direction.y * speed + this->y > 10 )
-				 || ( this->y == 0 && direction.y * speed + this->y < 0 ) )
-				this->y = -direction.y * speed + this->y;
-			else if ( direction.y * speed + this->y > 10 )
-				this->y = 10;
-			else if ( direction.y * speed + this->y < 0 )
-				this->y = 0;
-			else
-				this->y = direction.y * speed + this->y;
-
-			if ( ( this->z == 10 && direction.z * speed + this->z > 10 )
-				 || ( this->z == 0 && direction.z * speed + this->z < 0 ) )
-				this->z = -direction.z * speed + this->z;
-			else if ( direction.z * speed + this->z > 10 )
-				this->z = 10;
-			else if ( direction.z * speed + this->z < 0 )
-				this->z = 0;
-			else
-				this->z = direction.z * speed + this->z;
+			//border management
+			if ( x < 0 || x > cage_dim.x ) 
+				x -= dir.x * 2.f;
+			if ( y < 0 || y > cage_dim.y )
+				y -= dir.y * 2.f;
+			if ( z < 0 || z > cage_dim.z )
+				z -= dir.z * 2.f;
 
 			coord[ 0 ] = x;
 			coord[ 1 ] = y;

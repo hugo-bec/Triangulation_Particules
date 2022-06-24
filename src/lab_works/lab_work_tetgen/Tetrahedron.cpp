@@ -2,7 +2,7 @@
 
 namespace SIM_PART
 {
-	std::vector<int> Tetrahedron::getPoints() { return points; }
+	const std::vector<int>* Tetrahedron::getPoints() { return &points; }
 
 	int Tetrahedron::getId() { return id; }
 

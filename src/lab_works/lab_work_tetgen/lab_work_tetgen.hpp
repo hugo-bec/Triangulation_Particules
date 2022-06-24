@@ -45,27 +45,25 @@ namespace SIM_PART
 		CageMesh			_cage;
 		DelaunayStructure	_particules;
 
-		BaseCamera *	_camera;
 		time_t			current_time;
-		// ================
 
-		// ================ Settings.
+		// ================ Settings Camera.
 		Vec4f _bgColor = Vec4f( 0.8f, 0.8f, 0.8f, 1.f ); // Background color
 		// Camera
+		BaseCamera * _camera;
 		float _cameraSpeed		 = 0.1f;
 		float _cameraSensitivity = 0.1f;
 		float _fovy				 = 60.f;
 		bool  _orthogonal_view	 = false;
 		bool  _trackball_camera	 = false;
-		// ================
 
 		// ================ GL program data.
 		GLuint _program				= GL_INVALID_INDEX;
 		GLint _uModelMatrixLoc		= GL_INVALID_INDEX;
 		GLint _uViewMatrixLoc		= GL_INVALID_INDEX;
 		GLint _uProjectionMatrixLoc = GL_INVALID_INDEX;
-		// ================
 
+		Chrono					 _chrono;
 		static const std::string _shaderFolder;
 	};
 } // namespace SIM_PART

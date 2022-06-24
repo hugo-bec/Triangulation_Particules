@@ -19,7 +19,7 @@ namespace SIM_PART
 		};
 		~Tetrahedron() {};
 
-		std::vector<int> getPoints();
+		const std::vector<int>* getPoints();
 		int				 getId();
 		void			 printPoints( std::vector<Point *> list_points );
 
