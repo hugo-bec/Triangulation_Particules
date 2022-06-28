@@ -1,21 +1,29 @@
 #include "CageMesh.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 
 namespace SIM_PART{
 
-	CageMesh CageMesh::_createCage()
+	void CageMesh::init_cage( Vec3f dim )
 	{
-		CageMesh cage		   = CageMesh();
-		cage._vertices	   = {	Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
+		_vertices	   = {	Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
 								Vec3f( 0, 1, 1 ), Vec3f( 0, 1, 0 ), Vec3f( 0, 0, 0 ), Vec3f( 0, 0, 1 ) };
 
-		cage._segments = {	0, 1, 1, 2, 2, 3, 3, 0, 
-							4, 5, 5, 6, 6, 7, 7, 4, 
-							0, 4, 1, 5, 2, 6, 3, 7 };
-		return cage;
+		_segments = {	0, 1, 1, 2, 2, 3, 3, 0, 
+						4, 5, 5, 6, 6, 7, 7, 4, 
+						0, 4, 1, 5, 2, 6, 3, 7 };
+
+		_transformation = glm::scale( _transformation, dim );
 	}
 
-	void CageMesh::_initBuffersCage()
+
+	void CageMesh::init_all( Vec3f dim )
+	{
+		init_cage( dim );
+		init_buffers();
+	}
+
+	void CageMesh::init_buffers()
 	{ 
 		//VBO Points
 		glCreateBuffers( 1, &_vboPoints );
@@ -32,8 +40,8 @@ namespace SIM_PART{
 						   GL_STATIC_DRAW );
 
 		//VAO
-		GLuint indexVBO_points = 0;
 		glCreateVertexArrays( 1, &_vao );
+		GLuint indexVBO_points = 0;
 
 		// liaison VAO avec VBO Points
 		glEnableVertexArrayAttrib( _vao, indexVBO_points );
@@ -51,6 +59,14 @@ namespace SIM_PART{
 
 		// liaison VAO avec l'EBO
 		glVertexArrayElementBuffer( _vao, _ebo );
+	}
+
+	void CageMesh::render( GLuint program, GLuint uModelMatrixLoc ) 
+	{
+		glBindVertexArray( _vao ); /*bind cage VAO with the program*/
+		glProgramUniformMatrix4fv( program, uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+		glDrawElements( GL_LINES, _segments.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
+		glBindVertexArray( 0 );													/*debind VAO*/
 	}
 }
 

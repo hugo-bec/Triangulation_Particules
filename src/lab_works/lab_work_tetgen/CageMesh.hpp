@@ -26,8 +26,12 @@ namespace SIM_PART
 				glDeleteBuffers( 1, &_ebo );
 		}
 
-		static CageMesh _createCage();
-		void			_initBuffersCage();
+		void init_cage( Vec3f dim );
+		void init_buffers();
+		void init_all( Vec3f dim );
+
+		void update_buffers();
+		void render( GLuint program, GLuint uModelMatrixLoc );
 
 		// ================ Geometric data.
 		std::vector<Vec3f>		  _vertices;

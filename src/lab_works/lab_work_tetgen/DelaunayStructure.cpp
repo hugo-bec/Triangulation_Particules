@@ -352,11 +352,11 @@ namespace SIM_PART
 		std::cout << std::endl;
 	}
 
-	void DelaunayStructure::render( GLuint _program, GLuint _uModelMatrixLoc ) 
+	void DelaunayStructure::render( GLuint program, GLuint uModelMatrixLoc ) 
 	{
 		glBindVertexArray( _vao ); /*bind particules VAO with the program*/
 		glProgramUniformMatrix4fv(
-			_program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+			program, uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
 		glDrawElements( GL_POINTS, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
 		glBindVertexArray( 0 );	  /*debind VAO*/
 
@@ -364,7 +364,7 @@ namespace SIM_PART
 		{
 			glBindVertexArray( _vao ); /*bind particules VAO with the program*/
 			glProgramUniformMatrix4fv(
-				_program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+				program, uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
 			glDrawElements( GL_LINES, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
 			glBindVertexArray( 0 );  /*debind VAO*/
 		}

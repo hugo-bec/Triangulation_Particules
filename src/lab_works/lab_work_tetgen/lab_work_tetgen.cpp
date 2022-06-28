@@ -40,12 +40,10 @@ namespace SIM_PART
 		if ( !_initProgram() ) return false;
 
 		// Init Cage
-		_cage  = CageMesh::_createCage();
-		_cage._transformation = glm::scale( _cage._transformation, _dstructure._dimCage );
-		_cage._initBuffersCage();
+		_cage.init_all( CAGE_DIM );
 
 		// Init Particules
-		create_particules( NB_PARTICULES, Vec3f( 10 ) );
+		create_particules( NB_PARTICULES, CAGE_DIM );
 		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
 			_particules[ i ]->set_fix( true );
 
@@ -84,10 +82,7 @@ namespace SIM_PART
 		glPointSize( 5 ); 
 
 		// Cage
-		glBindVertexArray( _cage._vao ); /*bind cage VAO with the program*/
-		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cage._transformation ) );
-		glDrawElements( GL_LINES, _cage._segments.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
-		glBindVertexArray( 0 );	   /*debind VAO*/
+		_cage.render( _program, _uModelMatrixLoc );
 
 		// Delaunay Structure
 		_dstructure.render( _program, _uModelMatrixLoc );
