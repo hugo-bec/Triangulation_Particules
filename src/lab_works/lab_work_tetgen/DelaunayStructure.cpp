@@ -205,7 +205,7 @@ namespace SIM_PART
 			_indices.push_back( _active_particle );
 		}
 		for (int i = 0; i < _nbparticules; i++) {
-			if ( _list_points[i]->get_fix() )
+			if ( _list_points[i]->is_fix() )
 				this->_colors[ i ] = Vec3f( 0,1,0 );
 			else
 				this->_colors[ i ] = Vec3f( 0 );
@@ -327,7 +327,7 @@ namespace SIM_PART
 			int nb = 0;
 			for ( int j = 0; j < _list_points.size(); j++ )
 			{
-				if ( !_list_points[ j ]->get_fix() )
+				if ( !_list_points[ j ]->is_fix() )
 					nb++;
 					
 			}
