@@ -1,37 +1,40 @@
 #include "DelaunayStructure.hpp"
+#include <chrono>
+#include "glm/gtc/type_ptr.hpp"
+
 #include "utils/random.hpp"
 #include "utils/Chrono.hpp"
-#include <chrono>
+
+
 
 namespace SIM_PART
 {
-	void DelaunayStructure::init_particules( unsigned int p_nbparticules )
-	{
-		_nbparticules = p_nbparticules;
-		std::cout << "Number of particles: " << _nbparticules << std::endl;
+	/* -----------------------------------------------------------------------
+	 * ---------------------- INITIALIZATION FUNCTIONS -----------------------
+	 * ----------------------------------------------------------------------- */
 
-		for ( int i = 0; i < _nbparticules; i++ )
-		{
-			_positions.push_back(
-				Vec3f( getRandomFloat() * _dimCage.x, getRandomFloat() * _dimCage.y, getRandomFloat() * _dimCage.z ) );
-			_traveled_point.push_back( -1 );
-		}
+	void DelaunayStructure::init_particules( const std::vector<Particle* > & p_particules )
+	{
+		_nbparticules = p_particules.size();
+		_list_points  = p_particules;
+		std::cout << "Number of particles: " << _nbparticules << std::endl;
 
 		_tetgen_mesh.initialize();
 		_tetgen_mesh.numberofpoints = _nbparticules;
-		_tetgen_mesh.pointlist		 = new REAL[ _tetgen_mesh.numberofpoints * 3 ];
+		_tetgen_mesh.pointlist		= new REAL[ _tetgen_mesh.numberofpoints * 3 ];
 
 		for ( int i = 0; i < _nbparticules; i++ )
 		{
-			_tetgen_mesh.pointlist[ 3 * i ]		= _positions[ i ].x;
-			_tetgen_mesh.pointlist[ 3 * i + 1 ] = _positions[ i ].y;
-			_tetgen_mesh.pointlist[ 3 * i + 2 ] = _positions[ i ].z;
+			const float * coord_p = _list_points[ i ]->get_coord();
+			_positions.push_back( Vec3f( coord_p[ 0 ], coord_p[ 1 ], coord_p[ 2 ] ) );
+			_traveled_point.push_back( -1 );
 
-			list_points.push_back( new Point( i, _positions[ i ].x, _positions[ i ].y, _positions[ i ].z ) );
+			_tetgen_mesh.pointlist[ 3 * i ]		= coord_p[ 0 ];
+			_tetgen_mesh.pointlist[ 3 * i + 1 ] = coord_p[ 1 ];
+			_tetgen_mesh.pointlist[ 3 * i + 2 ] = coord_p[ 2 ];
 
-			_colors.push_back(Vec3f( 0 ) );
+			_colors.push_back( Vec3f( 0 ) );
 		}
-			
 	}
 
 	void DelaunayStructure::init_structure()
@@ -57,24 +60,39 @@ namespace SIM_PART
 		glCreateVertexArrays( 1, &_vao );
 	}
 
+	void DelaunayStructure::init_all(const std::vector<Particle*>& p_particules) 
+	{
+		init_particules( p_particules );
+
+		init_structure();
+		update_rendering();
+
+		init_buffers();
+		update_buffers();
+	}
+	
+
+	/* -----------------------------------------------------------------------
+	 * -------------------------- UPDATE FUNCTIONS ---------------------------
+	 * ----------------------------------------------------------------------- */
+
 	void DelaunayStructure::tetrahedralize_particules( char * tetgen_parameters )
 	{
 		_tetgen_mesh.numberofpoints = _nbparticules;
-		_tetgen_mesh.pointlist = _tetgen_mesh.pointlist;
+		_tetgen_mesh.pointlist		= _tetgen_mesh.pointlist;
 		std::cout << "TETGEN: Tetrahedralization..." << std::endl;
 
 		tetrahedralize( tetgen_parameters, &_tetgen_mesh, &_tetgen_mesh );
 
-		std::cout << "number of tetrahedron: " <<  _tetgen_mesh.numberoftetrahedra << std::endl;
+		std::cout << "number of tetrahedron: " << _tetgen_mesh.numberoftetrahedra << std::endl;
 		std::cout << "number of points: " << _tetgen_mesh.numberofpoints << std::endl;
 	}
 
-	
 	void DelaunayStructure::update_tetras()
 	{
-		list_tetras.clear();
+		_list_tetras.clear();
 		for ( int j = 0; j < _tetgen_mesh.numberoftetrahedra; j++ )
-			list_tetras.push_back( new Tetrahedron( j,
+			_list_tetras.push_back( new Tetrahedron( j,
 										_tetgen_mesh.tetrahedronlist[ j * 4 ],
 										_tetgen_mesh.tetrahedronlist[ j * 4 + 1 ],
 										_tetgen_mesh.tetrahedronlist[ j * 4 + 2 ],
@@ -82,50 +100,37 @@ namespace SIM_PART
 
 		// Computing neighbours for each points
 		_chrono.start();
-		std::cout << "Adding neighbours from tetrahedrization..." << std::endl;
-		for ( int j = 0; j < list_tetras.size(); j++ )
+		if ( _verbose ) std::cout << "Adding neighbours from tetrahedrization..." << std::endl;
+		for ( int j = 0; j < _list_tetras.size(); j++ )
 		{
-			const std::vector<int>* lp = list_tetras[ j ]->getPoints();
-			list_points[ lp->at(0) ]->addTetrahedron( list_tetras[ j ] );
-			list_points[ lp->at(1) ]->addTetrahedron( list_tetras[ j ] );
-			list_points[ lp->at(2) ]->addTetrahedron( list_tetras[ j ] );
-			list_points[ lp->at(3) ]->addTetrahedron( list_tetras[ j ] );
+			const std::vector<int>* lp = _list_tetras[ j ]->get_points();
+			_list_points[ lp->at(0) ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ lp->at(1) ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ lp->at(2) ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ lp->at(3) ]->add_tetrahedron( _list_tetras[ j ] );
 
-			list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 1 ) );
-			list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 2 ) );
-			list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 3 ) );
+			_list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 1 ) );
+			_list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 2 ) );
+			_list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 3 ) );
 
-			list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 0 ) );
-			list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 2 ) );
-			list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 3 ) );
+			_list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 0 ) );
+			_list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 2 ) );
+			_list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 3 ) );
 
-			list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 0 ) );
-			list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 1 ) );
-			list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 3 ) );
+			_list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 0 ) );
+			_list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 1 ) );
+			_list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 3 ) );
 
-			list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 0 ) );
-			list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 1 ) );
-			list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 2 ) );
+			_list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 0 ) );
+			_list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 1 ) );
+			_list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 2 ) );
 		}
 
-		for ( int k = 0; k < list_points.size(); k++ ) 
-			list_points[ k ]->tri_voisin();	
+		for ( int k = 0; k < _list_points.size(); k++ ) 
+			_list_points[ k ]->tri_voisin();	
 		std::cout << std::endl;
 
 		_chrono.stop_and_print( "Time adding neighbours:" );
-	}
-
-	void DelaunayStructure::compute_attract_points()
-	{
-		std::vector<int> traveled_points( _nbparticules, -1 );
-		
-		for ( int i = 0; i < (int)list_points.size(); i++ )
-		{
-			list_points[ i ]->computePointAttractV4( rayon_attract, list_points, traveled_points, refresh_frame );
-			if ( i % 1000 == 0 )
-				std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
-		}
-		std::cout << std::endl;
 	}
 
 	void DelaunayStructure::update_structure()
@@ -135,7 +140,7 @@ namespace SIM_PART
 		_chrono.stop_and_print( "time reading and interpreting tetgenio: ");
 
 		// Computing attract points for each points
-		std::cout << "Computing attract points from tetrahedrization..." << std::endl;
+		if( _verbose ) std::cout << "Computing attract points from tetrahedrization..." << std::endl;
 		_chrono.start();
 		compute_attract_points();
 		_chrono.stop_and_print( "time computing attract points for each points: " );
@@ -144,27 +149,26 @@ namespace SIM_PART
 		_chrono.start();
 		const float * coord;
 		for ( int i = 0; i < _nbparticules; i++ ) {
-			coord = list_points[ i ]->getCoord();
+			coord = _list_points[ i ]->get_coord();
 			this->_positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
 		}
 		_chrono.stop_and_print( "time assigning position: " );
 	}
 
-
-	void DelaunayStructure::update_rendering( bool print_all_edges, int actif_point )
+	void DelaunayStructure::update_rendering()
 	{
 		// edges
+		//std::cout << "_draw_all_edges: " << _draw_all_edges << ", _active_particle: " << _active_particle << std::endl;
 		std::vector<int> edges, tmp;
 		const std::vector<int> *tp;
-
 		
-		if ( !print_all_edges )
+		if ( _draw_all_edges )
 		{
-			std::vector<int> attract_actif_points = ( *list_points[ actif_point ]->getPointAttract() );
+			std::vector<int> attract_actif_points = ( *_list_points[ _active_particle ]->get_point_attract() );
 			std::vector<int> tetra_actif_points, list_tetra_tmp;
 			for ( int i = 0; i < attract_actif_points.size(); i++ )
 			{
-				list_tetra_tmp = ( *list_points[ attract_actif_points[ i ] ]->getTetrahedron() );
+				list_tetra_tmp = ( *_list_points[ attract_actif_points[ i ] ]->get_tetrahedron() );
 				tetra_actif_points.insert( tetra_actif_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
 			}
 			sort( tetra_actif_points.begin(), tetra_actif_points.end() );
@@ -173,7 +177,7 @@ namespace SIM_PART
 
 			for ( int i = 0; i < (int)tetra_actif_points.size(); i++ )
 			{
-				tp	= list_tetras[ tetra_actif_points[ i ] ]->getPoints();
+				tp	= _list_tetras[ tetra_actif_points[ i ] ]->get_points();
 				tmp = { tp->at( 0 ), tp->at( 1 ), tp->at( 0 ), tp->at( 2 ), tp->at( 0 ), tp->at( 3 ),
 						tp->at( 1 ), tp->at( 2 ), tp->at( 1 ), tp->at( 3 ), tp->at( 2 ), tp->at( 3 ) };
 				edges.insert( edges.end(), tmp.begin(), tmp.end() );
@@ -183,9 +187,9 @@ namespace SIM_PART
 		}
 		else 
 		{
-			for ( int i = 0; i < (int)list_tetras.size(); i++ )
+			for ( int i = 0; i < (int)_list_tetras.size(); i++ )
 			{
-				tp	= list_tetras[ i ]->getPoints();
+				tp	= _list_tetras[ i ]->get_points();
 				tmp = { tp->at( 0 ), tp->at( 1 ), tp->at( 0 ), tp->at( 2 ), tp->at( 0 ), tp->at( 3 ),
 						tp->at( 1 ), tp->at( 2 ), tp->at( 1 ), tp->at( 3 ), tp->at( 2 ), tp->at( 3 ) };
 				edges.insert( edges.end(), tmp.begin(), tmp.end() );
@@ -196,31 +200,30 @@ namespace SIM_PART
 	
 
 		// Change color of attracted point and center point
-		if ( list_points[ actif_point ]->getPointAttract()->size() == 0 )
+		if ( _list_points[ _active_particle ]->get_point_attract()->size() == 0 )
 		{
-			_indices.push_back( actif_point );
+			_indices.push_back( _active_particle );
 		}
 		for ( int i = 0; i < _nbparticules; i++ )
 			this->_colors[ i ] = Vec3f( 0 );
 
-		std::vector<int> point_attract = (*list_points[ actif_point ]->getPointAttract());
+		std::vector<int> point_attract = (*_list_points[ _active_particle ]->get_point_attract());
 		for ( int i = 0; i < point_attract.size(); i++ )
 			this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
 		for (int i = 0; i < 50; i++) 
 		{
 			this->_colors[ i ] = Vec3f( 0, 1, 0 );
 		}
-		this->_colors[ actif_point ] = Vec3f( 0, 1, 1 );
+		this->_colors[ _active_particle ] = Vec3f( 0, 1, 1 );
 		
 	}
 
 	void DelaunayStructure::update_position_particules( float speed ) 
 	{
 		const float * coord;
-		for ( int i = 0; i < (int)list_points.size(); i++ )
+		for ( int i = 0; i < _list_points.size(); i++ )
 		{
-			list_points[ i ]->apply_brownian_mvt( speed, _dimCage );
-			coord = list_points[ i ]->getCoord();
+			coord = _list_points[ i ]->get_coord();
 
 			_positions[ i ].x					= coord[ 0 ];
 			_positions[ i ].y					= coord[ 1 ];
@@ -230,7 +233,7 @@ namespace SIM_PART
 			_tetgen_mesh.pointlist[ i * 3 + 1 ] = coord[ 1 ];
 			_tetgen_mesh.pointlist[ i * 3 + 2 ] = coord[ 2 ];
 
-			list_points[ i ]->setCoord( _tetgen_mesh.pointlist[ i * 3 ],
+			_list_points[ i ]->set_coord( _tetgen_mesh.pointlist[ i * 3 ],
 										_tetgen_mesh.pointlist[ i * 3 + 1 ],
 										_tetgen_mesh.pointlist[ i * 3 + 2 ] );
 		}
@@ -292,17 +295,79 @@ namespace SIM_PART
 		glVertexArrayElementBuffer( _vao, _ebo );
 	}
 
-	void DelaunayStructure::fix_first_points(int nb_points) 
-	{ 
-		for (int i = 0; i < nb_points; i++) {
-			list_points[ i ]->setFix();
+	void DelaunayStructure::update_all() 
+	{
+		if ( _play_mode )
+		{
+			_chrono.set_verbose( _verbose );
+			_chrono.stop_and_print( "time rendering: " );
+			if ( _verbose ) 
+				std::cout << "------------------------------- " << _iteration << " ---------------------------------" << std::endl;
+
+			_chrono.start();
+			update_position_particules( 0.01f );
+			_chrono.stop_and_print( "time recomputing brownian movement: " );
+
+			if ( _iteration % _refresh_frame == 0 )
+				update_structure();
+
+			_chrono.start();
+			for ( int j = 0; j < _list_points.size(); j++ )
+				//_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.rayon_attract,
+				//_particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
+				_list_points[ j ]->compute_diffusion_limited_aggregation(
+					_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+
+			_chrono.stop_and_print( "time compute attract point with double radius: " );
+			_iteration++;
+		}
+
+		_chrono.set_verbose( _play_mode && _verbose );
+		_chrono.start();
+		update_rendering();
+		_chrono.stop_and_print( "time coloring points and generating edges: " );
+
+		_chrono.start();
+		update_buffers();
+		_chrono.stop_and_print( "time updates buffers: " );
+
+		_chrono.start(); // for printing time of the rendering
+	}
+
+
+	/* -----------------------------------------------------------------------
+	 * --------------------- COMPUTE & RENDER FUNCTIONS ----------------------
+	 * ----------------------------------------------------------------------- */
+	
+	void DelaunayStructure::compute_attract_points()
+	{
+		std::vector<int> traveled_points( _nbparticules, -1 );
+
+		for ( int i = 0; i < (int)_list_points.size(); i++ )
+		{
+			_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, _refresh_frame );
+			if ( _verbose && i % 1000 == 0 )
+				std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
+		}
+		std::cout << std::endl;
+	}
+
+	void DelaunayStructure::render( GLuint _program, GLuint _uModelMatrixLoc ) 
+	{
+		glBindVertexArray( _vao ); /*bind particules VAO with the program*/
+		glProgramUniformMatrix4fv(
+			_program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+		glDrawElements( GL_POINTS, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
+		glBindVertexArray( 0 );	  /*debind VAO*/
+
+		if ( _edges_mode )	//draw edges
+		{
+			glBindVertexArray( _vao ); /*bind particules VAO with the program*/
+			glProgramUniformMatrix4fv(
+				_program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+			glDrawElements( GL_LINES, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
+			glBindVertexArray( 0 );  /*debind VAO*/
 		}
 	}
-
-	void DelaunayStructure::set_verbose( bool v ) {
-		verbose = v;
-		_chrono.set_verbose( v );
-	}
-
 
 }

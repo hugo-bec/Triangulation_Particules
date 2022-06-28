@@ -2,13 +2,15 @@
 #include <iostream>
 #include <chrono>
 
+#include "parameters.hpp"
+
 #include "common/models/triangle_mesh_model.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "imgui.h"
 #include "utils/random.hpp"
 #include "utils/read_file.hpp"
 
-#include "Point.hpp"
+#include "Particle.hpp"
 #include "Tetrahedron.hpp"
 #include "TetraFileReader.hpp"
 #include "DelaunayStructure.hpp"
@@ -22,12 +24,9 @@ namespace SIM_PART
 	int				  actif_point = 0;
 	bool			  mode_edges  = true;
 	bool			  print_all_edges = false;
-	bool			  play			  = false;
+	bool			  play_mode		  = false;
 	bool			  verbose		  = true;
 	int				  iteration		  = 3;
-	std::chrono::time_point<std::chrono::system_clock> start_rend, stop_rend;
-
-	//bool			firstTime = true;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -42,20 +41,17 @@ namespace SIM_PART
 
 		// Init Cage
 		_cage  = CageMesh::_createCage();
-		_cage._transformation = glm::scale( _cage._transformation, _particules._dimCage );
+		_cage._transformation = glm::scale( _cage._transformation, _dstructure._dimCage );
 		_cage._initBuffersCage();
 
 		// Init Particules
-		_particules.set_verbose( true );	//for printing all time execution 
+		create_particules( NB_PARTICULES, Vec3f( 10 ) );
+		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
+			_particules[ i ]->set_fix( true );
 
-		_particules.init_particules( 10000 );
-		_particules.fix_first_points( 50 ); // set le first X points to fixed
-
-		_particules.init_structure();
-		_particules.update_rendering( print_all_edges, actif_point);
-
-		_particules.init_buffers();
-		_particules.update_buffers();
+		// Init Delaunay Structure
+		_dstructure.set_verbose( verbose );	//for printing all time execution 
+		_dstructure.init_all( _particules );
 
 		//init camera
 		_initCamera();
@@ -72,42 +68,13 @@ namespace SIM_PART
 		return true;
 	}
 
-	void LabWorkTetgen::animate( const float p_deltaTime )
-	{
-		if ( play ) 
-		{
-			_chrono.stop_and_print( "time rendering: " );
-			if (verbose) std::cout << "----------------------------------------------------------------" << std::endl;
+	void LabWorkTetgen::animate( const float p_deltaTime ) 
+	{ 
+		if ( play_mode )
+			for ( int i = 0; i < NB_PARTICULES; i++ )
+				_particules[ i ]->apply_brownian_mvt( SPEED_PARTICULES, CAGE_DIM );
 
-			_chrono.start();
-			_particules.update_position_particules( 0.01f );
-			_chrono.stop_and_print( "time recomputing brownian movement: " );
-			
-			if ( iteration % _particules.refresh_frame == 0 )
-				_particules.update_structure();
-
-			_chrono.start();
-			for ( int j = 0; j < _particules.list_points.size(); j++ )
-				//_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.rayon_attract, _particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
-				_particules.list_points[ j ]->computeDiffusionLimitedAggregation( _particules.rayon_attract,
-																				_particules.list_points,
-																				_particules._traveled_point,
-																				iteration,
-																				_particules.refresh_frame );
-
-			_chrono.stop_and_print( "time compute attract point with double radius: " );
-
-			_chrono.start();
-			_particules.update_rendering( print_all_edges, actif_point );
-			_chrono.stop_and_print( "time coloring points and generating edges: " );
-
-			_chrono.start();
-			_particules.update_buffers();
-			_chrono.stop_and_print( "time updates buffers: " );
-
-			iteration++;
-		}
-		_chrono.start();	//for printing time of the rendering
+		_dstructure.update_all();
 	}
 
 	void LabWorkTetgen::render()
@@ -116,27 +83,26 @@ namespace SIM_PART
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		glPointSize( 5 ); 
 
-		glBindVertexArray( _cage._vao ); /*bind cage VAO avec le programme*/
+		// Cage
+		glBindVertexArray( _cage._vao ); /*bind cage VAO with the program*/
 		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cage._transformation ) );
-		glDrawElements( GL_LINES, _cage._segments.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
-		glBindVertexArray( 0 );													   /*debind VAO*/
+		glDrawElements( GL_LINES, _cage._segments.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
+		glBindVertexArray( 0 );	   /*debind VAO*/
 
-		glBindVertexArray( _particules._vao ); /*bind particules VAO avec le programme*/
-		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _particules._transformation ) );
-		glDrawElements( GL_POINTS, _particules._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
-		glBindVertexArray( 0 );													/*debind VAO*/
-
-		// edges 
-		if ( mode_edges )
-		{
-			glBindVertexArray( _particules._vao ); /*bind particules VAO avec le programme*/
-			glProgramUniformMatrix4fv(
-				_program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _particules._transformation ) );
-			glDrawElements( GL_LINES, _particules._indices.size(), GL_UNSIGNED_INT, 0 ); /*lancement du pipeline*/
-			glBindVertexArray( 0 );
-		}
-		//s1.render( _program );
+		// Delaunay Structure
+		_dstructure.render( _program, _uModelMatrixLoc );
 	}
+
+
+	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim ) 
+	{
+		for (int i=0; i<nb; i++)
+			_particules.push_back( new Particle(
+				i,	getRandomFloat() * cage_dim.x, 
+					getRandomFloat() * cage_dim.y, 
+					getRandomFloat() * cage_dim.z ) );
+	}
+
 
 	void LabWorkTetgen::handleEvents( const SDL_Event & p_event )
 	{
@@ -145,10 +111,8 @@ namespace SIM_PART
 			switch ( p_event.key.keysym.scancode )
 			{
 			case SDL_SCANCODE_W: // Front
-				// std::cout << "TOUCHE W" << std::endl;
 				_camera->moveFront( _cameraSpeed );
 				_updateViewMatrix();
-				//_camera.print();
 				break;
 			case SDL_SCANCODE_S: // Back
 				_camera->moveFront( -_cameraSpeed );
@@ -170,39 +134,23 @@ namespace SIM_PART
 				_camera->moveUp( -_cameraSpeed );
 				_updateViewMatrix();
 				break;
-			case SDL_SCANCODE_KP_PLUS: //arrow left
-				if ( actif_point == _particules._nbparticules - 1 )
-					actif_point = 0;
-				else
-					actif_point++;
-				_particules.update_rendering( print_all_edges, actif_point );
-				_particules.update_buffers();
-				std::cout << "Particule choisie : " << actif_point << std::endl;
-				
+			case SDL_SCANCODE_KP_PLUS:
+				_dstructure.set_active_particle( _dstructure._active_particle + 1 );
+				std::cout << "Particule choisie : " << _dstructure._active_particle << std::endl;
 				break;
-			case SDL_SCANCODE_KP_MINUS: // arrow right
-				if ( actif_point == 0 )
-					actif_point = _particules._nbparticules - 1;
-				else
-					actif_point--;
-				_particules.update_rendering( print_all_edges, actif_point );
-				_particules.update_buffers();
-				std::cout << "Particule choisie : " << actif_point << std::endl;
-
+			case SDL_SCANCODE_KP_MINUS:
+				_dstructure.set_active_particle( _dstructure._active_particle - 1 );
+				std::cout << "Particule choisie : " << _dstructure._active_particle << std::endl;
 				break;
 			case SDL_SCANCODE_E: 
-				mode_edges = !mode_edges;
-				render();
+				_dstructure.set_edges_mode( !_dstructure._edges_mode );
 				break;
-
 			case SDL_SCANCODE_T: 
-				print_all_edges = !print_all_edges;
-				_particules.update_rendering( print_all_edges, actif_point );
-				_particules.update_buffers();
+				_dstructure.set_draw_all_edges( !_dstructure._draw_all_edges );
 				break;
-
 			case SDL_SCANCODE_P: 
-				play = !play; 
+				play_mode = !play_mode;
+				_dstructure.set_play_mode( play_mode );
 
 			default: break;
 			}

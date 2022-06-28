@@ -1,7 +1,7 @@
 #include <string> 
 #include <vector>
 
-#include "Point.hpp"
+#include "Particle.hpp"
 #include "Tetrahedron.hpp"
 
 
@@ -11,10 +11,10 @@ namespace SIM_PART
 	{
 	  public:
 
-		static void readNodes( std::string fileName, std::vector<Point*> & points );
+		static void readNodes( std::string fileName, std::vector<Particle *> & points );
 
 		static void readTetras( std::string						fileName,
-								std::vector<Point *> &			points,
+								std::vector<Particle *> &		points,
 								std::vector<Tetrahedron *> &	tetras );
 	};
 }

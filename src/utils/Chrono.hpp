@@ -26,7 +26,7 @@ namespace SIM_PART
 			print( message );
 		}
 
-		void set_verbose( bool v ) { verbose = v; }
+		void set_verbose( bool b ) { verbose = b; }
 
 	  private:
 		std::chrono::time_point<std::chrono::system_clock> chrono_start, chrono_stop;

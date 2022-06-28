@@ -6,7 +6,7 @@
 #include "GL/gl3w.h"
 #include "imgui_impl_glut.h"
 
-#include "Point.hpp"
+#include "Particle.hpp"
 #include "Tetrahedron.hpp"
 #include "define.hpp"
 #include "utils/random.hpp"
@@ -17,32 +17,28 @@ namespace SIM_PART
 {
 
 
-	const float* Point::getCoord() const
+	const float* Particle::get_coord() const { return coord; }
+
+	int Particle::get_id() { return this->id; }
+
+	void Particle::add_tetrahedron( Tetrahedron * t ) { this->tetra.emplace_back( t->get_id() ); }
+
+	const std::vector<int> * Particle::get_tetrahedron() { return &tetra; }
+
+	const std::vector<int> * Particle::get_point_attract() { return &point_attract; }
+
+	const std::vector<int> * Particle::get_neighbours() { return &neighbours; }
+
+	bool Particle::is_attract( Particle * p, float attract_distance )
 	{
-		return coord;
-	}
-
-	int	 Point::getId() { return this->id; }
-	void Point::addTetrahedron( Tetrahedron * t ) { this->tetra.emplace_back( t->getId() ); }
-
-	const std::vector<int>* Point::getTetrahedron() { return &tetra; }
-
-	const std::vector<int>* Point::getPointAttract() { return &point_attract; }
-
-	const std::vector<int>* Point::getNeighbours() { return &neighbours; }
-
-	bool Point::isAttract( Point * p, float attract_distance )
-	{
-		const float * p_coord = p->getCoord();
-
+		const float * p_coord = p->get_coord();
 		float dx = p_coord[ 0 ] - x;
 		float dy = p_coord[ 1 ] - y;
 		float dz = p_coord[ 2 ] - z;
-
 		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
-	
 	}
-	void Point::setCoord( const float px, const float py, const float pz ) 
+
+	void Particle::set_coord( const float px, const float py, const float pz ) 
 	{ 
 		x = px;
 		y = py;
@@ -52,38 +48,33 @@ namespace SIM_PART
 		coord[ 2 ] = pz;
 	}
 
-	void Point::addPoint( Point * p ) { point_attract.emplace_back( p->getId() ); }
+	void Particle::add_point( Particle * p ) { point_attract.emplace_back( p->get_id() ); }
 
-	bool Point::samePoints( Point * p )
+	bool Particle::is_same( Particle * p )
 	{
-		const float * pCoords = p->getCoord();
-
-		if ( pCoords[ 0 ] != this->x || pCoords[ 1 ] != this->y || pCoords[ 2 ] != this->z )
-			return false;
-
-		else
-			return true;
+		const float * pCoords = p->get_coord();
+		return !( pCoords[ 0 ] != this->x || pCoords[ 1 ] != this->y || pCoords[ 2 ] != this->z );
 	}
 	
-	void Point::tri_voisin()
+	void Particle::tri_voisin()
 	{
 		sort( neighbours.begin(), neighbours.end() );
 		auto last = std::unique( neighbours.begin(), neighbours.end() );
 		neighbours.erase( last,neighbours.end() );
 	}
 
-	void Point::computeNeighbours( std::vector<Tetrahedron *> tetraList )
+	void Particle::compute_neighbours( std::vector<Tetrahedron *> tetraList )
 	{
 		bool belongs = false;
 		Tetrahedron * tetrahedron;
 
 		for ( int i = 0; i < (int)tetra.size(); i++ )
 		{
-			tetrahedron = findTetra( tetraList, tetra[ i ] );
+			tetrahedron = find_tetra( tetraList, tetra[ i ] );
 			for ( int j = 0; j < 4; j++ )
 			{
 				belongs = false;
-				const std::vector<int> * tetra_points = tetrahedron->getPoints();
+				const std::vector<int> * tetra_points = tetrahedron->get_points();
 				if ( this->id != (*tetra_points)[ j ] )
 				{
 					for ( int k = 0; k < (int)neighbours.size(); k++ )
@@ -102,14 +93,14 @@ namespace SIM_PART
 		}
 	}
 
-	void Point::computeNeighboursV2( std::vector<Tetrahedron *> tetraList )
+	void Particle::compute_neighbours_v2( std::vector<Tetrahedron *> tetraList )
 	{
 
 		Tetrahedron * tetrahedron;
 		for ( int i = 0; i < (int)tetra.size(); i++ )
 		{
-			tetrahedron = findTetra( tetraList, tetra[ i ] );
-			const std::vector<int> * tetra_points = tetrahedron->getPoints();
+			tetrahedron = find_tetra( tetraList, tetra[ i ] );
+			const std::vector<int> * tetra_points = tetrahedron->get_points();
 			for ( int j = 0; j < 4; j++ )
 			{
 				if ( this->id != (*tetra_points)[ j ] )
@@ -125,30 +116,30 @@ namespace SIM_PART
 	}
 
 
-	Point * Point::findPoint( std::vector<Point *> pointList, int id ) { return pointList[ id ]; }
+	Particle * Particle::find_point( std::vector<Particle *> pointList, int id ) { return pointList[ id ]; }
 
-	Tetrahedron * Point::findTetra( std::vector<Tetrahedron *> tetraList, int id ) { return tetraList[ id ]; }
+	Tetrahedron * Particle::find_tetra( std::vector<Tetrahedron *> tetraList, int id ) { return tetraList[ id ]; }
 
-	void Point::computePointAttract( float r, std::vector<Point *> pointList )
+	void Particle::compute_point_attract( float r, std::vector<Particle *> pointList )
 	{
 		std::vector<int> points			 = this->neighbours;
 		std::vector<int> traveled_points = this->neighbours;
 		bool			 belongs		 = false;
-		Point *			 p;
+		Particle *		 p;
 
 		while ( points.size() != 0 )
 		{
-			p = findPoint( pointList, points[ 0 ] );
-			if ( this->isAttract( p, r ) )
+			p = find_point( pointList, points[ 0 ] );
+			if ( this->is_attract( p, r ) )
 			{
 				this->point_attract.push_back( points[ 0 ] );
-				for ( int i = 0; i < (*p->getNeighbours()).size(); i++ )
+				for ( int i = 0; i < (*p->get_neighbours()).size(); i++ )
 				{
 					belongs = false;
 
 					for ( int j = 0; j < (int)traveled_points.size(); j++ )
 					{
-						if ( (*p->getNeighbours())[ i ] == traveled_points[ j ] || this->id == (*p->getNeighbours())[ i ] )
+						if ( (*p->get_neighbours())[ i ] == traveled_points[ j ] || this->id == (*p->get_neighbours())[ i ] )
 						{
 							belongs = true;
 							break;
@@ -157,8 +148,8 @@ namespace SIM_PART
 
 					if ( !belongs )
 					{
-						traveled_points.push_back( (*p->getNeighbours())[ i ] );
-						points.push_back( (*p->getNeighbours())[ i ] );
+						traveled_points.push_back( (*p->get_neighbours())[ i ] );
+						points.push_back( (*p->get_neighbours())[ i ] );
 					}
 				}
 			}
@@ -168,8 +159,8 @@ namespace SIM_PART
 	}
 
 
-	void Point::computePointAttractV4( float				r,
-									   const std::vector<Point *> &pointList,
+	void Particle::compute_point_attract_v4( float						  r,
+											 const std::vector<Particle *> & pointList,
 									   std::vector<int> &traveled_point,
 									   int refresh_frame )
 	{
@@ -200,15 +191,15 @@ namespace SIM_PART
 		//point_attract			  = neighbours;
 		stop_init_traveled_points = std::chrono::system_clock::now();
 		time_init				  += stop_init_traveled_points - start_init_traveled_points;
-		Point * p;
+		Particle * p;
 		int		i = 0;
 
 		while (i < point_attract.size()) 
 		{
 			p		= pointList[ point_attract[ i ] ];
-			if ( p->getId() > id )
+			if ( p->get_id() > id )
 			{
-				float d = this->getDistance2( p );
+				float d = this->compute_distance_squared( p );
 				float radius_futur = r + 2 * speed * refresh_frame;
 			
 				if ( d <= radius_futur * radius_futur )
@@ -220,7 +211,7 @@ namespace SIM_PART
 					{
 						p->addAttract( id );
 
-						const std::vector<int>* p_neighbours = p->getNeighbours();
+						const std::vector<int>* p_neighbours = p->get_neighbours();
 						for ( int j = 0; j < p_neighbours->size(); j++ )
 						{
 							if ( traveled_point[ (*p_neighbours)[ j ] ] != this->id )
@@ -245,7 +236,7 @@ namespace SIM_PART
 			}
 			else
 			{
-				std::vector<int> p_neighbours = ( *p->getNeighbours() );
+				std::vector<int> p_neighbours = ( *p->get_neighbours() );
 				for ( int j = 0; j < p_neighbours.size(); j++ )
 				{
 					if ( traveled_point[ p_neighbours[ j ] ] != this->id )
@@ -321,14 +312,14 @@ namespace SIM_PART
 	}
 	
     
-	void Point::computePointAttractBrut( float r, std::vector<Point *> pointList )
+	void Particle::compute_point_attract_brut( float r, std::vector<Particle *> pointList )
 	{
 		int nb = 0;
 		//possible_futur_attract.clear();
 		//std::cout << " Points attract brute :" << std::endl;
 		for (int i = 0; i < (int)pointList.size(); i++) 
 		{
-			if (i!= this->id && this->isAttract(pointList[i], r)) {
+			if (i!= this->id && this->is_attract(pointList[i], r)) {
 				//std::cout << pointList[ i ]->getId() << std::endl;
 				//possible_futur_attract.emplace_back( i );
 				nb++;
@@ -337,9 +328,9 @@ namespace SIM_PART
 		std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
 	}
 
-	float Point::getDistance(Point* point) 
+	float Particle::compute_distance( Particle * point ) 
 	{
-		const float* p_coord = point->getCoord();
+		const float* p_coord = point->get_coord();
 
 		float x = p_coord[ 0 ] - x;
 		float y = p_coord[ 1 ] - y;
@@ -348,10 +339,10 @@ namespace SIM_PART
 		return sqrt( x * x + y * y + z * z );
 	}
 
-	float Point::getDistance2( Point * point )
+	float Particle::compute_distance_squared( Particle * point )
 	{
 		//return 1.;
-		const float * p_coord = point->getCoord();
+		const float * p_coord = point->get_coord();
 
 		float dx = p_coord[ 0 ] - x;
 		float dy = p_coord[ 1 ] - y;
@@ -361,7 +352,7 @@ namespace SIM_PART
 		
 	}
 
-	void Point::apply_brownian_mvt( float speed, Vec3f cage_dim ) 
+	void Particle::apply_brownian_mvt( float speed, Vec3f cage_dim ) 
 	{ 
 		if ( !fix )
 		{
@@ -387,20 +378,20 @@ namespace SIM_PART
 			coord[ 2 ] = z;
 		}
 	}
-	void Point::computeAttractMethodeDoubleRayon( const float				   rayon,
-												  const std::vector<Point *> & pointList,
+	void Particle::compute_attract_by_double_radius( const float				  rayon,
+													 const std::vector<Particle *> & pointList,
 												  std::vector<int> &		   traveled_point,
 												  int						   iteration,
 												  int						   refresh_frame )
 	{
 		point_attract.erase( point_attract.begin(), ( point_attract.begin() + taille_attract - 1 ) );
-		Point * p;
+		Particle * p;
 		for ( int i = 0; i < possible_futur_attract.size(); i++ )
 		{
 			if ( possible_futur_attract[ i ] > id )
 			{
 				p = pointList[ possible_futur_attract[ i ] ];
-				if ( this->isAttract( p, rayon ) )
+				if ( this->is_attract( p, rayon ) )
 				{
 					this->point_attract.emplace_back( p->id );
 					p->addAttract( id );
@@ -412,8 +403,8 @@ namespace SIM_PART
 	//===============test==================
 
 
-	void Point::computeDiffusionLimitedAggregation( const float				   rayon, 
-												  const std::vector<Point *> &pointList,
+	void Particle::compute_diffusion_limited_aggregation( const float				   rayon, 
+												  const std::vector<Particle *> & pointList,
 												  std::vector<int>	   &traveled_point,
 												  int				   iteration,
 												  int				   refresh_frame )
@@ -424,18 +415,18 @@ namespace SIM_PART
 			{
 				point_attract.erase( point_attract.begin(), ( point_attract.begin() + taille_attract - 1 ) );
 			}
-			Point * p;
+			Particle * p;
 			for ( int i = 0; i < possible_futur_attract.size(); i++ )
 			{
 				if ( possible_futur_attract[ i ] > id )
 				{	
 					p = pointList[ possible_futur_attract[ i ] ];
-					if ( this->isAttract( p, rayon ) )
+					if ( this->is_attract( p, rayon ) )
 					{
 						this->point_attract.push_back( p->id );
 						//std::cout << "taille attract " << p->getPointAttract()->size() << std::endl << std::flush;
 						p->addAttract( id );
-						if ( p->getFix()==true )
+						if ( p->get_fix()==true )
 						{
 							std::cout << "FIXED !: " << this->id << std::endl;
 							fix = true;
@@ -450,8 +441,8 @@ namespace SIM_PART
 	}
 
 
-	void Point::computeAttractMethodeInondation(const float rayon, 
-												const std::vector<Point *> &pointList,
+	void Particle::compute_attract_by_flooding( const float					 rayon, 
+												const std::vector<Particle *> & pointList,
 												 std::vector<int>	  &traveled_point,
 												 int				  iteration,
 												 int				  refresh_frame,
@@ -471,18 +462,18 @@ namespace SIM_PART
 			
 		std::vector<int> n = neighbours;
 		std::vector<int> n2;
-		Point *			 p;
+		Particle *		 p;
 		while (degre_voisinage != 0) 
 		{
 			for (int i = 0; i < n.size(); i++) 
 			{
 				p  = pointList[ n[ i ] ];
-				if ( this->isAttract( p, rayon ) )
+				if ( this->is_attract( p, rayon ) )
 				{
-					this->point_attract.emplace_back( p->getId() );
+					this->point_attract.emplace_back( p->get_id() );
 				}
 				
-				std::vector<int> neighbourg_i = (*pointList[ n[ i ] ]->getNeighbours());
+				std::vector<int> neighbourg_i = (*pointList[ n[ i ] ]->get_neighbours());
 				for ( int j = 0; j < neighbourg_i.size(); j++ ) 
 				{
 					if ( traveled_point[ neighbourg_i[ j ] ] != id )

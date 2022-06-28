@@ -1,7 +1,7 @@
 #ifndef _TETRA_HPP_
 #define _TETRA_HPP_
 
-#include "Point.hpp"
+#include "Particle.hpp"
 #include <vector>
 
 namespace SIM_PART
@@ -19,9 +19,9 @@ namespace SIM_PART
 		};
 		~Tetrahedron() {};
 
-		const std::vector<int>* getPoints();
-		int				 getId();
-		void			 printPoints( std::vector<Point *> list_points );
+		const std::vector<int>* get_points();
+		int						get_id();
+		void					print_points( std::vector<Particle *> list_points );
 
 	  private:
 		int				 id;

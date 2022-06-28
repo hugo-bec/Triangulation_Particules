@@ -6,7 +6,7 @@
 #include "define.hpp"
 #include "utils/Chrono.hpp"
 #include "tetgen.h"
-#include "Point.hpp"
+#include "Particle.hpp"
 #include "Tetrahedron.hpp"
 
 
@@ -28,43 +28,72 @@ namespace SIM_PART
 				glDeleteBuffers( 1, &_vboPoints );
 		}
 
-		void init_structure();
-		void init_particules( unsigned int p_nbparticules );
-		void init_buffers();
-		void tetrahedralize_particules( char * tetgen_parameters );
+		/* -----------------------------------------------------------------------
+		 * ----------------------------- FUNCTIONS -------------------------------
+		 * ----------------------------------------------------------------------- */
 
+		/* --- SETTER FUNCTIONS --- */ 
+		inline void set_verbose( bool b )
+		{
+			_verbose = b;
+			_chrono.set_verbose( b );
+		}
+		inline void set_draw_all_edges( bool b ) { _draw_all_edges = b; }
+		inline void set_edges_mode( bool b ) { _edges_mode = b; }
+		inline void set_play_mode( bool b ) { _play_mode = b; }
+		inline void set_active_particle( int i ) { _active_particle = i < 0 ? _nbparticules - (i*(-1))%_nbparticules : i % _nbparticules; }
+
+		/* --- INITIALIZATION FUNCTIONS --- */ 
+		void init_particules( const std::vector<Particle *> & p_particules );
+		void init_structure();
+		void init_buffers();
+		void init_all( const std::vector<Particle *> & p_particules );
+
+		/* --- UPDATE FUNCTIONS --- */ 
+		void tetrahedralize_particules( char * tetgen_parameters );
 		void update_position_particules( float speed );
 		void update_structure();
-		void update_rendering( bool print_all_edges, int actif_point );
 		void update_tetras();
+		void update_rendering();
 		void update_buffers();
+		void update_all();
 
-		void compute_neighbours();
+		/* --- COMPUTE & RENDER FUNCTIONS --- */ 
 		void compute_attract_points();
+		void render( GLuint _program, GLuint _uModelMatrixLoc );
 
-		void fix_first_points( int nb_points );
-		void set_verbose( bool v );
-	
+
+		/* -----------------------------------------------------------------------
+		 * ----------------------------- ATTRIBUTES ------------------------------
+		 * ----------------------------------------------------------------------- */
 
 		// ================ Geometric data.
 		Vec3f _dimCage = Vec3f(10);
 		int	  _nbparticules = 10000;
-		float rayon_attract = 0.1f;
+		float _rayon_attract = 0.1f;
 
-		std::vector<Point*>		list_points;
-		std::vector<Tetrahedron *> list_tetras;
-		tetgenio				   _tetgen_mesh;
+		std::vector<Particle *>		_list_points;
+		std::vector<Tetrahedron *>	_list_tetras;
+		tetgenio					_tetgen_mesh;
 
 		std::vector<Vec3f>		  _positions;
 		std::vector<Vec3f>		  _colors;
 		std::vector<unsigned int> _indices;
 		std::vector<int>		  _traveled_point;
-		int						  refresh_frame=100;
+		int						  _refresh_frame = 100;
 
 		Mat4f  _transformation = MAT4F_ID;
-		Chrono _chrono;
-		bool   verbose = false;
-		// ================
+
+		// ================ Rendering & Utils data.
+		Chrono	_chrono;
+		bool	_verbose		 = false;
+		bool	_draw_all_edges	 = false;
+		bool	_edges_mode		 = false;
+		bool	_play_mode		 = false;
+		int		_active_particle = 0;
+		int		_iteration		 = 0;
+
+
 
 		// ================ GL data.
 		GLuint _vao = GL_INVALID_INDEX; // Vertex Array Object

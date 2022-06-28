@@ -11,7 +11,7 @@
 namespace SIM_PART
 {
 	//=====================Nodes=======================
-	void TetraFileReader::readNodes( std::string fileName, std::vector<Point*>& points )
+	void TetraFileReader::readNodes( std::string fileName, std::vector<Particle *> & points )
 	{
 		std::ifstream fileNode( fileName, std::ios::in );
 
@@ -38,7 +38,7 @@ namespace SIM_PART
 					cy = stof( results[ 2 ] );
 					cz = stof( results[ 3 ] );
 
-					points.push_back( new Point( id, cx, cy, cz ) );
+					points.push_back( new Particle( id, cx, cy, cz ) );
 				}
 			}
 			fileNode.close();
@@ -49,7 +49,7 @@ namespace SIM_PART
 	//======================Tetrahedrons==========================
 	// prerequisite: have to be called after readNodes.
 	void TetraFileReader::readTetras( std::string					fileName,
-									  std::vector<Point *> &		points,
+									  std::vector<Particle *> &	   points,
 									  std::vector<Tetrahedron *> &	tetras )
 	{
 		std::ifstream	  fileTetra( fileName, std::ios::in );
@@ -78,10 +78,10 @@ namespace SIM_PART
 					t = new Tetrahedron(id, p1, p2, p3, p4 );
 					tetras.push_back( t );
 
-					points[ p1 ]->addTetrahedron( t );
-					points[ p2 ]->addTetrahedron( t );
-					points[ p3 ]->addTetrahedron( t );
-					points[ p4 ]->addTetrahedron( t );
+					points[ p1 ]->add_tetrahedron( t );
+					points[ p2 ]->add_tetrahedron( t );
+					points[ p3 ]->add_tetrahedron( t );
+					points[ p4 ]->add_tetrahedron( t );
 				}
 			}
 			fileTetra.close();
