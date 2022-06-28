@@ -109,21 +109,21 @@ namespace SIM_PART
 			_list_points[ lp->at(2) ]->add_tetrahedron( _list_tetras[ j ] );
 			_list_points[ lp->at(3) ]->add_tetrahedron( _list_tetras[ j ] );
 
-			_list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 1 ) );
-			_list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 2 ) );
-			_list_points[ lp->at( 0 ) ]->addNeighbour( lp->at( 3 ) );
+			_list_points[ lp->at( 0 ) ]->add_neighbour( lp->at( 1 ) );
+			_list_points[ lp->at( 0 ) ]->add_neighbour( lp->at( 2 ) );
+			_list_points[ lp->at( 0 ) ]->add_neighbour( lp->at( 3 ) );
 
-			_list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 0 ) );
-			_list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 2 ) );
-			_list_points[ lp->at( 1 ) ]->addNeighbour( lp->at( 3 ) );
+			_list_points[ lp->at( 1 ) ]->add_neighbour( lp->at( 0 ) );
+			_list_points[ lp->at( 1 ) ]->add_neighbour( lp->at( 2 ) );
+			_list_points[ lp->at( 1 ) ]->add_neighbour( lp->at( 3 ) );
 
-			_list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 0 ) );
-			_list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 1 ) );
-			_list_points[ lp->at( 2 ) ]->addNeighbour( lp->at( 3 ) );
+			_list_points[ lp->at( 2 ) ]->add_neighbour( lp->at( 0 ) );
+			_list_points[ lp->at( 2 ) ]->add_neighbour( lp->at( 1 ) );
+			_list_points[ lp->at( 2 ) ]->add_neighbour( lp->at( 3 ) );
 
-			_list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 0 ) );
-			_list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 1 ) );
-			_list_points[ lp->at( 3 ) ]->addNeighbour( lp->at( 2 ) );
+			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 0 ) );
+			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 1 ) );
+			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 2 ) );
 		}
 
 		for ( int k = 0; k < _list_points.size(); k++ ) 

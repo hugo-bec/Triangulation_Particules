@@ -7,79 +7,63 @@
 #include "imgui_impl_glut.h"
 
 #include "Particle.hpp"
-#include "Tetrahedron.hpp"
 #include "define.hpp"
+#include "Tetrahedron.hpp"
 #include "utils/random.hpp"
 
 
 
 namespace SIM_PART
 {
+	void Particle::add_tetrahedron( Tetrahedron * t )
+	{ _tetras.emplace_back( t->get_id() ); }
 
+	void Particle::set_coord( const float px, const float py, const float pz )
+	{
+		_coord[ 0 ] = px;
+		_coord[ 1 ] = py;
+		_coord[ 2 ] = pz;
+	}
 
-	const float* Particle::get_coord() const { return coord; }
-
-	int Particle::get_id() { return this->id; }
-
-	void Particle::add_tetrahedron( Tetrahedron * t ) { this->tetra.emplace_back( t->get_id() ); }
-
-	const std::vector<int> * Particle::get_tetrahedron() { return &tetra; }
-
-	const std::vector<int> * Particle::get_point_attract() { return &point_attract; }
-
-	const std::vector<int> * Particle::get_neighbours() { return &neighbours; }
-
-	bool Particle::is_attract( Particle * p, float attract_distance )
+	bool Particle::is_attract( Particle * p, float attract_distance ) const
 	{
 		const float * p_coord = p->get_coord();
-		float dx = p_coord[ 0 ] - x;
-		float dy = p_coord[ 1 ] - y;
-		float dz = p_coord[ 2 ] - z;
+		float		  dx	  = p_coord[ 0 ] - _coord[ 0 ];
+		float		  dy	  = p_coord[ 1 ] - _coord[ 1 ];
+		float		  dz	  = p_coord[ 2 ] - _coord[ 2 ];
 		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
 	}
 
-	void Particle::set_coord( const float px, const float py, const float pz ) 
-	{ 
-		x = px;
-		y = py;
-		z = pz;
-		coord[ 0 ] = px;
-		coord[ 1 ] = py;
-		coord[ 2 ] = pz;
-	}
-
-	void Particle::add_point( Particle * p ) { point_attract.emplace_back( p->get_id() ); }
-
-	bool Particle::is_same( Particle * p )
+	bool Particle::is_same( Particle * p ) const
 	{
 		const float * pCoords = p->get_coord();
-		return !( pCoords[ 0 ] != this->x || pCoords[ 1 ] != this->y || pCoords[ 2 ] != this->z );
+		return !( pCoords[ 0 ] != _coord[ 0 ] || pCoords[ 1 ] != _coord[ 1 ] || pCoords[ 2 ] != _coord[ 2 ] );
 	}
 	
 	void Particle::tri_voisin()
 	{
-		sort( neighbours.begin(), neighbours.end() );
-		auto last = std::unique( neighbours.begin(), neighbours.end() );
-		neighbours.erase( last,neighbours.end() );
+		sort( _neighbours.begin(), _neighbours.end() );
+		auto last = std::unique( _neighbours.begin(), _neighbours.end() );
+		_neighbours.erase( last,_neighbours.end() );
 	}
 
-	void Particle::compute_neighbours( std::vector<Tetrahedron *> tetraList )
+	void Particle::compute_neighbours( std::vector<Tetrahedron *> tetra_list )
 	{
 		bool belongs = false;
 		Tetrahedron * tetrahedron;
 
-		for ( int i = 0; i < (int)tetra.size(); i++ )
+		for ( int i = 0; i < (int)_tetras.size(); i++ )
 		{
-			tetrahedron = find_tetra( tetraList, tetra[ i ] );
+			tetrahedron = tetra_list[ _tetras[ i ] ];
 			for ( int j = 0; j < 4; j++ )
 			{
 				belongs = false;
 				const std::vector<int> * tetra_points = tetrahedron->get_points();
-				if ( this->id != (*tetra_points)[ j ] )
+				if ( _id != (*tetra_points)[ j ] )
 				{
-					for ( int k = 0; k < (int)neighbours.size(); k++ )
+					for ( int k = 0; k < (int)_neighbours.size(); k++ )
 					{
-						if ( this->neighbours[ k ] == (*tetra_points)[ j ] )
+						if ( this->_neighbours[ k ] == (*tetra_points)[ j ] )
 						{
 							belongs = true;
 							break;
@@ -87,59 +71,54 @@ namespace SIM_PART
 					}
 
 					if ( !belongs )
-						neighbours.emplace_back( (*tetra_points)[ j ] );
+						_neighbours.emplace_back( (*tetra_points)[ j ] );
 				}
 			}
 		}
 	}
 
-	void Particle::compute_neighbours_v2( std::vector<Tetrahedron *> tetraList )
+	void Particle::compute_neighbours_v2( std::vector<Tetrahedron *> tetra_list )
 	{
 
 		Tetrahedron * tetrahedron;
-		for ( int i = 0; i < (int)tetra.size(); i++ )
+		for ( int i = 0; i < (int)_tetras.size(); i++ )
 		{
-			tetrahedron = find_tetra( tetraList, tetra[ i ] );
+			tetrahedron = tetra_list[ _tetras[ i ] ];
 			const std::vector<int> * tetra_points = tetrahedron->get_points();
 			for ( int j = 0; j < 4; j++ )
 			{
-				if ( this->id != (*tetra_points)[ j ] )
+				if ( _id != (*tetra_points)[ j ] )
 				{
-					neighbours.emplace_back( (*tetra_points)[ j ] );
+					_neighbours.emplace_back( (*tetra_points)[ j ] );
 				}
 			}
 		}
 
-		sort( neighbours.begin(), neighbours.end() );
-		auto last = std::unique( neighbours.begin(), neighbours.end() );
-		neighbours.erase( last, neighbours.end() );
+		sort( _neighbours.begin(), _neighbours.end() );
+		auto last = std::unique( _neighbours.begin(), _neighbours.end() );
+		_neighbours.erase( last, _neighbours.end() );
 	}
-
-
-	Particle * Particle::find_point( std::vector<Particle *> pointList, int id ) { return pointList[ id ]; }
-
-	Tetrahedron * Particle::find_tetra( std::vector<Tetrahedron *> tetraList, int id ) { return tetraList[ id ]; }
 
 	void Particle::compute_point_attract( float r, std::vector<Particle *> pointList )
 	{
-		std::vector<int> points			 = this->neighbours;
-		std::vector<int> traveled_points = this->neighbours;
+		std::vector<int> points			 = this->_neighbours;
+		std::vector<int> traveled_points = this->_neighbours;
 		bool			 belongs		 = false;
 		Particle *		 p;
 
 		while ( points.size() != 0 )
 		{
-			p = find_point( pointList, points[ 0 ] );
+			p = pointList[ points[ 0 ] ];
 			if ( this->is_attract( p, r ) )
 			{
-				this->point_attract.push_back( points[ 0 ] );
+				this->_particules_attract.push_back( points[ 0 ] );
 				for ( int i = 0; i < (*p->get_neighbours()).size(); i++ )
 				{
 					belongs = false;
 
 					for ( int j = 0; j < (int)traveled_points.size(); j++ )
 					{
-						if ( (*p->get_neighbours())[ i ] == traveled_points[ j ] || this->id == (*p->get_neighbours())[ i ] )
+						if ( (*p->get_neighbours())[ i ] == traveled_points[ j ] || _id == (*p->get_neighbours())[ i ] )
 						{
 							belongs = true;
 							break;
@@ -171,20 +150,20 @@ namespace SIM_PART
 
 		start_init_traveled_points	= std::chrono::system_clock::now();
 	
-		for ( int i = 0; i <= id; i++ )
+		for ( int i = 0; i <= _id; i++ )
 		{
-				traveled_point[ i ] = id;
+			traveled_point[ i ] = _id;
 		}
-		for ( int i = id + 1; i < traveled_point.size(); i++ )
+		for ( int i = _id + 1; i < traveled_point.size(); i++ )
 		{
 			traveled_point[ i ] = -1;
 		}
-		for ( int i = 0; i < (int)neighbours.size(); i++ ) 
+		for ( int i = 0; i < (int)_neighbours.size(); i++ ) 
 		{
-			if (neighbours[i] > id) 
+			if (_neighbours[i] > _id) 
 			{
-				traveled_point[ neighbours[ i ] ] = this->id;
-				point_attract.emplace_back( neighbours[ i ] );
+				traveled_point[ _neighbours[ i ] ] = _id;
+				_particules_attract.emplace_back( _neighbours[ i ] );
 			}
 
 		}
@@ -194,30 +173,30 @@ namespace SIM_PART
 		Particle * p;
 		int		i = 0;
 
-		while (i < point_attract.size()) 
+		while (i < _particules_attract.size()) 
 		{
-			p		= pointList[ point_attract[ i ] ];
-			if ( p->get_id() > id )
+			p		= pointList[ _particules_attract[ i ] ];
+			if ( p->get_id() > _id )
 			{
 				float d = this->compute_distance_squared( p );
-				float radius_futur = r + 2 * speed * refresh_frame;
+				float radius_futur = r + 2 * _speed * refresh_frame;
 			
 				if ( d <= radius_futur * radius_futur )
 				{
-					possible_futur_attract.emplace_back( p->id );
-					p->addPossibleAttract( id );
+					_possible_futur_attract.emplace_back( p->_id );
+					p->add_possible_attract( _id );
 
 					if ( d <= r * r )
 					{
-						p->addAttract( id );
+						p->add_attract( _id );
 
 						const std::vector<int>* p_neighbours = p->get_neighbours();
 						for ( int j = 0; j < p_neighbours->size(); j++ )
 						{
-							if ( traveled_point[ (*p_neighbours)[ j ] ] != this->id )
+							if ( traveled_point[ (*p_neighbours)[ j ] ] != _id )
 							{
-								point_attract.emplace_back( (*p_neighbours)[ j ] );
-								traveled_point[ (*p_neighbours)[ j ] ] = this->id;
+								_particules_attract.emplace_back( (*p_neighbours)[ j ] );
+								traveled_point[ (*p_neighbours)[ j ] ] = _id;
 							}
 							
 						}
@@ -226,12 +205,12 @@ namespace SIM_PART
 
 					else
 					{
-						point_attract.erase( point_attract.begin() + i );
+						_particules_attract.erase( _particules_attract.begin() + i );
 					}
 				}
 				else
 				{
-					point_attract.erase( point_attract.begin() + i );
+					_particules_attract.erase( _particules_attract.begin() + i );
 				}
 			}
 			else
@@ -239,10 +218,10 @@ namespace SIM_PART
 				std::vector<int> p_neighbours = ( *p->get_neighbours() );
 				for ( int j = 0; j < p_neighbours.size(); j++ )
 				{
-					if ( traveled_point[ p_neighbours[ j ] ] != this->id )
+					if ( traveled_point[ p_neighbours[ j ] ] != _id )
 					{
-						point_attract.emplace_back( p_neighbours[ j ] );
-						traveled_point[ p_neighbours[ j ] ] = this->id;
+						_particules_attract.emplace_back( p_neighbours[ j ] );
+						traveled_point[ p_neighbours[ j ] ] = _id;
 					}
 				}
 				i++;
@@ -250,7 +229,7 @@ namespace SIM_PART
 
 
 		}
-		taille_attract = point_attract.size();
+		_taille_attract = _particules_attract.size();
 		/* std::vector<int> points = neighbours;
 		Point*			 p;
 		while ( points.size() != 0 )
@@ -312,14 +291,14 @@ namespace SIM_PART
 	}
 	
     
-	void Particle::compute_point_attract_brut( float r, std::vector<Particle *> pointList )
+	void Particle::compute_point_attract_brut( float r, std::vector<Particle *> pointList ) const
 	{
 		int nb = 0;
 		//possible_futur_attract.clear();
 		//std::cout << " Points attract brute :" << std::endl;
 		for (int i = 0; i < (int)pointList.size(); i++) 
 		{
-			if (i!= this->id && this->is_attract(pointList[i], r)) {
+			if (i!= _id && this->is_attract(pointList[i], r)) {
 				//std::cout << pointList[ i ]->getId() << std::endl;
 				//possible_futur_attract.emplace_back( i );
 				nb++;
@@ -328,76 +307,68 @@ namespace SIM_PART
 		std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
 	}
 
-	float Particle::compute_distance( Particle * point ) 
+	float Particle::compute_distance( Particle * point ) const
 	{
 		const float* p_coord = point->get_coord();
-
-		float _x = p_coord[ 0 ] - x;
-		float _y = p_coord[ 1 ] - y;
-		float _z = p_coord[ 2 ] - z;
-
-		return sqrt( _x * _x + _y * _y + _z * _z );
+		float dx = p_coord[ 0 ] - _coord[ 0 ];
+		float dy = p_coord[ 1 ] - _coord[ 1 ];
+		float dz = p_coord[ 2 ] - _coord[ 2 ];
+		return sqrt( dx * dx + dy * dy + dz * dz );
 	}
 
-	float Particle::compute_distance_squared( Particle * point )
+	float Particle::compute_distance_squared( Particle * point ) const
 	{
 		const float * p_coord = point->get_coord();
-
-		float dx = p_coord[ 0 ] - x;
-		float dy = p_coord[ 1 ] - y;
-		float dz = p_coord[ 2 ] - z;
-
+		float dx = p_coord[ 0 ] - _coord[ 0 ];
+		float dy = p_coord[ 1 ] - _coord[ 1 ];
+		float dz = p_coord[ 2 ] - _coord[ 2 ];
 		return  dx * dx + dy * dy + dz * dz;
 		
 	}
 
 	void Particle::apply_brownian_mvt( float speed, Vec3f cage_dim ) 
 	{ 
-		if ( !fix )
+		if ( !_fix )
 		{
 			SIM_PART::Vec3f dir;
 			dir.x = ( ( getRandomFloat() * 2.f ) - 1.f ) * speed;
 			dir.y = ( ( getRandomFloat() * 2.f ) - 1.f ) * speed;
 			dir.z = ( ( getRandomFloat() * 2.f ) - 1.f ) * speed;
 
-			x += dir.x;
-			y += dir.y;
-			z += dir.z;
+			float tx = _coord[ 0 ] += dir.x;
+			float ty = _coord[ 1 ] += dir.y;
+			float tz = _coord[ 2 ] += dir.z;
 
 			//border management
-			if ( x < 0 || x > cage_dim.x ) 
-				x -= dir.x * 2.f;
-			if ( y < 0 || y > cage_dim.y )
-				y -= dir.y * 2.f;
-			if ( z < 0 || z > cage_dim.z )
-				z -= dir.z * 2.f;
-
-			coord[ 0 ] = x;
-			coord[ 1 ] = y;
-			coord[ 2 ] = z;
+			if ( tx < 0 || tx > cage_dim.x ) 
+				_coord[ 0 ] -= dir.x * 2.f;
+			if ( ty < 0 || ty > cage_dim.y )
+				_coord[ 1 ] -= dir.y * 2.f;
+			if ( tz < 0 || tz > cage_dim.z )
+				_coord[ 2 ] -= dir.z * 2.f;
 		}
 	}
 	void Particle::compute_attract_by_double_radius( const float				  rayon,
-													 const std::vector<Particle *> & pointList,
+													 const std::vector<Particle *> & point_list,
 												  std::vector<int> &		   traveled_point,
 												  int						   iteration,
 												  int						   refresh_frame )
 	{
-		point_attract.erase( point_attract.begin(), ( point_attract.begin() + taille_attract - 1 ) );
+		_particules_attract.erase( _particules_attract.begin(), ( _particules_attract.begin() + _taille_attract - 1 ) );
 		Particle * p;
-		for ( int i = 0; i < possible_futur_attract.size(); i++ )
+		for ( int i = 0; i < _possible_futur_attract.size(); i++ )
 		{
-			if ( possible_futur_attract[ i ] > id )
+			if ( _possible_futur_attract[ i ] > _id )
 			{
-				p = pointList[ possible_futur_attract[ i ] ];
+				p = point_list[ _possible_futur_attract[ i ] ];
 				if ( this->is_attract( p, rayon ) )
 				{
-					this->point_attract.emplace_back( p->id );
-					p->addAttract( id );
+					this->_particules_attract.emplace_back( p->_id );
+					p->add_attract( _id );
 				}
 			}
 		}
-		taille_attract = point_attract.size();
+		_taille_attract = _particules_attract.size();
 	}
 	//===============test==================
 
@@ -408,50 +379,50 @@ namespace SIM_PART
 												  int				   iteration,
 												  int				   refresh_frame )
 	{
-		for ( int i = 0; i < point_attract.size(); i++ )
+		for ( int i = 0; i < _particules_attract.size(); i++ )
 		{
-			if ( pointList[ point_attract[ i ] ]->get_fix() )
+			if ( pointList[ _particules_attract[ i ] ]->is_fix() )
 			{
-				fix = true;
-				color = Vec3f( 0, 1, 0 );
+				_fix = true;
+				_color = Vec3f( 0, 1, 0 );
 
 			}
 		}
 
 		
-			if ( taille_attract != 0 )
+			if ( _taille_attract != 0 )
 			{
-				point_attract.erase( point_attract.begin(), ( point_attract.begin() + taille_attract - 1 ) );
+				_particules_attract.erase( _particules_attract.begin(), ( _particules_attract.begin() + _taille_attract - 1 ) );
 			}
-			for (int i = 0; i < point_attract.size(); i++) 
+			for (int i = 0; i < _particules_attract.size(); i++) 
 			{
-				if ( pointList[ point_attract[ i ] ]->get_fix() )
-					fix = true;
+				if ( pointList[ _particules_attract[ i ] ]->is_fix() )
+					_fix = true;
 			}
 			Particle * p;
-			for ( int i = 0; i < possible_futur_attract.size(); i++ )
+			for ( int i = 0; i < _possible_futur_attract.size(); i++ )
 			{
-				if ( possible_futur_attract[ i ] > id )
+				if ( _possible_futur_attract[ i ] > _id )
 				{	
-					p = pointList[ possible_futur_attract[ i ] ];
+					p = pointList[ _possible_futur_attract[ i ] ];
 					if ( this->is_attract( p, rayon ) )
 					{
-						this->point_attract.push_back( p->id );
+						this->_particules_attract.push_back( p->_id );
 						//std::cout << "est fix " << p->getPointAttract()->size() << std::endl << std::flush;
-						p->addAttract( id );
-						if ( !fix )
+						p->add_attract( _id );
+						if ( !_fix )
 						{
-							if ( p->get_fix() == true )
+							if ( p->is_fix() == true )
 							{
 								// std::cout << "FIXED !: " << this->id << std::endl;
-								fix = true;
-								color = Vec3f( 0, 1, 0 );
+								_fix = true;
+								_color = Vec3f( 0, 1, 0 );
 							}
 						}
 					}
 				}
 			}
-			taille_attract = point_attract.size();
+			_taille_attract = _particules_attract.size();
 		
 
 		/* else
@@ -489,19 +460,19 @@ namespace SIM_PART
 												 int				  refresh_frame,
 												 int				  degre_voisinage)
 	{
-		point_attract.clear();
+		_particules_attract.clear();
 		for ( int i = 0; i < traveled_point.size(); i++ )
 		{
 			traveled_point[ i ] = -1;
 		}
-		traveled_point[ this->id ] = this->id;
+		traveled_point[ _id ] = _id;
 
-		for ( int i = 0; i < neighbours.size(); i++ )
+		for ( int i = 0; i < _neighbours.size(); i++ )
 		{
-			traveled_point[ neighbours[ i ]  ] = id;
+			traveled_point[ _neighbours[ i ]  ] = _id;
 		}
 			
-		std::vector<int> n = neighbours;
+		std::vector<int> n = _neighbours;
 		std::vector<int> n2;
 		Particle *		 p;
 		while (degre_voisinage != 0) 
@@ -511,13 +482,13 @@ namespace SIM_PART
 				p  = pointList[ n[ i ] ];
 				if ( this->is_attract( p, rayon ) )
 				{
-					this->point_attract.emplace_back( p->get_id() );
+					this->_particules_attract.emplace_back( p->get_id() );
 				}
 				
 				std::vector<int> neighbourg_i = (*pointList[ n[ i ] ]->get_neighbours());
 				for ( int j = 0; j < neighbourg_i.size(); j++ ) 
 				{
-					if ( traveled_point[ neighbourg_i[ j ] ] != id )
+					if ( traveled_point[ neighbourg_i[ j ] ] != _id )
 						n2.emplace_back( neighbourg_i[ j ] );
 
 				}

@@ -6,18 +6,19 @@
 
 namespace SIM_PART
 {
+	class Particle;
 
 	class Tetrahedron
 	{
 	  public:
-		Tetrahedron( int _id, int p1, int p2, int p3, int p4 ) : id( _id )
+		Tetrahedron( const int _id, const int p1, const int p2, const int p3, const int p4 ) : id( _id )
 		{
 			points.push_back( p1 );
 			points.push_back( p2 );
 			points.push_back( p3 );
 			points.push_back( p4 );
-		};
-		~Tetrahedron() {};
+		}
+		~Tetrahedron() {}
 
 		const std::vector<int>* get_points();
 		int						get_id();
