@@ -111,7 +111,7 @@ namespace SIM_PART
 		float y;
 		float z;
 		float coord[ 3 ];
-		float speed = 0.01f;
+		float speed = 0.1f;
 		//float rayon = 2.f;
 
 		std::vector<int> tetra;

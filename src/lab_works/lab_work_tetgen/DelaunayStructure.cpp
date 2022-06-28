@@ -1,7 +1,7 @@
 #include "DelaunayStructure.hpp"
 #include <chrono>
 #include "glm/gtc/type_ptr.hpp"
-
+#include "parameters.hpp"
 #include "utils/random.hpp"
 #include "utils/Chrono.hpp"
 
@@ -204,15 +204,22 @@ namespace SIM_PART
 		{
 			_indices.push_back( _active_particle );
 		}
-		for ( int i = 0; i < _nbparticules; i++ )
-			this->_colors[ i ] = Vec3f( 0 );
+		for (int i = 0; i < _nbparticules; i++) {
+			if ( _list_points[i]->get_fix() )
+				this->_colors[ i ] = Vec3f( 0,1,0 );
+			else
+				this->_colors[ i ] = Vec3f( 0 );
 
+		}
+			
 		std::vector<int> point_attract = (*_list_points[ _active_particle ]->get_point_attract());
 		for ( int i = 0; i < point_attract.size(); i++ )
 			this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
-		for (int i = 0; i < 50; i++) 
+
+		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ ) 
 		{
 			this->_colors[ i ] = Vec3f( 0, 1, 0 );
+			
 		}
 		this->_colors[ _active_particle ] = Vec3f( 0, 1, 1 );
 		
@@ -315,9 +322,16 @@ namespace SIM_PART
 			for ( int j = 0; j < _list_points.size(); j++ )
 				//_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.rayon_attract,
 				//_particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
-				_list_points[ j ]->compute_diffusion_limited_aggregation(
-					_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+				_list_points[ j ]->compute_diffusion_limited_aggregation( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
 
+			int nb = 0;
+			for ( int j = 0; j < _list_points.size(); j++ )
+			{
+				if ( !_list_points[ j ]->get_fix() )
+					nb++;
+					
+			}
+			std::cout << "nb non fix : " << nb << std::endl;
 			_chrono.stop_and_print( "time compute attract point with double radius: " );
 			_iteration++;
 		}

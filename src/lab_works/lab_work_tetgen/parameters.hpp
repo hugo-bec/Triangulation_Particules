@@ -1,12 +1,14 @@
-#pragma once
+#ifndef _PARAMETERS_HPP_
+#define _PARAMETERS_HPP_
+
 #include "define.hpp"
 
 namespace SIM_PART
 {
-	int	  NB_PARTICULES = 10000;
-	float SPEED_PARTICULES = 0.01f;
-	Vec3f CAGE_DIM		   = Vec3f(10);
-	int	  NB_INIT_FIXED_POINTS = 50;
+	extern int	  NB_PARTICULES;
+	extern float  SPEED_PARTICULES;
+	extern Vec3f  CAGE_DIM;
+	extern int	  NB_INIT_FIXED_POINTS;
 }
 	
-	
+#endif

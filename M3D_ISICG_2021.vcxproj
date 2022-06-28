@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="src\lab_works\lab_work_tetgen\CageMesh.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\DelaunayStructure.cpp" />
+    <ClCompile Include="src\lab_works\lab_work_tetgen\parameters.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\Particle.cpp" />
     <ClCompile Include="src\lab_works\lab_work_tetgen\lab_work_tetgen.cpp" />
     <ClCompile Include="src\lab_works\lab_work_cgal\lab_work_cgal.cpp" />
