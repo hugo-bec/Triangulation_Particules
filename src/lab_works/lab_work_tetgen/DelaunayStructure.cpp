@@ -198,31 +198,7 @@ namespace SIM_PART
 			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 		}
 	
-
-		// Change color of attracted point and center point
-		if ( _list_points[ _active_particle ]->get_point_attract()->size() == 0 )
-		{
-			_indices.push_back( _active_particle );
-		}
-		for (int i = 0; i < _nbparticules; i++) {
-			if ( _list_points[i]->is_fix() )
-				this->_colors[ i ] = Vec3f( 0,1,0 );
-			else
-				this->_colors[ i ] = Vec3f( 0 );
-
-		}
-			
-		std::vector<int> point_attract = (*_list_points[ _active_particle ]->get_point_attract());
-		for ( int i = 0; i < point_attract.size(); i++ )
-			this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
-
-		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ ) 
-		{
-			this->_colors[ i ] = Vec3f( 0, 1, 0 );
-			
-		}
-		this->_colors[ _active_particle ] = Vec3f( 0, 1, 1 );
-		
+		coloration();
 	}
 
 	void DelaunayStructure::update_position_particules( float speed ) 
@@ -316,13 +292,33 @@ namespace SIM_PART
 			_chrono.stop_and_print( "time recomputing brownian movement: " );
 
 			if ( _iteration % _refresh_frame == 0 )
+			{
+				char tetgen_param[ 16 ];
+				tetgen_param[ 0 ] = 'Q';
+				tetgen_param[ 1 ] = '\0';
+
+				_chrono.start();
+				tetrahedralize_particules( tetgen_param );
+				_chrono.stop_and_print( "time TETGEN tetrahedralize: " );
+
 				update_structure();
+				
+			}
 
 			_chrono.start();
-			for ( int j = 0; j < _list_points.size(); j++ )
-				//_particules.list_points[ j ]->computeAttractMethodeDoubleRayon( _particules.rayon_attract,
-				//_particules.list_points, _particules._traveled_point, iteration, _particules.refresh_frame );
-				_list_points[ j ]->compute_diffusion_limited_aggregation( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+
+			std::cout << "_mode_type " << _mode_type << std::endl; 
+			if ( _mode_type == 0 )
+			{
+				//for ( int j = 0; j < _list_points.size(); j++ )
+					//_list_points[ j ]->compute_attract_by_double_radius( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+			}
+			else
+			{
+				for ( int j = 0; j < _list_points.size(); j++ )
+					_list_points[ j ]->compute_diffusion_limited_aggregation(
+						_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+			}
 
 			int nb = 0;
 			for ( int j = 0; j < _list_points.size(); j++ )
@@ -382,6 +378,41 @@ namespace SIM_PART
 			glDrawElements( GL_LINES, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
 			glBindVertexArray( 0 );  /*debind VAO*/
 		}
+	}
+
+
+	void DelaunayStructure::coloration() 
+	{
+		for (int i = 0; i < _nbparticules; i++) {
+			_colors[ i ] = Vec3f( 0 );
+		}
+
+		std::vector<int> point_attract;
+		switch ( _mode_type )
+		{
+			case 0: 
+				point_attract = ( *_list_points[ _active_particle ]->get_point_attract() );
+				for ( int i = 0; i < point_attract.size(); i++ )
+					this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
+				break;
+
+			case 1: 
+				for ( int i = 0; i < _nbparticules; i++ )
+				{
+					if ( _list_points[ i ]->is_fix() )
+						this->_colors[ i ] = Vec3f( 0, 1, 0 );
+					else
+						this->_colors[ i ] = Vec3f( 0 );
+				}
+				
+				break;
+			
+			default: break;
+		}
+		if ( _list_points[ _active_particle ]->get_point_attract()->empty() )
+			_indices.push_back( _active_particle );
+
+		this->_colors[ _active_particle ] = Vec3f( 0, 1, 1 );
 	}
 
 }

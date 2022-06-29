@@ -41,6 +41,14 @@ namespace SIM_PART
 		inline void set_draw_all_edges( bool b ) { _draw_all_edges = b; }
 		inline void set_edges_mode( bool b ) { _edges_mode = b; }
 		inline void set_play_mode( bool b ) { _play_mode = b; }
+		inline void set_type_mode()
+		{
+			if ( _mode_type == 0 )
+				_mode_type = 1;
+			else
+				_mode_type = 0;
+		}
+
 		inline void set_active_particle( int i ) { _active_particle = i < 0 ? _nbparticules - (i*(-1))%_nbparticules : i % _nbparticules; }
 
 		/* --- INITIALIZATION FUNCTIONS --- */ 
@@ -61,6 +69,7 @@ namespace SIM_PART
 		/* --- COMPUTE & RENDER FUNCTIONS --- */ 
 		void compute_attract_points();
 		void render( GLuint _program, GLuint _uModelMatrixLoc );
+		void coloration();
 
 
 		/* -----------------------------------------------------------------------
@@ -90,6 +99,7 @@ namespace SIM_PART
 		bool	_draw_all_edges	 = false;
 		bool	_edges_mode		 = false;
 		bool	_play_mode		 = false;
+		int		_mode_type		 = 1;
 		int		_active_particle = 0;
 		int		_iteration		 = 1;
 

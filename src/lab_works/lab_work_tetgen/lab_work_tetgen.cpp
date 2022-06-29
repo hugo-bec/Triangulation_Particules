@@ -25,6 +25,7 @@ namespace SIM_PART
 	bool			  mode_edges  = true;
 	bool			  print_all_edges = false;
 	bool			  play_mode		  = false;
+	int				  mode_type		  = 0;
 	bool			  verbose		  = true;
 	int				  iteration		  = 3;
 
@@ -146,6 +147,13 @@ namespace SIM_PART
 			case SDL_SCANCODE_P: 
 				play_mode = !play_mode;
 				_dstructure.set_play_mode( play_mode );
+				break;
+			//mode 0, classique avec affichage des points attractifs
+			//mode 1, diffusion limited aggregation
+			case SDL_SCANCODE_M: 
+				std::cout << "TOUCHHEEEEEE MMMMMMMMMMMMMMMMMMMMMMM" << std::endl;
+				_dstructure.set_type_mode();
+				break;
 
 			default: break;
 			}
@@ -159,6 +167,8 @@ namespace SIM_PART
 			_updateViewMatrix();
 		}
 	}
+
+	
 
 	void LabWorkTetgen::displayUI()
 	{
