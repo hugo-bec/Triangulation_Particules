@@ -37,6 +37,8 @@ namespace SIM_PART
 		void add_possible_attract( int i ) { _possible_futur_attract.emplace_back( i ); }
 		void add_attract( int i ) { _particules_attract.emplace_back( i ); }
 
+		void clear_tetrahedron() { _tetras.clear(); }
+
 		void set_fix( const bool b ) { _fix = b; }
 		void set_coord( float px, float py, float pz );
 
