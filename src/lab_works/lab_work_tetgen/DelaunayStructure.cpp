@@ -82,7 +82,7 @@ namespace SIM_PART
 		_tetgen_mesh.pointlist		= _tetgen_mesh.pointlist;
 		std::cout << "TETGEN: Tetrahedralization..." << std::endl;
 		
-		tetrahedralize( tetgen_parameters, &_tetgen_mesh, &_tetgen_mesh);
+		tetrahedralize( tetgen_parameters, &_tetgen_mesh, &_tetgen_mesh );
 
 		std::cout << "number of tetrahedron: " << _tetgen_mesh.numberoftetrahedra << std::endl;
 		std::cout << "number of points: " << _tetgen_mesh.numberofpoints << std::endl;
@@ -97,7 +97,9 @@ namespace SIM_PART
 										_tetgen_mesh.tetrahedronlist[ j * 4 + 1 ],
 										_tetgen_mesh.tetrahedronlist[ j * 4 + 2 ],
 										_tetgen_mesh.tetrahedronlist[ j * 4 + 3 ] ) );
-
+		for (int i = 0; i < _list_points.size(); i++) {
+			_list_points[ i ]->clear_tetrahedron();
+		}
 		// Computing neighbours for each points
 		_chrono.start();
 		if ( _verbose ) std::cout << "Adding neighbours from tetrahedrization..." << std::endl;
@@ -169,11 +171,12 @@ namespace SIM_PART
 
 		// Assign position of the point to OpenGL
 		_chrono.start();
+		/* _positions.clear();
 		const float * coord;
 		for ( int i = 0; i < _nbparticules; i++ ) {
 			coord = _list_points[ i ]->get_coord();
 			this->_positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
-		}
+		}*/
 		_chrono.stop_and_print( "time assigning position: " );
 	}
 
@@ -183,6 +186,7 @@ namespace SIM_PART
 		//std::cout << "_draw_all_edges: " << _draw_all_edges << ", _active_particle: " << _active_particle << std::endl;
 		std::vector<int> edges, tmp;
 		const std::vector<int> *tp;
+		
 
 		if ( !_draw_all_edges )
 		{
@@ -202,12 +206,14 @@ namespace SIM_PART
 			for ( int i = 0; i < (int)tetra_actif_points.size(); i++ )
 			{
 				tp	= _list_tetras[ tetra_actif_points[ i ] ]->get_points();
+				tmp.clear();
 				tmp = { tp->at( 0 ), tp->at( 1 ), tp->at( 0 ), tp->at( 2 ), tp->at( 0 ), tp->at( 3 ),
 						tp->at( 1 ), tp->at( 2 ), tp->at( 1 ), tp->at( 3 ), tp->at( 2 ), tp->at( 3 ) };
 				edges.insert( edges.end(), tmp.begin(), tmp.end() );
 			}
 			this->_indices.clear();
 			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
+
 		}
 		else 
 		{

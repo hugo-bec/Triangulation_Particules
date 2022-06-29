@@ -84,7 +84,6 @@ namespace SIM_PART
 		std::vector<Particle *>		_list_points;
 		std::vector<Tetrahedron *>	_list_tetras;
 		tetgenio					_tetgen_mesh;
-		tetgenio					_tetgen_mesh_out;
 
 		std::vector<Vec3f>		  _positions;
 		std::vector<Vec3f>		  _colors;
