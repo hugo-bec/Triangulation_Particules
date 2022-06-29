@@ -154,10 +154,12 @@ namespace SIM_PART
 		{
 			traveled_point[ i ] = _id;
 		}
+
 		for ( int i = _id + 1; i < traveled_point.size(); i++ )
 		{
 			traveled_point[ i ] = -1;
 		}
+
 		for ( int i = 0; i < (int)_neighbours.size(); i++ ) 
 		{
 			if (_neighbours[i] > _id) 
@@ -291,20 +293,23 @@ namespace SIM_PART
 	}
 	
     
-	void Particle::compute_point_attract_brut( float r, std::vector<Particle *> pointList ) const
+	void Particle::compute_point_attract_brut( float r, std::vector<Particle *> pointList )
 	{
 		int nb = 0;
+		if ( _particules_attract.size() != 0)
+			_particules_attract.clear();
 		//possible_futur_attract.clear();
 		//std::cout << " Points attract brute :" << std::endl;
 		for (int i = 0; i < (int)pointList.size(); i++) 
 		{
 			if (i!= _id && this->is_attract(pointList[i], r)) {
 				//std::cout << pointList[ i ]->getId() << std::endl;
-				//possible_futur_attract.emplace_back( i );
+				_particules_attract.push_back( i );
 				nb++;
 			}
 		}
-		std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
+		_taille_attract = _particules_attract.size();
+		//std::cout << " Nb Points d'attraction en brute : " <<nb<< std::endl;
 	}
 
 	float Particle::compute_distance( Particle * point ) const
@@ -354,7 +359,11 @@ namespace SIM_PART
 												  int						   iteration,
 												  int						   refresh_frame )
 	{
-		_particules_attract.erase( _particules_attract.begin(), ( _particules_attract.begin() + _taille_attract - 1 ) );
+		if ( _taille_attract != 0 )
+		{
+			_particules_attract.erase( _particules_attract.begin(),
+									   ( _particules_attract.begin() + _taille_attract - 1 ) );
+		}
 		Particle * p;
 		for ( int i = 0; i < _possible_futur_attract.size(); i++ )
 		{
@@ -363,7 +372,7 @@ namespace SIM_PART
 				p = point_list[ _possible_futur_attract[ i ] ];
 				if ( this->is_attract( p, rayon ) )
 				{
-					this->_particules_attract.emplace_back( p->_id );
+					this->_particules_attract.push_back( p->_id );
 					p->add_attract( _id );
 				}
 			}

@@ -81,8 +81,8 @@ namespace SIM_PART
 		_tetgen_mesh.numberofpoints = _nbparticules;
 		_tetgen_mesh.pointlist		= _tetgen_mesh.pointlist;
 		std::cout << "TETGEN: Tetrahedralization..." << std::endl;
-
-		tetrahedralize( tetgen_parameters, &_tetgen_mesh, &_tetgen_mesh );
+		
+		tetrahedralize( tetgen_parameters, &_tetgen_mesh, &_tetgen_mesh);
 
 		std::cout << "number of tetrahedron: " << _tetgen_mesh.numberoftetrahedra << std::endl;
 		std::cout << "number of points: " << _tetgen_mesh.numberofpoints << std::endl;
@@ -103,8 +103,8 @@ namespace SIM_PART
 		if ( _verbose ) std::cout << "Adding neighbours from tetrahedrization..." << std::endl;
 		for ( int j = 0; j < _list_tetras.size(); j++ )
 		{
-			const std::vector<int>* lp = _list_tetras[ j ]->get_points();
-			_list_points[ lp->at(0) ]->add_tetrahedron( _list_tetras[ j ] );
+			/* const std::vector<int> & lp = &( _list_tetras[ j ]->get_points() );
+			_list_points[ lp[0] ]->add_tetrahedron( _list_tetras[ j ] );
 			_list_points[ lp->at(1) ]->add_tetrahedron( _list_tetras[ j ] );
 			_list_points[ lp->at(2) ]->add_tetrahedron( _list_tetras[ j ] );
 			_list_points[ lp->at(3) ]->add_tetrahedron( _list_tetras[ j ] );
@@ -124,6 +124,28 @@ namespace SIM_PART
 			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 0 ) );
 			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 1 ) );
 			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 2 ) );
+			*/
+			const std::vector<int> * lp = _list_tetras[ j ]->get_points();
+			_list_points[ (*lp)[ 0 ] ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ (*lp)[ 1 ] ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ (*lp)[ 2 ] ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ (*lp)[ 3 ] ]->add_tetrahedron( _list_tetras[ j ] );
+
+			_list_points[ (*lp)[ 0 ] ]->add_neighbour( (*lp)[ 1 ] );
+			_list_points[ (*lp)[ 0 ] ]->add_neighbour( (*lp)[ 2 ] );
+			_list_points[ (*lp)[ 0 ] ]->add_neighbour( (*lp)[ 3 ] );
+
+			_list_points[ (*lp)[ 1 ] ]->add_neighbour( (*lp)[ 0 ] );
+			_list_points[ (*lp)[ 1 ] ]->add_neighbour( (*lp)[ 2 ] );
+			_list_points[ (*lp)[ 1 ] ]->add_neighbour( (*lp)[ 3 ] );
+
+			_list_points[ (*lp)[ 2 ] ]->add_neighbour( (*lp)[ 0 ] );
+			_list_points[ (*lp)[ 2 ] ]->add_neighbour( (*lp)[ 1 ] );
+			_list_points[ (*lp)[ 2 ] ]->add_neighbour( (*lp)[ 3 ] );
+
+			_list_points[ (*lp)[ 3 ] ]->add_neighbour( (*lp)[ 0 ] );
+			_list_points[ (*lp)[ 3 ] ]->add_neighbour( (*lp)[ 1 ] );
+			_list_points[ (*lp)[ 3 ] ]->add_neighbour( (*lp)[ 2 ] );
 		}
 
 		for ( int k = 0; k < _list_points.size(); k++ ) 
@@ -161,16 +183,18 @@ namespace SIM_PART
 		//std::cout << "_draw_all_edges: " << _draw_all_edges << ", _active_particle: " << _active_particle << std::endl;
 		std::vector<int> edges, tmp;
 		const std::vector<int> *tp;
-		
-		if ( _draw_all_edges )
+
+		if ( !_draw_all_edges )
 		{
 			std::vector<int> attract_actif_points = ( *_list_points[ _active_particle ]->get_point_attract() );
 			std::vector<int> tetra_actif_points, list_tetra_tmp;
+
 			for ( int i = 0; i < attract_actif_points.size(); i++ )
 			{
 				list_tetra_tmp = ( *_list_points[ attract_actif_points[ i ] ]->get_tetrahedron() );
 				tetra_actif_points.insert( tetra_actif_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
 			}
+
 			sort( tetra_actif_points.begin(), tetra_actif_points.end() );
 			auto last = std::unique( tetra_actif_points.begin(), tetra_actif_points.end() );
 			tetra_actif_points.erase( last, tetra_actif_points.end() );
@@ -201,7 +225,7 @@ namespace SIM_PART
 		coloration();
 	}
 
-	void DelaunayStructure::update_position_particules( float speed ) 
+	void DelaunayStructure::update_position_particules() 
 	{
 		const float * coord;
 		for ( int i = 0; i < _list_points.size(); i++ )
@@ -216,9 +240,6 @@ namespace SIM_PART
 			_tetgen_mesh.pointlist[ i * 3 + 1 ] = coord[ 1 ];
 			_tetgen_mesh.pointlist[ i * 3 + 2 ] = coord[ 2 ];
 
-			_list_points[ i ]->set_coord( _tetgen_mesh.pointlist[ i * 3 ],
-										_tetgen_mesh.pointlist[ i * 3 + 1 ],
-										_tetgen_mesh.pointlist[ i * 3 + 2 ] );
 		}
 
 	}
@@ -288,7 +309,7 @@ namespace SIM_PART
 				std::cout << "------------------------------- " << _iteration << " ---------------------------------" << std::endl;
 
 			_chrono.start();
-			update_position_particules( 0.01f );
+			update_position_particules();
 			_chrono.stop_and_print( "time recomputing brownian movement: " );
 
 			if ( _iteration % _refresh_frame == 0 )
@@ -310,8 +331,8 @@ namespace SIM_PART
 			std::cout << "_mode_type " << _mode_type << std::endl; 
 			if ( _mode_type == 0 )
 			{
-				//for ( int j = 0; j < _list_points.size(); j++ )
-					//_list_points[ j ]->compute_attract_by_double_radius( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+				for ( int j = 0; j < _list_points.size(); j++ ) 
+					_list_points[ j ]->compute_attract_by_double_radius( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
 			}
 			else
 			{
@@ -356,6 +377,7 @@ namespace SIM_PART
 		for ( int i = 0; i < (int)_list_points.size(); i++ )
 		{
 			_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, _refresh_frame );
+			//_list_points[ i ]->compute_point_attract_brut( _rayon_attract, _list_points );
 			if ( _verbose && i % 1000 == 0 )
 				std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
 		}

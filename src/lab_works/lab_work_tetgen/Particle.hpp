@@ -66,7 +66,7 @@ namespace SIM_PART
 
 		//=============Point Attract Version brute============
 
-		void compute_point_attract_brut( float r, std::vector<Particle *> point_list ) const;
+		void compute_point_attract_brut( float r, std::vector<Particle *> point_list );
 
 		//=============Trouver point attract sans refaire les t�trah�dres============
 		

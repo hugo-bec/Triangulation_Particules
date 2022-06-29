@@ -59,7 +59,7 @@ namespace SIM_PART
 
 		/* --- UPDATE FUNCTIONS --- */ 
 		void tetrahedralize_particules( char * tetgen_parameters );
-		void update_position_particules( float speed );
+		void update_position_particules();
 		void update_structure();
 		void update_tetras();
 		void update_rendering();
@@ -78,12 +78,13 @@ namespace SIM_PART
 
 		// ================ Geometric data.
 		Vec3f _dimCage = Vec3f(10);
-		int	  _nbparticules = 50000;
-		float _rayon_attract = 0.2f;
+		int	  _nbparticules;
+		float _rayon_attract = 1.f;
 
 		std::vector<Particle *>		_list_points;
 		std::vector<Tetrahedron *>	_list_tetras;
 		tetgenio					_tetgen_mesh;
+		tetgenio					_tetgen_mesh_out;
 
 		std::vector<Vec3f>		  _positions;
 		std::vector<Vec3f>		  _colors;

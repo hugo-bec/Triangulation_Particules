@@ -151,7 +151,6 @@ namespace SIM_PART
 			//mode 0, classique avec affichage des points attractifs
 			//mode 1, diffusion limited aggregation
 			case SDL_SCANCODE_M: 
-				std::cout << "TOUCHHEEEEEE MMMMMMMMMMMMMMMMMMMMMMM" << std::endl;
 				_dstructure.set_type_mode();
 				break;
 
