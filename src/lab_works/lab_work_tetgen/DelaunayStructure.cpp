@@ -161,7 +161,7 @@ namespace SIM_PART
 		{
 			std::vector<int> attract_actif_points = ( *_list_points[ _active_particle ]->get_point_attract() );
 			std::vector<int> tetra_actif_points, list_tetra_tmp;
-			std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
+			//std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
 
 			for ( int i = 0; i < attract_actif_points.size(); i++ )
 			{
@@ -197,7 +197,7 @@ namespace SIM_PART
 			this->_indices.clear();
 			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 		}
-		std::cout << "indices size: " << _indices.size() << std::endl;
+		//std::cout << "indices size: " << _indices.size() << std::endl;
 	
 		coloration();
 	}
@@ -361,8 +361,8 @@ namespace SIM_PART
 
 		for ( int i = 0; i < (int)_list_points.size(); i++ )
 		{
-			//_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, _refresh_frame );
-			_list_points[ i ]->compute_point_attract_brut( _rayon_attract, _list_points );
+			_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, _refresh_frame );
+			//_list_points[ i ]->compute_point_attract_brut( _rayon_attract, _list_points );
 			if ( _verbose && i % 1000 == 0 )
 				std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
 		}
