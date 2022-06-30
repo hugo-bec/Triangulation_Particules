@@ -11,7 +11,10 @@
 namespace SIM_PART
 {
 	//=====================Nodes=======================
-	void TetraFileReader::readNodes( std::string fileName, std::vector<Particle *> & points )
+	void TetraFileReader::readNodes(	std::string fileName, 
+										std::vector<Particle *> & points, 
+										TriangleMeshModel & origin_model, 
+										float particle_size )
 	{
 		std::ifstream fileNode( fileName, std::ios::in );
 
@@ -38,7 +41,7 @@ namespace SIM_PART
 					cy = stof( results[ 2 ] );
 					cz = stof( results[ 3 ] );
 
-					points.push_back( new Particle( id, cx, cy, cz ) );
+					points.push_back( new Particle( id, cx, cy, cz, origin_model, particle_size ) );
 				}
 			}
 			fileNode.close();

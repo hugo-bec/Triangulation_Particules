@@ -19,9 +19,11 @@ namespace SIM_PART
 		_setupGL();
 	}
 
-	void TriangleMesh::render( const GLuint p_glProgram ) const
+	void TriangleMesh::render( const GLuint p_glProgram, Mat4f transformation ) const
 	{
 		glBindVertexArray( _vao ); /*bind VAO avec le programme*/
+
+		glProgramUniformMatrix4fv( p_glProgram, glGetUniformLocation( p_glProgram, "uModelMatrix" ), 1, GL_FALSE, glm::value_ptr( transformation ) );
 
 		//copies variables pour le vertex shader
 		glProgramUniform3fv( p_glProgram, glGetUniformLocation( p_glProgram, "ambientColor" ), 1, glm::value_ptr(_material._ambient) );

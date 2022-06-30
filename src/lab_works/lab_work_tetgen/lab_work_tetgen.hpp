@@ -25,7 +25,7 @@ namespace SIM_PART
 		void animate( const float p_deltaTime ) override;
 		void render() override;
 
-		void create_particules( const unsigned int nb, Vec3f cage_dim );
+		void create_particules( const unsigned int nb, Vec3f cage_dim, float size );
 
 
 
@@ -62,7 +62,6 @@ namespace SIM_PART
 
 		// ================ GL program data.
 		GLuint _program				= GL_INVALID_INDEX;
-		GLint _uModelMatrixLoc		= GL_INVALID_INDEX;
 		GLint _uViewMatrixLoc		= GL_INVALID_INDEX;
 		GLint _uProjectionMatrixLoc = GL_INVALID_INDEX;
 

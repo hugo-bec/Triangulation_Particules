@@ -53,7 +53,7 @@ namespace SIM_PART
 
 		~TriangleMesh() = default;
 
-		void render( const GLuint p_glProgram ) const;
+		void render( const GLuint p_glProgram, Mat4f transformation ) const;
 		//void render_wire( const GLuint p_glProgram ) const;
 
 		void cleanGL();

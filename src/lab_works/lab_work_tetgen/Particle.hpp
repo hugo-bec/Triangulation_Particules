@@ -4,6 +4,8 @@
 #include <vector>
 #include <cstdio>
 #include "define.hpp"
+#include "common/models/triangle_mesh_model.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 
 namespace SIM_PART
@@ -15,11 +17,30 @@ namespace SIM_PART
 
 	  public:
 
-		Particle( int p_id, float p_x, float p_y, float p_z ) : _id( p_id ) 
+		Particle( int p_id, float p_x, float p_y, float p_z, TriangleMeshModel & origin_model, float size ) : _id( p_id ) 
 		{
 			_coord[ 0 ] = p_x;
 			_coord[ 1 ] = p_y;
 			_coord[ 2 ] = p_z;
+			_model.load_with_model( "p" + p_id, origin_model );
+			//_model.load( "p" + p_id, "data/model/icosphere2.obj" );
+			//Mat4f mt;
+
+			_model._transformation = glm::translate( _model._transformation, Vec3f(p_x, p_y, p_z) );
+
+			/* mt = _model._transformation;
+			for (int i=0; i<4; i++)
+				std::cout << "(" << i << ") " << mt[ i ][ 0 ] << " " << mt[ i ][ 1 ] << " " << mt[ i ][ 2 ]
+							 << " " << mt[ i ][ 3 ] << std::endl;*/
+
+			_model._transformation = glm::scale( _model._transformation, Vec3f(size) );
+
+			/* mt = _model._transformation;
+			for ( int i = 0; i < 4; i++ )
+				std::cout << "(" << i << ") " << mt[ i ][ 0 ] << " " << mt[ i ][ 1 ] << " " << mt[ i ][ 2 ] << " "
+						  << mt[ i ][ 3 ] << std::endl;*/
+
+			std::cout << std::endl;
 		}
 
 		~Particle() {};
@@ -41,11 +62,12 @@ namespace SIM_PART
 
 		void set_fix( const bool b ) { _fix = b; }
 		void set_coord( float px, float py, float pz );
+		void set_coord_mesh( float px, float py, float pz );
 
 		void printCoord() const { printf( "(x: %lf, y: %lf, z: %lf\n)", _coord[ 0 ], _coord[ 1 ], _coord[ 2 ] ); };
 		void tri_voisin();
 		
-		
+		void render( GLuint program ) { _model.render( program ); }
 
 		bool is_attract( Particle * p, float attract_distance ) const;
 
@@ -109,6 +131,7 @@ namespace SIM_PART
 		float _coord[ 3 ];
 		float _speed = 0.01f;
 		Vec3f _color;
+		TriangleMeshModel _model;
 
 		std::vector<int> _tetras;
 		std::vector<int> _particules_attract;

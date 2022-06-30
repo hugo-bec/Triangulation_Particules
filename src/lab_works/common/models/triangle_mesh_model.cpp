@@ -40,11 +40,21 @@ namespace SIM_PART
 				  << _nbVertices << " vertices" << std::endl;
 	}
 
+	void TriangleMeshModel::load_with_model( const std::string & p_name, const TriangleMeshModel & origin_model ) 
+	{
+		_name = p_name;
+		_meshes = origin_model._meshes;
+		_loadedTextures = origin_model._loadedTextures;
+		_nbTriangles	= origin_model._nbTriangles;
+		_nbVertices		= origin_model._nbVertices;
+		_dirPath		= origin_model._dirPath;
+	}
+
 	void TriangleMeshModel::render( const GLuint p_glProgram ) const
 	{
 		for ( size_t i = 0; i < _meshes.size(); i++ )
 		{
-			_meshes[ i ].render( p_glProgram );
+			_meshes[ i ].render( p_glProgram, _transformation );
 		}
 	}
 

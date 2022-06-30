@@ -38,7 +38,9 @@ namespace SIM_PART
 			_verbose = b;
 			_chrono.set_verbose( b );
 		}
+		inline void set_attract_radius( float r ) { _rayon_attract = r; }
 		inline void set_draw_all_edges( bool b ) { _draw_all_edges = b; }
+		inline void set_point_mode( bool b ) { _point_mode = b; }
 		inline void set_edges_mode( bool b ) { _edges_mode = b; }
 		inline void set_play_mode( bool b ) { _play_mode = b; }
 		inline void set_type_mode()
@@ -55,7 +57,7 @@ namespace SIM_PART
 		void init_particules( const std::vector<Particle *> & p_particules );
 		void init_structure();
 		void init_buffers();
-		void init_all( const std::vector<Particle *> & p_particules );
+		void init_all( GLuint program, const std::vector<Particle *> & p_particules );
 
 		/* --- UPDATE FUNCTIONS --- */ 
 		void tetrahedralize_particules( char * tetgen_parameters );
@@ -68,7 +70,7 @@ namespace SIM_PART
 
 		/* --- COMPUTE & RENDER FUNCTIONS --- */ 
 		void compute_attract_points();
-		void render( GLuint _program, GLuint _uModelMatrixLoc );
+		void render( GLuint _program );
 		void coloration();
 
 
@@ -77,7 +79,7 @@ namespace SIM_PART
 		 * ----------------------------------------------------------------------- */
 
 		// ================ Geometric data.
-		Vec3f _dimCage = Vec3f(10);
+		Vec3f _dimCage;
 		int	  _nbparticules;
 		float _rayon_attract = 1.f;
 
@@ -99,6 +101,7 @@ namespace SIM_PART
 		bool	_draw_all_edges	 = false;
 		bool	_edges_mode		 = false;
 		bool	_play_mode		 = false;
+		bool	_point_mode		 = false;
 		int		_mode_type		 = 1;
 		int		_active_particle = 0;
 		int		_iteration		 = 1;
@@ -112,6 +115,7 @@ namespace SIM_PART
 		// Vertex Buffer Objects.
 		GLuint _vboPoints = GL_INVALID_INDEX;
 		GLuint _vboColors = GL_INVALID_INDEX;
+		GLint  _uModelMatrixLoc = GL_INVALID_INDEX;
 		// ================
 	};
 

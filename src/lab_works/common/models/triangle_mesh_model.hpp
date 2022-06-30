@@ -19,6 +19,8 @@ namespace SIM_PART
 		// Load a 3D model with Assimp.
 		void load( const std::string & p_name, const FilePath & p_filePath );
 
+		void load_with_model( const std::string & p_name, const TriangleMeshModel & origin_model );
+
 		void render( const GLuint p_glProgram ) const override;
 
 		void cleanGL() override;

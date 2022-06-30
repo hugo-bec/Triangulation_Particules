@@ -4,7 +4,7 @@
 
 namespace SIM_PART{
 
-	void CageMesh::init_cage( Vec3f dim )
+	void CageMesh::init_cage( GLuint program, Vec3f dim )
 	{
 		_vertices	   = {	Vec3f( 1, 1, 1 ),  Vec3f( 1, 1, 0 ),  Vec3f( 1, 0, 0 ), Vec3f( 1, 0, 1 ),
 								Vec3f( 0, 1, 1 ), Vec3f( 0, 1, 0 ), Vec3f( 0, 0, 0 ), Vec3f( 0, 0, 1 ) };
@@ -14,12 +14,13 @@ namespace SIM_PART{
 						0, 4, 1, 5, 2, 6, 3, 7 };
 
 		_transformation = glm::scale( _transformation, dim );
+		_uModelMatrixLoc = glGetUniformLocation( program, "uModelMatrix" );
 	}
 
 
-	void CageMesh::init_all( Vec3f dim )
+	void CageMesh::init_all( GLuint program, Vec3f dim )
 	{
-		init_cage( dim );
+		init_cage( program, dim );
 		init_buffers();
 	}
 
@@ -61,10 +62,10 @@ namespace SIM_PART{
 		glVertexArrayElementBuffer( _vao, _ebo );
 	}
 
-	void CageMesh::render( GLuint program, GLuint uModelMatrixLoc ) 
+	void CageMesh::render( GLuint program ) 
 	{
 		glBindVertexArray( _vao ); /*bind cage VAO with the program*/
-		glProgramUniformMatrix4fv( program, uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+		glProgramUniformMatrix4fv( program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
 		glDrawElements( GL_LINES, _segments.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
 		glBindVertexArray( 0 );													/*debind VAO*/
 	}

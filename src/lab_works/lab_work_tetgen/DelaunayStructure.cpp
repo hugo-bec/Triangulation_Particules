@@ -60,7 +60,7 @@ namespace SIM_PART
 		glCreateVertexArrays( 1, &_vao );
 	}
 
-	void DelaunayStructure::init_all(const std::vector<Particle*>& p_particules) 
+	void DelaunayStructure::init_all(GLuint program, const std::vector<Particle*>& p_particules ) 
 	{
 		init_particules( p_particules );
 
@@ -69,6 +69,8 @@ namespace SIM_PART
 
 		init_buffers();
 		update_buffers();
+
+		_uModelMatrixLoc = glGetUniformLocation( program, "uModelMatrix" );
 	}
 	
 
@@ -161,7 +163,7 @@ namespace SIM_PART
 		{
 			std::vector<int> attract_actif_points = ( *_list_points[ _active_particle ]->get_point_attract() );
 			std::vector<int> tetra_actif_points, list_tetra_tmp;
-			std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
+			//std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
 
 			for ( int i = 0; i < attract_actif_points.size(); i++ )
 			{
@@ -197,7 +199,7 @@ namespace SIM_PART
 			this->_indices.clear();
 			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 		}
-		std::cout << "indices size: " << _indices.size() << std::endl;
+		//std::cout << "indices size: " << _indices.size() << std::endl;
 	
 		coloration();
 	}
@@ -363,22 +365,40 @@ namespace SIM_PART
 		std::cout << "ap size: " << ap->size() << std::endl;
 	}
 
-	void DelaunayStructure::render( GLuint program, GLuint uModelMatrixLoc ) 
+	void DelaunayStructure::render( GLuint program ) 
 	{
-		glBindVertexArray( _vao ); /*bind particules VAO with the program*/
-		glProgramUniformMatrix4fv(
-			program, uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
-		glDrawElements( GL_POINTS, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
-		glBindVertexArray( 0 );	  /*debind VAO*/
-
 		if ( _edges_mode )	//draw edges
 		{
 			glBindVertexArray( _vao ); /*bind particules VAO with the program*/
 			glProgramUniformMatrix4fv(
-				program, uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+				program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
 			glDrawElements( GL_LINES, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
 			glBindVertexArray( 0 );  /*debind VAO*/
 		}
+
+		if ( _point_mode )
+		{
+			glBindVertexArray( _vao ); /*bind particules VAO with the program*/
+			glProgramUniformMatrix4fv( program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
+			glDrawElements( GL_POINTS, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
+			glBindVertexArray( 0 );											  /*debind VAO*/
+		}
+		else	//print particles with sphere
+		{
+			_list_points[ _active_particle ]->render( program );
+			if ( !_draw_all_edges )
+			{
+				const std::vector<int> * attract_particules_active = _list_points[ _active_particle ]->get_point_attract();
+				for ( int i = 0; i < attract_particules_active->size(); i++ )
+					_list_points[ ( *attract_particules_active )[ i ] ]->render( program );
+			}
+			else
+			{
+				for ( int i = 0; i < _list_points.size(); i++ )
+					_list_points[ i ]->render( program );
+			}
+		}
+		
 	}
 
 

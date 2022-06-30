@@ -21,12 +21,13 @@ namespace SIM_PART
 	const std::string LabWorkTetgen::_shaderFolder = "src/lab_works/lab_work_tetgen/shaders/";
 	float			  distance_orbite2			 = 7.f;
 	TriangleMeshModel s1;
+
 	int				  actif_point = 0;
 	bool			  mode_edges  = true;
 	bool			  print_all_edges = false;
 	bool			  play_mode		  = false;
+	bool			  play_next_frame = false;
 	int				  mode_type		  = 0;
-	bool			  verbose		  = true;
 	int				  iteration		  = 3;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
@@ -41,39 +42,45 @@ namespace SIM_PART
 		if ( !_initProgram() ) return false;
 
 		// Init Cage
-		_cage.init_all( CAGE_DIM );
+		_cage.init_all( _program, CAGE_DIM );
 
 		// Init Particules
-		create_particules( NB_PARTICULES, CAGE_DIM );
+		s1.load( "origin_model", "data/model/icosphere2.obj" );
+		create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE );
 		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
 			_particules[ i ]->set_fix( true );
 
+
 		// Init Delaunay Structure
-		_dstructure.set_verbose( verbose );	//for printing all time execution 
-		_dstructure.init_all( _particules );
+		_dstructure.set_verbose( DSTRUCTURE_VERBOSE ); // for printing all time execution 
+		_dstructure.set_attract_radius( ATTRACT_RADIUS );
+		_dstructure.init_all( _program, _particules );
 
 		//init camera
 		_initCamera();
 
 		glUseProgram( _program );
-		glProgramUniformMatrix4fv( _program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _cage._transformation ) );
 
 		_updateViewMatrix();
 		_updateProjectionMatrix();
 
 		std::cout << "Done!" << std::endl;
-		_chrono.set_verbose( verbose );
-		_chrono.start();	// for printing time of the first rendering
 		return true;
 	}
 
 	void LabWorkTetgen::animate( const float p_deltaTime ) 
 	{ 
-		if ( play_mode )
+		if ( play_mode || play_next_frame )
+		{
 			for ( int i = 0; i < NB_PARTICULES; i++ )
 				_particules[ i ]->apply_brownian_mvt( SPEED_PARTICULES, CAGE_DIM );
+		}
 
 		_dstructure.update_all();
+
+		if ( play_next_frame )
+			_dstructure.set_play_mode( play_mode );
+		play_next_frame = false;
 	}
 
 	void LabWorkTetgen::render()
@@ -83,53 +90,54 @@ namespace SIM_PART
 		glPointSize( 5 ); 
 
 		// Cage
-		_cage.render( _program, _uModelMatrixLoc );
+		_cage.render( _program );
 
 		// Delaunay Structure
-		_dstructure.render( _program, _uModelMatrixLoc );
+		_dstructure.render( _program );
+
+		//s1.render( _program );
+		//s1._transformation = glm::translate( s1._transformation, Vec3f( 5, 0, 0 ) );
+		//s1._transformation = glm::translate( s1._transformation, Vec3f( 0.01, 0, 0 ) );
+		//s1.render( _program );
 	}
 
 
-	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim ) 
+	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size ) 
 	{
 		for (int i=0; i<nb; i++)
 			_particules.push_back( new Particle(
 				i,	getRandomFloat() * cage_dim.x, 
 					getRandomFloat() * cage_dim.y, 
-					getRandomFloat() * cage_dim.z ) );
+					getRandomFloat() * cage_dim.z,
+					s1, size) );
 	}
 
 
 	void LabWorkTetgen::handleEvents( const SDL_Event & p_event )
 	{
+
 		if ( p_event.type == SDL_KEYDOWN )
 		{
 			switch ( p_event.key.keysym.scancode )
 			{
 			case SDL_SCANCODE_W: // Front
 				_camera->moveFront( _cameraSpeed );
-				_updateViewMatrix();
-				break;
+				_updateViewMatrix(); break;
 			case SDL_SCANCODE_S: // Back
 				_camera->moveFront( -_cameraSpeed );
-				_updateViewMatrix();
-				break;
+				_updateViewMatrix(); break;
 			case SDL_SCANCODE_A: // Left
 				_camera->moveRight( -_cameraSpeed );
-				_updateViewMatrix();
-				break;
+				_updateViewMatrix(); break;
 			case SDL_SCANCODE_D: // Right
 				_camera->moveRight( _cameraSpeed );
-				_updateViewMatrix();
-				break;
+				_updateViewMatrix(); break;
 			case SDL_SCANCODE_R: // Up
 				_camera->moveUp( _cameraSpeed );
-				_updateViewMatrix();
-				break;
+				_updateViewMatrix(); break;
 			case SDL_SCANCODE_F: // Bottom
 				_camera->moveUp( -_cameraSpeed );
-				_updateViewMatrix();
-				break;
+				_updateViewMatrix(); break;
 			case SDL_SCANCODE_KP_PLUS:
 				_dstructure.set_active_particle( _dstructure._active_particle + 1 );
 				std::cout << "Particule choisie : " << _dstructure._active_particle << std::endl;
@@ -139,11 +147,9 @@ namespace SIM_PART
 				std::cout << "Particule choisie : " << _dstructure._active_particle << std::endl;
 				break;
 			case SDL_SCANCODE_E: 
-				_dstructure.set_edges_mode( !_dstructure._edges_mode );
-				break;
+				_dstructure.set_edges_mode( !_dstructure._edges_mode ); break;
 			case SDL_SCANCODE_T: 
-				_dstructure.set_draw_all_edges( !_dstructure._draw_all_edges );
-				break;
+				_dstructure.set_draw_all_edges( !_dstructure._draw_all_edges ); break;
 			case SDL_SCANCODE_P: 
 				play_mode = !play_mode;
 				_dstructure.set_play_mode( play_mode );
@@ -151,8 +157,13 @@ namespace SIM_PART
 			//mode 0, classique avec affichage des points attractifs
 			//mode 1, diffusion limited aggregation
 			case SDL_SCANCODE_M: 
-				_dstructure.set_type_mode();
+				_dstructure.set_type_mode(); break;
+			case SDL_SCANCODE_O: 
+				play_next_frame = true;
+				_dstructure.set_play_mode( true );
 				break;
+			case SDL_SCANCODE_B: 
+				_dstructure.set_point_mode( !_dstructure._point_mode ); break;
 
 			default: break;
 			}
@@ -292,7 +303,6 @@ namespace SIM_PART
 		// ====================================================================
 		// Get uniform locations.
 		// ====================================================================
-		_uModelMatrixLoc	  = glGetUniformLocation( _program, "uModelMatrix" );
 		_uViewMatrixLoc		  = glGetUniformLocation( _program, "uViewMatrix" );
 		_uProjectionMatrixLoc = glGetUniformLocation( _program, "uProjectionMatrix" );
 		// ====================================================================
