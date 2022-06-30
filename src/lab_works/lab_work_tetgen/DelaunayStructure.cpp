@@ -105,49 +105,28 @@ namespace SIM_PART
 		if ( _verbose ) std::cout << "Adding neighbours from tetrahedrization..." << std::endl;
 		for ( int j = 0; j < _list_tetras.size(); j++ )
 		{
-			/* const std::vector<int> & lp = &( _list_tetras[ j ]->get_points() );
-			_list_points[ lp[0] ]->add_tetrahedron( _list_tetras[ j ] );
-			_list_points[ lp->at(1) ]->add_tetrahedron( _list_tetras[ j ] );
-			_list_points[ lp->at(2) ]->add_tetrahedron( _list_tetras[ j ] );
-			_list_points[ lp->at(3) ]->add_tetrahedron( _list_tetras[ j ] );
+			const std::vector<int> * plp = _list_tetras[ j ]->get_points();
+			const std::vector<int> & lp	 = *plp;
+			_list_points[ lp[ 0 ] ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ lp[ 1 ] ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ lp[ 2 ] ]->add_tetrahedron( _list_tetras[ j ] );
+			_list_points[ lp[ 3 ] ]->add_tetrahedron( _list_tetras[ j ] );
 
-			_list_points[ lp->at( 0 ) ]->add_neighbour( lp->at( 1 ) );
-			_list_points[ lp->at( 0 ) ]->add_neighbour( lp->at( 2 ) );
-			_list_points[ lp->at( 0 ) ]->add_neighbour( lp->at( 3 ) );
+			_list_points[ lp[ 0 ] ]->add_neighbour( lp[ 1 ] );
+			_list_points[ lp[ 0 ] ]->add_neighbour( lp[ 2 ] );
+			_list_points[ lp[ 0 ] ]->add_neighbour( lp[ 3 ] );
 
-			_list_points[ lp->at( 1 ) ]->add_neighbour( lp->at( 0 ) );
-			_list_points[ lp->at( 1 ) ]->add_neighbour( lp->at( 2 ) );
-			_list_points[ lp->at( 1 ) ]->add_neighbour( lp->at( 3 ) );
+			_list_points[ lp[ 1 ] ]->add_neighbour( lp[ 0 ] );
+			_list_points[ lp[ 1 ] ]->add_neighbour( lp[ 2 ] );
+			_list_points[ lp[ 1 ] ]->add_neighbour( lp[ 3 ] );
 
-			_list_points[ lp->at( 2 ) ]->add_neighbour( lp->at( 0 ) );
-			_list_points[ lp->at( 2 ) ]->add_neighbour( lp->at( 1 ) );
-			_list_points[ lp->at( 2 ) ]->add_neighbour( lp->at( 3 ) );
+			_list_points[ lp[ 2 ] ]->add_neighbour( lp[ 0 ] );
+			_list_points[ lp[ 2 ] ]->add_neighbour( lp[ 1 ] );
+			_list_points[ lp[ 2 ] ]->add_neighbour( lp[ 3 ] );
 
-			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 0 ) );
-			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 1 ) );
-			_list_points[ lp->at( 3 ) ]->add_neighbour( lp->at( 2 ) );
-			*/
-			const std::vector<int> * lp = _list_tetras[ j ]->get_points();
-			_list_points[ (*lp)[ 0 ] ]->add_tetrahedron( _list_tetras[ j ] );
-			_list_points[ (*lp)[ 1 ] ]->add_tetrahedron( _list_tetras[ j ] );
-			_list_points[ (*lp)[ 2 ] ]->add_tetrahedron( _list_tetras[ j ] );
-			_list_points[ (*lp)[ 3 ] ]->add_tetrahedron( _list_tetras[ j ] );
-
-			_list_points[ (*lp)[ 0 ] ]->add_neighbour( (*lp)[ 1 ] );
-			_list_points[ (*lp)[ 0 ] ]->add_neighbour( (*lp)[ 2 ] );
-			_list_points[ (*lp)[ 0 ] ]->add_neighbour( (*lp)[ 3 ] );
-
-			_list_points[ (*lp)[ 1 ] ]->add_neighbour( (*lp)[ 0 ] );
-			_list_points[ (*lp)[ 1 ] ]->add_neighbour( (*lp)[ 2 ] );
-			_list_points[ (*lp)[ 1 ] ]->add_neighbour( (*lp)[ 3 ] );
-
-			_list_points[ (*lp)[ 2 ] ]->add_neighbour( (*lp)[ 0 ] );
-			_list_points[ (*lp)[ 2 ] ]->add_neighbour( (*lp)[ 1 ] );
-			_list_points[ (*lp)[ 2 ] ]->add_neighbour( (*lp)[ 3 ] );
-
-			_list_points[ (*lp)[ 3 ] ]->add_neighbour( (*lp)[ 0 ] );
-			_list_points[ (*lp)[ 3 ] ]->add_neighbour( (*lp)[ 1 ] );
-			_list_points[ (*lp)[ 3 ] ]->add_neighbour( (*lp)[ 2 ] );
+			_list_points[ lp[ 3 ] ]->add_neighbour( lp[ 0 ] );
+			_list_points[ lp[ 3 ] ]->add_neighbour( lp[ 1 ] );
+			_list_points[ lp[ 3 ] ]->add_neighbour( lp[ 2 ] );
 		}
 
 		for ( int k = 0; k < _list_points.size(); k++ ) 
@@ -168,10 +147,6 @@ namespace SIM_PART
 		_chrono.start();
 		compute_attract_points();
 		_chrono.stop_and_print( "time computing attract points for each points: " );
-
-		// Assign position of the point to OpenGL
-		_chrono.start();
-		_chrono.stop_and_print( "time assigning position: " );
 	}
 
 	void DelaunayStructure::update_rendering()
@@ -186,6 +161,7 @@ namespace SIM_PART
 		{
 			std::vector<int> attract_actif_points = ( *_list_points[ _active_particle ]->get_point_attract() );
 			std::vector<int> tetra_actif_points, list_tetra_tmp;
+			std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
 
 			for ( int i = 0; i < attract_actif_points.size(); i++ )
 			{
@@ -221,6 +197,7 @@ namespace SIM_PART
 			this->_indices.clear();
 			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 		}
+		std::cout << "indices size: " << _indices.size() << std::endl;
 	
 		coloration();
 	}
@@ -384,12 +361,14 @@ namespace SIM_PART
 
 		for ( int i = 0; i < (int)_list_points.size(); i++ )
 		{
-			_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, _refresh_frame );
-			//_list_points[ i ]->compute_point_attract_brut( _rayon_attract, _list_points );
+			//_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, _refresh_frame );
+			_list_points[ i ]->compute_point_attract_brut( _rayon_attract, _list_points );
 			if ( _verbose && i % 1000 == 0 )
 				std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
 		}
 		std::cout << std::endl;
+		const std::vector<int> * ap = _list_points[ 0 ]->get_point_attract();
+		std::cout << "ap size: " << ap->size() << std::endl;
 	}
 
 	void DelaunayStructure::render( GLuint program, GLuint uModelMatrixLoc ) 
