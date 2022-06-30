@@ -23,6 +23,14 @@ namespace SIM_PART
 		_coord[ 0 ] = px;
 		_coord[ 1 ] = py;
 		_coord[ 2 ] = pz;
+		set_coord_mesh(px, py, pz);
+	}
+
+	void Particle::set_coord_mesh(const float px, const float py, const float pz) 
+	{
+		_model._transformation[ 3 ][ 0 ] = px;
+		_model._transformation[ 3 ][ 1 ] = py;
+		_model._transformation[ 3 ][ 2 ] = pz;
 	}
 
 	bool Particle::is_attract( Particle * p, float attract_distance ) const
@@ -31,7 +39,8 @@ namespace SIM_PART
 		float		  dx	  = p_coord[ 0 ] - _coord[ 0 ];
 		float		  dy	  = p_coord[ 1 ] - _coord[ 1 ];
 		float		  dz	  = p_coord[ 2 ] - _coord[ 2 ];
-		return (sqrt( dx * dx + dy * dy + dz * dz) <  attract_distance);
+		//return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
+		return sqrt( dx * dx + dy * dy + dz * dz) < attract_distance;
 	}
 
 	bool Particle::is_same( Particle * p ) const
@@ -77,7 +86,7 @@ namespace SIM_PART
 		}
 	}
 
-	void Particle::compute_neighbours_v2( std::vector<Tetrahedron *> tetra_list )
+	/* void Particle::compute_neighbours_v2( std::vector<Tetrahedron *> tetra_list )
 	{
 
 		Tetrahedron * tetrahedron;
@@ -97,7 +106,7 @@ namespace SIM_PART
 		sort( _neighbours.begin(), _neighbours.end() );
 		auto last = std::unique( _neighbours.begin(), _neighbours.end() );
 		_neighbours.erase( last, _neighbours.end() );
-	}
+	}*/
 
 	void Particle::compute_point_attract( float r, std::vector<Particle *> pointList )
 	{
@@ -232,7 +241,6 @@ namespace SIM_PART
 
 		}
 		_taille_attract = _particules_attract.size();
-		
 	}
 	
     
@@ -294,6 +302,8 @@ namespace SIM_PART
 				_coord[ 1 ] -= dir.y * 2.f;
 			if ( tz < 0 || tz > cage_dim.z )
 				_coord[ 2 ] -= dir.z * 2.f;
+
+			set_coord_mesh( _coord[ 0 ], _coord[ 1 ], _coord[ 2 ] );
 		}
 	}
 	void Particle::compute_attract_by_double_radius( const float				  rayon,

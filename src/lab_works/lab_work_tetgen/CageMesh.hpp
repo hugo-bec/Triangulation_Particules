@@ -26,12 +26,12 @@ namespace SIM_PART
 				glDeleteBuffers( 1, &_ebo );
 		}
 
-		void init_cage( Vec3f dim );
+		void init_cage( GLuint program, Vec3f dim );
 		void init_buffers();
-		void init_all( Vec3f dim );
+		void init_all( GLuint program, Vec3f dim );
 
 		void update_buffers();
-		void render( GLuint program, GLuint uModelMatrixLoc );
+		void render( GLuint program );
 
 		// ================ Geometric data.
 		std::vector<Vec3f>		  _vertices;
@@ -45,6 +45,8 @@ namespace SIM_PART
 
 		// Vertex Buffer Objects.
 		GLuint _vboPoints = GL_INVALID_INDEX;
+
+		GLint  _uModelMatrixLoc = GL_INVALID_INDEX;
 		// ================
 	};
 } // namespace SIM_PART
