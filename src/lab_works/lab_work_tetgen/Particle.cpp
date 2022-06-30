@@ -31,7 +31,7 @@ namespace SIM_PART
 		float		  dx	  = p_coord[ 0 ] - _coord[ 0 ];
 		float		  dy	  = p_coord[ 1 ] - _coord[ 1 ];
 		float		  dz	  = p_coord[ 2 ] - _coord[ 2 ];
-		return ( dx * dx + dy * dy + dz * dz < attract_distance * attract_distance);
+		return (sqrt( dx * dx + dy * dy + dz * dz) <  attract_distance);
 	}
 
 	bool Particle::is_same( Particle * p ) const
@@ -188,7 +188,7 @@ namespace SIM_PART
 					_possible_futur_attract.emplace_back( p->_id );
 					p->add_possible_attract( _id );
 
-					if ( d <= r * r )
+					if ( is_attract(p, r ))
 					{
 						p->add_attract( _id );
 
@@ -232,64 +232,7 @@ namespace SIM_PART
 
 		}
 		_taille_attract = _particules_attract.size();
-		/* std::vector<int> points = neighbours;
-		Point*			 p;
-		while ( points.size() != 0 )
-		{
-			p = pointList[ points[ 0 ] ];
-			//p				  = pointList[ points.pop_back() ];
-			start_comparaison = std::chrono::system_clock::now();
-			float d			  = this->getDistance( p );
-			if ( p->getId() > id )
-			{
-				if ( d <= r + 2 * speed * refresh_frame )
-				{
-					possible_futur_attract.emplace_back( p->id );
-					p->addPossibleAttract( id );
-					if ( d <= r )
-					{
-						stop_comparaison = std::chrono::system_clock::now();
-						time_comparaison += stop_comparaison - start_comparaison;
-						this->point_attract.emplace_back( p->id );
-						p->addAttract( id );
-						start_parcours_voisin		 = std::chrono::system_clock::now();
-						const std::vector<int>* p_neigbours = p->getNeighbours();
-						for ( int i = 0; i < (*p_neigbours).size(); i++ )
-						{
-							if ( traveled_point[ (*p_neigbours)[ i ] ] != this->id )
-							{
-								points.push_back( (*p_neigbours)[ i ] );
-								traveled_point[ (*p_neigbours)[ i ] ] = this->id;
-							}
-						}
-						stop_parcours_voisin = std::chrono::system_clock::now();
-						time_parcours += stop_parcours_voisin - start_parcours_voisin;
-					}
-				}
-			}
-
-			else
-			{
-				if ( d <= r ) {
-					const std::vector<int>* p_neigbours = p->getNeighbours();
-					for ( int i = 0; i < (*p_neigbours).size(); i++ )
-					{
-						if ( traveled_point[ (*p_neigbours)[ i ] ] != this->id )
-						{
-							points.push_back( (*p_neigbours)[ i ] );
-							traveled_point[ (*p_neigbours)[ i ] ] = this->id;
-						}
-					}
-				}
-			}
-			points.erase( points.begin() );
-			
-		}*/
-
-		//std::cout << " Fonction computeAttractPoint : " << std::endl;
-		//std::cout << " Temps initialisation traveled point : " << time_init.count() << " s" << std::endl;
-		//std::cout << " Temps initialisation comparaison : " << time_comparaison.count() << " s" << std::endl;
-		//std::cout << " Temps initialisation parcours voisin : " << time_parcours.count() << " s" << std::endl;
+		
 	}
 	
     
@@ -359,11 +302,20 @@ namespace SIM_PART
 												  int						   iteration,
 												  int						   refresh_frame )
 	{
-		if ( _taille_attract != 0 )
+		
+		/* if ( _taille_attract != 0 )
 		{
+			std::cout << "taille attract ancienne : " << _taille_attract << " taille actuelle "
+					  << _particules_attract.size() << std::endl;
 			_particules_attract.erase( _particules_attract.begin(),
 									   ( _particules_attract.begin() + _taille_attract - 1 ) );
+		}*/
+
+		for ( int i = 0; i < _particules_attract.size(); i++ ) {
+			if ( !is_attract( point_list[ _particules_attract[ i ] ], rayon ) )
+				_particules_attract.erase( _particules_attract.begin() + i );
 		}
+
 		Particle * p;
 		for ( int i = 0; i < _possible_futur_attract.size(); i++ )
 		{
@@ -377,88 +329,109 @@ namespace SIM_PART
 				}
 			}
 		}
+		
+		
+		sort( _particules_attract.begin(), _particules_attract.end() );
+		auto last = std::unique( _particules_attract.begin(), _particules_attract.end() );
+		_particules_attract.erase( last, _particules_attract.end() );
+
 		_taille_attract = _particules_attract.size();
 	}
-	//===============test==================
-
+	
 
 	void Particle::compute_diffusion_limited_aggregation( const float				   rayon, 
 												  const std::vector<Particle *> & pointList,
 												  std::vector<int>	   &traveled_point,
 												  int				   iteration,
-												  int				   refresh_frame )
+												  int				   refresh_frame,
+												  int				   nb_non_fix )
 	{
-		for ( int i = 0; i < _particules_attract.size(); i++ )
+		if ( ( nb_non_fix <= pointList.size() / 2 && !_fix ) || ( nb_non_fix > pointList.size() / 2 && _fix ) )
 		{
-			if ( pointList[ _particules_attract[ i ] ]->is_fix() )
-			{
-				_fix = true;
-				_color = Vec3f( 0, 1, 0 );
+			_particules_attract.clear();
 
-			}
-		}
-
-		
-			if ( _taille_attract != 0 )
-			{
-				_particules_attract.erase( _particules_attract.begin(), ( _particules_attract.begin() + _taille_attract - 1 ) );
-			}
-			for (int i = 0; i < _particules_attract.size(); i++) 
-			{
-				if ( pointList[ _particules_attract[ i ] ]->is_fix() )
-					_fix = true;
-			}
 			Particle * p;
 			for ( int i = 0; i < _possible_futur_attract.size(); i++ )
 			{
-				if ( _possible_futur_attract[ i ] > _id )
-				{	
-					p = pointList[ _possible_futur_attract[ i ] ];
-					if ( this->is_attract( p, rayon ) )
-					{
-						this->_particules_attract.push_back( p->_id );
-						//std::cout << "est fix " << p->getPointAttract()->size() << std::endl << std::flush;
-						p->add_attract( _id );
-						if ( !_fix )
-						{
-							if ( p->is_fix() == true )
-							{
-								// std::cout << "FIXED !: " << this->id << std::endl;
-								_fix = true;
-								_color = Vec3f( 0, 1, 0 );
-							}
-						}
-					}
-				}
-			}
-			_taille_attract = _particules_attract.size();
-		
-
-		/* else
-		{
-			if ( taille_attract != 0 )
-			{
-				point_attract.erase( point_attract.begin(), ( point_attract.begin() + taille_attract - 1 ) );
-			}
-			Particle * p;
-			for ( int i = 0; i < possible_futur_attract.size(); i++ )
-			{
-				if ( possible_futur_attract[ i ] > id )
+				p = pointList[ _possible_futur_attract[ i ] ];
+				if ( this->is_attract( p, rayon ) )
 				{
-					p = pointList[ possible_futur_attract[ i ] ];
-					if ( this->is_attract( p, rayon ) )
+					this->_particules_attract.push_back( p->_id );
+					if ( _fix || p->is_fix() )
 					{
-						this->point_attract.push_back( p->id );
-						// std::cout << "est fix " << p->getPointAttract()->size() << std::endl << std::flush;
-						p->addAttract( id );
-						p->set_fix(true);
-						
-					
+						_fix = true;
+						p->set_fix( true );
 					}
 				}
 			}
-			taille_attract = point_attract.size();
-		}*/
+
+			sort( _particules_attract.begin(), _particules_attract.end() );
+			auto last = std::unique( _particules_attract.begin(), _particules_attract.end() );
+			_particules_attract.erase( last, _particules_attract.end() );
+		}
+		
+	}
+
+	void Particle::compute_diffusion_limited_aggregation_V2( const float					 rayon,
+															 const std::vector<Particle *> & pointList,
+															 std::vector<int> &				 traveled_point,
+															 int							 iteration,
+															 int							 refresh_frame,
+															 int							 nb_non_fix)
+	{
+		for ( int i = 0; i < _particules_attract.size(); i++ )
+		{
+			if ( !is_attract( pointList[ _particules_attract[ i ] ], rayon ) )
+				_particules_attract.erase( _particules_attract.begin() + i );
+		}
+		
+		if ( nb_non_fix < 5000 )
+		{
+			if ( !is_fix() )
+			{
+				//_particules_attract.clear();
+
+				compute_attract_by_double_radius( rayon, pointList, traveled_point, iteration, refresh_frame );
+
+				for ( int i = 0; i < _particules_attract.size(); i++ )
+				{
+					if ( pointList[ _particules_attract[ i ] ]->is_fix() )
+						_fix = true;
+				}
+
+				_taille_attract = _particules_attract.size();
+			}
+		}
+		else
+		{
+			if ( is_fix() )
+			{
+
+				for ( int i = 0; i < _particules_attract.size(); i++ )
+				{
+					pointList[ _particules_attract[ i ] ]->set_fix( true );
+						
+				}
+
+				_taille_attract = _particules_attract.size();
+			}
+		}
+
+		sort( _particules_attract.begin(), _particules_attract.end() );
+		auto last = std::unique( _particules_attract.begin(), _particules_attract.end() );
+		_particules_attract.erase( last, _particules_attract.end() );
+		 if ( is_fix() )
+		{
+			std::cout << _id << " nb point attract : " << _particules_attract.size() << std::endl;
+			if (_particules_attract.size() != 0) {
+				for (int i = 0; i < _particules_attract.size(); i++) {
+					std::cout << _particules_attract[ i ] << std::endl;
+				}
+			}
+			printf( "\n" );
+			
+		}
+
 	}
 
 

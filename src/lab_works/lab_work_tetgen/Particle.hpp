@@ -100,9 +100,15 @@ namespace SIM_PART
 		                                            const std::vector<Particle *> & pointList,
 		                                            std::vector<int> &              traveled_point,
 		                                            int                             iteration,
-		                                            int                             refresh_frame );
+		                                            int                             refresh_frame,
+													int								nb_non_fix );
 
-		
+		void compute_diffusion_limited_aggregation_V2( const float					 rayon,
+																 const std::vector<Particle *> & pointList,
+																 std::vector<int> &				 traveled_point,
+																 int							 iteration,
+																   int							   refresh_frame,
+																   int							   nb_non_fix );
 		
 	  private:
 		int	  _id;

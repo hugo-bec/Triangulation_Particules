@@ -171,12 +171,6 @@ namespace SIM_PART
 
 		// Assign position of the point to OpenGL
 		_chrono.start();
-		/* _positions.clear();
-		const float * coord;
-		for ( int i = 0; i < _nbparticules; i++ ) {
-			coord = _list_points[ i ]->get_coord();
-			this->_positions.push_back( Vec3f( coord[ 0 ], coord[ 1 ], coord[ 2 ] ) );
-		}*/
 		_chrono.stop_and_print( "time assigning position: " );
 	}
 
@@ -343,18 +337,26 @@ namespace SIM_PART
 			else
 			{
 				for ( int j = 0; j < _list_points.size(); j++ )
-					_list_points[ j ]->compute_diffusion_limited_aggregation(
-						_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+					//_list_points[ j ]->compute_diffusion_limited_aggregation_V2(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
+					_list_points[ j ]->compute_diffusion_limited_aggregation( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
 			}
-
-			int nb = 0;
+			nb_non_fix = 0;
 			for ( int j = 0; j < _list_points.size(); j++ )
 			{
-				if ( !_list_points[ j ]->is_fix() )
-					nb++;
+				if (!_list_points[j]->is_fix()) {
+					nb_non_fix++;
+					
+				}
+				/* else
+				{
+					const float * coord = _list_points[ j ]->get_coord();
+					std::cout << " id : " << _list_points[ j ]->get_id() << "  coord x : " << coord[ 0 ]
+							  << "  y : " << coord[ 1 ] << " z : " << coord[ 2 ] << std::endl;
+				}*/
 					
 			}
-			std::cout << "nb non fix : " << nb << std::endl;
+			std::cout << "nb non fix : " << nb_non_fix << std::endl;
+
 			_chrono.stop_and_print( "time compute attract point with double radius: " );
 			_iteration++;
 		}
