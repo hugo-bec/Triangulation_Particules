@@ -82,10 +82,18 @@ namespace SIM_PART
 
 		
 
-		void compute_point_attract_v4( float				 r,
-									const std::vector<Particle *> &point_list,
-									std::vector<int>	 &traveled_point,
-									int					 refresh_frame );
+		void compute_point_attract_v4(	float				 r,
+										const std::vector<Particle *> &point_list,
+									   std::vector<int> &			   traveled_point,
+									   int							   refresh_mesh );
+
+		void compute_point_attract_parallelisable(	float						   r, const std::vector<Particle *> & point_list, int refresh_mesh
+												   /* std::vector<int>		   traveled_point*/ );
+
+		void compute_point_attract_parallelisable_v2( float							  r,
+													  const std::vector<Particle *> & pointList,
+													  std::vector<int> &			  traveled_point,
+													  int							  refresh_mesh );
 
 
 		//=============Point Attract Version brute============

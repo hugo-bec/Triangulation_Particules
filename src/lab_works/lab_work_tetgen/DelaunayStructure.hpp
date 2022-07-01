@@ -81,7 +81,7 @@ namespace SIM_PART
 		// ================ Geometric data.
 		Vec3f _dimCage;
 		int	  _nbparticules;
-		float _rayon_attract = 0.1f;
+		float _rayon_attract = 1.f;
 		int	  nb_non_fix=0;
 
 		std::vector<Particle *>		_list_points;

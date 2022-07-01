@@ -9,6 +9,7 @@ namespace SIM_PART
 	extern float  SPEED_PARTICULES;
 	extern float  ATTRACT_RADIUS;
 	extern float  SIZE_PARTICLE;
+	extern int	  TETRA_REFRESH_RATE;
 
 	extern Vec3f  CAGE_DIM;
 	extern int	  NB_INIT_FIXED_POINTS;

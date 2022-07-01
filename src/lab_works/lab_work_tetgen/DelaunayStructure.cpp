@@ -1,5 +1,6 @@
 #include "DelaunayStructure.hpp"
 #include <chrono>
+#include <omp.h>
 #include "glm/gtc/type_ptr.hpp"
 #include "parameters.hpp"
 #include "utils/random.hpp"
@@ -359,15 +360,24 @@ namespace SIM_PART
 	
 	void DelaunayStructure::compute_attract_points()
 	{
-		std::vector<int> traveled_points( _nbparticules, -1 );
+		//std::vector<int> traveled_points( _nbparticules, -1 );
 
-		for ( int i = 0; i < (int)_list_points.size(); i++ )
+		#pragma omp parallel
 		{
-			_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, _refresh_frame );
-			//_list_points[ i ]->compute_point_attract_brut( _rayon_attract, _list_points );
-			if ( _verbose && i % 1000 == 0 )
-				std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
+			std::vector<int> traveled_points( _nbparticules, -1 );
+			std::cout << "omp_get_num_threads: " << omp_get_thread_num() << std::endl;
+			#pragma omp for
+			for ( int i = 0; i < (int)_list_points.size(); i++ )
+			{
+				//_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
+				//_list_points[ i ]->compute_point_attract_parallelisable( _rayon_attract, _list_points, TETRA_REFRESH_RATE /*, traveled_points */ );
+				_list_points[ i ]->compute_point_attract_parallelisable_v2(
+					_rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
+				//if ( _verbose && i % 1000 == 0 )
+					//std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
+			}
 		}
+		
 		std::cout << std::endl;
 		const std::vector<int> * ap = _list_points[ 0 ]->get_point_attract();
 		std::cout << "ap size: " << ap->size() << std::endl;
