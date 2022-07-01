@@ -22,25 +22,11 @@ namespace SIM_PART
 			_coord[ 0 ] = p_x;
 			_coord[ 1 ] = p_y;
 			_coord[ 2 ] = p_z;
-			_model.load_with_model( "p" + p_id, origin_model );
-			//_model.load( "p" + p_id, "data/model/icosphere2.obj" );
-			//Mat4f mt;
-
+			_model.load_with_model( "p" + std::to_string(p_id), origin_model );
 			_model._transformation = glm::translate( _model._transformation, Vec3f(p_x, p_y, p_z) );
-
-			/* mt = _model._transformation;
-			for (int i=0; i<4; i++)
-				std::cout << "(" << i << ") " << mt[ i ][ 0 ] << " " << mt[ i ][ 1 ] << " " << mt[ i ][ 2 ]
-							 << " " << mt[ i ][ 3 ] << std::endl;*/
-
 			_model._transformation = glm::scale( _model._transformation, Vec3f(size) );
 
-			/* mt = _model._transformation;
-			for ( int i = 0; i < 4; i++ )
-				std::cout << "(" << i << ") " << mt[ i ][ 0 ] << " " << mt[ i ][ 1 ] << " " << mt[ i ][ 2 ] << " "
-						  << mt[ i ][ 3 ] << std::endl;*/
 
-			std::cout << std::endl;
 		}
 
 		~Particle() {};
@@ -80,8 +66,6 @@ namespace SIM_PART
 		void compute_point_attract( float r, std::vector<Particle *> point_list );
 
 
-		
-
 		void compute_point_attract_v4(	float				 r,
 										const std::vector<Particle *> &point_list,
 									   std::vector<int> &			   traveled_point,
@@ -108,10 +92,16 @@ namespace SIM_PART
 		                                       int                             iteration,
 		                                       int                             refresh_frame );
 
+		void compute_attract_by_double_radius_parallelisable(	const float						rayon,
+																const std::vector<Particle *> & point_list,
+																std::vector<int> &				traveled_point,
+																int								iteration,
+																int								refresh_frame );
+
 
 		void compute_attract_by_flooding( float                           rayon, 
 		                                  const std::vector<Particle *> & pointList,
-		                                  std::vector<int>	  &           traveled_point,
+		                                  std::vector<int>	             traveled_point,
 		                                  int                             iteration,
 		                                  int                             refresh_frame, 
 		                                  int                             degre_voisinage );

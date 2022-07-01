@@ -2,7 +2,7 @@
 
 namespace SIM_PART
 {
-	int NB_PARTICULES			= 50000;
+	int NB_PARTICULES			= 100000;
 	float SPEED_PARTICULES		= 0.1f;
 	float ATTRACT_RADIUS		= 1.f;
 	float SIZE_PARTICLE			= 0.2f;

@@ -311,8 +311,17 @@ namespace SIM_PART
 			std::cout << "_mode_type " << _mode_type << std::endl; 
 			if ( _mode_type == 0 )
 			{
-				for ( int j = 0; j < _list_points.size(); j++ ) 
-					_list_points[ j ]->compute_attract_by_double_radius( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame );
+				
+				#pragma omp parallel
+				{
+					std::vector<int> private_traveled_points( _nbparticules, -1 );
+					#pragma omp for
+					for ( int j = 0; j < _list_points.size(); j++ )
+						//_list_points[ j ]->compute_attract_by_double_radius_parallelisable(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame ); 
+						//_list_points[ j]->compute_attract_by_double_radius( _rayon_attract, _list_points, _traveled_point,_iteration, _refresh_frame );
+						_list_points[ j ]->compute_attract_by_flooding(_rayon_attract, _list_points, private_traveled_points, _iteration, _refresh_frame, _iteration );
+					_iteration++;
+				}
 			}
 			else
 			{
@@ -360,12 +369,10 @@ namespace SIM_PART
 	
 	void DelaunayStructure::compute_attract_points()
 	{
-		//std::vector<int> traveled_points( _nbparticules, -1 );
 
 		#pragma omp parallel
 		{
 			std::vector<int> traveled_points( _nbparticules, -1 );
-			std::cout << "omp_get_num_threads: " << omp_get_thread_num() << std::endl;
 			#pragma omp for
 			for ( int i = 0; i < (int)_list_points.size(); i++ )
 			{
@@ -373,14 +380,13 @@ namespace SIM_PART
 				//_list_points[ i ]->compute_point_attract_parallelisable( _rayon_attract, _list_points, TETRA_REFRESH_RATE /*, traveled_points */ );
 				_list_points[ i ]->compute_point_attract_parallelisable_v2(
 					_rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
-				//if ( _verbose && i % 1000 == 0 )
-					//std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
+				if ( _verbose && i % 1000 == 0 )
+					std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
 			}
 		}
 		
 		std::cout << std::endl;
-		const std::vector<int> * ap = _list_points[ 0 ]->get_point_attract();
-		std::cout << "ap size: " << ap->size() << std::endl;
+		
 	}
 
 	void DelaunayStructure::render( GLuint program ) 

@@ -268,12 +268,10 @@ namespace SIM_PART
 		
 		for ( int i = 0; i < (int)_neighbours.size(); i++ )
 		{
-			if ( _neighbours[ i ] > _id )
-			{
-				traveled_point[ _neighbours[ i ] ] = _id;
-				_particules_attract.emplace_back( _neighbours[ i ] );
-			}
+			traveled_point[ _neighbours[ i ] ] = _id;
+			_particules_attract.emplace_back( _neighbours[ i ] );
 		}
+		traveled_point[ _id ] = _id;
 
 		Particle * p;
 		int		   i = 0;
@@ -418,6 +416,36 @@ namespace SIM_PART
 
 		_taille_attract = _particules_attract.size();
 	}
+
+	void Particle::compute_attract_by_double_radius_parallelisable( const float					 rayon,
+													 const std::vector<Particle *> & point_list,
+													 std::vector<int> &				 traveled_point,
+													 int							 iteration,
+													 int							 refresh_frame )
+	{
+		for ( int i = 0; i < _particules_attract.size(); i++ )
+		{
+			if ( !is_attract( point_list[ _particules_attract[ i ] ], rayon ) )
+				_particules_attract.erase( _particules_attract.begin() + i );
+		}
+
+		Particle * p;
+		for ( int i = 0; i < _possible_futur_attract.size(); i++ )
+		{
+				p = point_list[ _possible_futur_attract[ i ] ];
+				if ( this->is_attract( p, rayon ) )
+				{
+					this->_particules_attract.push_back( p->_id );
+					
+				}
+		}
+
+		sort( _particules_attract.begin(), _particules_attract.end() );
+		auto last = std::unique( _particules_attract.begin(), _particules_attract.end() );
+		_particules_attract.erase( last, _particules_attract.end() );
+
+		_taille_attract = _particules_attract.size();
+	}
 	
 
 	void Particle::compute_diffusion_limited_aggregation( const float				   rayon, 
@@ -518,28 +546,28 @@ namespace SIM_PART
 
 	void Particle::compute_attract_by_flooding( const float					 rayon, 
 												const std::vector<Particle *> & pointList,
-												 std::vector<int>	  &traveled_point,
+												 std::vector<int>	  traveled_point,
 												 int				  iteration,
 												 int				  refresh_frame,
 												 int				  degre_voisinage)
 	{
-		_particules_attract.clear();
-		for ( int i = 0; i < traveled_point.size(); i++ )
+		for ( int i = 0; i < _particules_attract.size(); i++ )
 		{
-			traveled_point[ i ] = -1;
+			if ( !is_attract( pointList[ _particules_attract[ i ] ], rayon ) )
+				_particules_attract.erase( _particules_attract.begin() + i );
+
+			else
+				traveled_point[ i ] = _id;
+
 		}
 		traveled_point[ _id ] = _id;
 
-		for ( int i = 0; i < _neighbours.size(); i++ )
-		{
-			traveled_point[ _neighbours[ i ]  ] = _id;
-		}
-			
-		std::vector<int> n = _neighbours;
+		std::vector<int> n = _particules_attract;
 		std::vector<int> n2;
 		Particle *		 p;
 		while (degre_voisinage != 0) 
 		{
+
 			for (int i = 0; i < n.size(); i++) 
 			{
 				p  = pointList[ n[ i ] ];
@@ -548,11 +576,14 @@ namespace SIM_PART
 					this->_particules_attract.emplace_back( p->get_id() );
 				}
 				
-				std::vector<int> neighbourg_i = (*pointList[ n[ i ] ]->get_neighbours());
-				for ( int j = 0; j < neighbourg_i.size(); j++ ) 
+				std::vector<int> tmp = (*pointList[ n[ i ] ]->get_neighbours());
+				for ( int j = 0; j < tmp.size(); j++ ) 
 				{
-					if ( traveled_point[ neighbourg_i[ j ] ] != _id )
-						n2.emplace_back( neighbourg_i[ j ] );
+					if ( traveled_point[ tmp[ j ] ] != _id )
+					{
+						n2.push_back( tmp[ j ] );
+						traveled_point[ tmp[ j ] ] = _id;
+					}	
 
 				}
 			}
@@ -562,6 +593,10 @@ namespace SIM_PART
 			n2.clear();
 			degre_voisinage--;
 		}
+
+		sort( _particules_attract.begin(), _particules_attract.end() );
+		auto last = std::unique( _particules_attract.begin(), _particules_attract.end() );
+		_particules_attract.erase( last, _particules_attract.end() );
 	}
 
 	
