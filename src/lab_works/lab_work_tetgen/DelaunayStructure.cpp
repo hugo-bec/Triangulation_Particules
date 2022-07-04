@@ -291,7 +291,7 @@ namespace SIM_PART
 			update_position_particules();
 			_chrono.stop_and_print( "time recomputing brownian movement: " );
 
-			if ( _iteration % _refresh_frame == 0 )
+			//if ( _iteration % _refresh_frame == 0 )
 			{
 				char tetgen_param[ 16 ];
 				tetgen_param[ 0 ] = 'Q';

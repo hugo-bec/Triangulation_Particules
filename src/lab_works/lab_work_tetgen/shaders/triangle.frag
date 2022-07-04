@@ -1,10 +1,12 @@
 #version 450
 
-in vec3 color;
-
 layout( location = 0 ) out vec4 fragColor;
+
+in vec3 normal;
+
+uniform vec3 difuseColor;
 
 void main() { 
 
-	fragColor = vec4( color, 1.f ); 
+	fragColor = vec4( difuseColor, 1.f ); 
 }

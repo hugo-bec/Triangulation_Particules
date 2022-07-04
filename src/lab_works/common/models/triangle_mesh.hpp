@@ -12,16 +12,6 @@ namespace SIM_PART
 	{
 		Vec3f _position;
 		Vec3f _normal;
-		Vec2f _texCoords;
-		Vec3f _tangent;
-		Vec3f _bitangent;
-	};
-
-	struct Texture
-	{
-		unsigned int _id;
-		std::string	 _type;
-		std::string	 _path;
 	};
 
 	struct Material
@@ -30,16 +20,6 @@ namespace SIM_PART
 		Vec3f _diffuse	 = VEC3F_ZERO;
 		Vec3f _specular	 = VEC3F_ZERO;
 		float _shininess = 0.f;
-
-		bool _hasAmbientMap	  = false;
-		bool _hasDiffuseMap	  = false;
-		bool _hasSpecularMap  = false;
-		bool _hasShininessMap = false;
-
-		Texture _ambientMap;
-		Texture _diffuseMap;
-		Texture _specularMap;
-		Texture _shininessMap;
 	};
 
 	class TriangleMesh
@@ -54,7 +34,6 @@ namespace SIM_PART
 		~TriangleMesh() = default;
 
 		void render( const GLuint p_glProgram, Mat4f transformation ) const;
-		//void render_wire( const GLuint p_glProgram ) const;
 
 		void cleanGL();
 

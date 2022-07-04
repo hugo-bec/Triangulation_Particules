@@ -5,7 +5,6 @@
 #include "triangle_mesh.hpp"
 #include "utils/file_path.hpp"
 #include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
 namespace SIM_PART
@@ -27,12 +26,9 @@ namespace SIM_PART
 
 	  private:
 		void	 _loadMesh( const aiMesh * const p_mesh, const aiScene * const p_scene );
-		Material _loadMaterial( const aiMaterial * const p_mtl );
-		Texture	 _loadTexture( const aiString & p_path, const std::string & p_type );
 
 	  public:
 		std::vector<TriangleMesh> _meshes;		   // A model can contain several meshes.
-		std::vector<Texture>	  _loadedTextures; // Avoid to load a texture more than once.
 		// Some stats.
 		int _nbTriangles = 0;
 		int _nbVertices	 = 0;
