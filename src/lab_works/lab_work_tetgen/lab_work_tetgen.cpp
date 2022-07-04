@@ -70,17 +70,29 @@ namespace SIM_PART
 
 	void LabWorkTetgen::animate( const float p_deltaTime ) 
 	{ 
-		if ( play_mode || play_next_frame )
+		if ( _dstructure.nb_non_fix != 0 )
 		{
-			for ( int i = 0; i < NB_PARTICULES; i++ )
-				_particules[ i ]->apply_brownian_mvt( SPEED_PARTICULES, CAGE_DIM );
+			if ( play_mode || play_next_frame )
+			{
+				for ( int i = 0; i < NB_PARTICULES; i++ )
+					_particules[ i ]->apply_brownian_mvt( SPEED_PARTICULES, CAGE_DIM );
+			}
+			_dstructure.update_all();
 		}
+		else
+		{
+			_dstructure.set_verbose( false );
+			_dstructure.update_rendering();
+			_dstructure.update_buffers();
+		}
+			
 
-		_dstructure.update_all();
+		
 
 		if ( play_next_frame )
 			_dstructure.set_play_mode( play_mode );
 		play_next_frame = false;
+		
 	}
 
 	void LabWorkTetgen::render()
@@ -212,8 +224,48 @@ namespace SIM_PART
 			else
 				_camera = new Camera();
 		}
+		if (ImGui::Checkbox("Attract point mode", &_attract_mode)) {
+			if ( _attract_mode )
+				_diffusion_mode = false;
+			_dstructure.set_type_mode();
 
+		}
 
+		if ( ImGui::Checkbox( "Diffusion mode", &_diffusion_mode ) )
+		{
+			if ( _diffusion_mode )
+				_attract_mode = false;
+			_dstructure.set_type_mode();
+		}
+
+		if ( ImGui::Checkbox( "Every points mode", &_points_mode ) )
+		{
+			if ( _points_mode )
+				_dstructure.set_draw_all_edges(true);
+			else
+				_dstructure.set_draw_all_edges( false );
+		}
+
+		if ( ImGui::Checkbox( "Draw edges mode", &_tetrahedra_mode ) )
+		{
+			if ( _tetrahedra_mode )
+				_dstructure.set_edges_mode( true );
+			else
+				_dstructure.set_edges_mode( false );
+		}
+		
+		if ( ImGui::Checkbox( "Mesh mode", &_mesh_mode ) )
+		{
+			if ( _mesh_mode )
+				_dstructure.set_point_mode( false );
+			else
+				_dstructure.set_point_mode( true );
+		}
+
+		if ( ImGui::SliderInt( "Chosen particule", &_chosen_particule, 0, NB_PARTICULES ) ) 
+		{
+			_dstructure.set_active_particle( _chosen_particule );
+		}
 		ImGui::End();
 	}
 

@@ -6,8 +6,6 @@
 #include "utils/random.hpp"
 #include "utils/Chrono.hpp"
 
-
-
 namespace SIM_PART
 {
 	/* -----------------------------------------------------------------------
@@ -308,7 +306,7 @@ namespace SIM_PART
 
 			_chrono.start();
 
-			std::cout << "_mode_type " << _mode_type << std::endl; 
+			//std::cout << "_mode_type " << _mode_type << std::endl; 
 			if ( _mode_type == 0 )
 			{
 				
@@ -317,34 +315,38 @@ namespace SIM_PART
 					std::vector<int> private_traveled_points( _nbparticules, -1 );
 					#pragma omp for
 					for ( int j = 0; j < _list_points.size(); j++ )
-						//_list_points[ j ]->compute_attract_by_double_radius_parallelisable(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame ); 
+						_list_points[ j ]->compute_attract_by_double_radius_parallelisable(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame ); 
 						//_list_points[ j]->compute_attract_by_double_radius( _rayon_attract, _list_points, _traveled_point,_iteration, _refresh_frame );
-						_list_points[ j ]->compute_attract_by_flooding(_rayon_attract, _list_points, private_traveled_points, _iteration, _refresh_frame, _iteration );
-					_iteration++;
+						//_list_points[ j ]->compute_attract_by_flooding(_rayon_attract, _list_points, private_traveled_points, _iteration, 
+							//_refresh_frame, _degre_voisinage );
+					
 				}
+
+				if ( _iteration%2==0)
+					_degre_voisinage++;
 			}
 			else
 			{
-				for ( int j = 0; j < _list_points.size(); j++ )
-					//_list_points[ j ]->compute_diffusion_limited_aggregation_V2(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
-					_list_points[ j ]->compute_diffusion_limited_aggregation( _rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
-			}
-			nb_non_fix = 0;
-			for ( int j = 0; j < _list_points.size(); j++ )
-			{
-				if (!_list_points[j]->is_fix()) {
-					nb_non_fix++;
-					
-				}
-				/* else
+				if ( nb_non_fix != 0 )
 				{
-					const float * coord = _list_points[ j ]->get_coord();
-					std::cout << " id : " << _list_points[ j ]->get_id() << "  coord x : " << coord[ 0 ]
-							  << "  y : " << coord[ 1 ] << " z : " << coord[ 2 ] << std::endl;
-				}*/
-					
+					for ( int j = 0; j < _list_points.size(); j++ )
+						_list_points[ j ]->compute_diffusion_limited_aggregation(
+							_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
+
+					nb_non_fix = 0;
+					for ( int j = 0; j < _list_points.size(); j++ )
+					{
+						if ( !_list_points[ j ]->is_fix() )
+						{
+							nb_non_fix++;
+						}
+					}
+					HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+					SetConsoleTextAttribute( hConsole, 2 );
+					std::cout <<"Unfixed particle number : " << nb_non_fix << std::endl;
+					SetConsoleTextAttribute( hConsole, 7 );
+				}
 			}
-			std::cout << "nb non fix : " << nb_non_fix << std::endl;
 
 			_chrono.stop_and_print( "time compute attract point with double radius: " );
 			_iteration++;

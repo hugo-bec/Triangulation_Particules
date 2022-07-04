@@ -8,6 +8,7 @@
 #include "tetgen.h"
 #include "Particle.hpp"
 #include "Tetrahedron.hpp"
+#include "parameters.hpp"
 
 
 namespace SIM_PART
@@ -82,7 +83,7 @@ namespace SIM_PART
 		Vec3f _dimCage;
 		int	  _nbparticules;
 		float _rayon_attract = 1.f;
-		int	  nb_non_fix=0;
+		int	  nb_non_fix	 = NB_PARTICULES - NB_INIT_FIXED_POINTS;
 
 		std::vector<Particle *>		_list_points;
 		std::vector<Tetrahedron *>	_list_tetras;
@@ -92,7 +93,7 @@ namespace SIM_PART
 		std::vector<Vec3f>		  _colors;
 		std::vector<unsigned int> _indices;
 		std::vector<int>		  _traveled_point;
-		int						  _refresh_frame = 100;
+		int						  _refresh_frame = 1000;
 
 		Mat4f  _transformation = MAT4F_ID;
 
@@ -105,6 +106,7 @@ namespace SIM_PART
 		bool	_point_mode		 = false;
 		int		_mode_type		 = 1;
 		int		_active_particle = 0;
+		int		_degre_voisinage = 1;
 		int		_iteration		 = 1;
 
 
