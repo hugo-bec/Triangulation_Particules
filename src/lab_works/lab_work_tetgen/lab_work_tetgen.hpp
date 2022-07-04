@@ -59,6 +59,12 @@ namespace SIM_PART
 		float _fovy				 = 60.f;
 		bool  _orthogonal_view	 = false;
 		bool  _trackball_camera	 = false;
+		bool  _attract_mode		 = false;
+		bool  _diffusion_mode	 = true;
+		bool  _tetrahedra_mode	 = false;
+		bool  _points_mode		 = false;
+		bool  _mesh_mode		 = true;
+		int	  _chosen_particule	 = 0;
 
 		// ================ GL program data.
 		GLuint _program				= GL_INVALID_INDEX;
