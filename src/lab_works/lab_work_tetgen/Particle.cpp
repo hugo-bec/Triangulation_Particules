@@ -264,9 +264,8 @@ namespace SIM_PART
 															std::vector<int> &				traveled_point,
 															int								refresh_mesh )
 	{
-
-		
-		for ( int i = 0; i < (int)_neighbours.size(); i++ )
+		int neighbours_size = _neighbours.size();
+		for ( int i = 0; i < neighbours_size; i++ )
 		{
 			traveled_point[ _neighbours[ i ] ] = _id;
 			_particules_attract.emplace_back( _neighbours[ i ] );
@@ -279,36 +278,35 @@ namespace SIM_PART
 		while ( i < _particules_attract.size() )
 		{
 			p = pointList[ _particules_attract[ i ] ];
-			
-				float radius_futur = r + 2 * _speed * refresh_mesh;
+			float radius_futur = r + 2 * _speed * refresh_mesh;
 
-				if ( is_attract(p, radius_futur ))
+			if ( is_attract(p, radius_futur ))
+			{
+				_possible_futur_attract.emplace_back( p->_id );
+				
+				if ( is_attract( p, r ) )
 				{
-					_possible_futur_attract.emplace_back( p->_id );
-					
-					if ( is_attract( p, r ) )
+					const std::vector<int> * p_neighbours = p->get_neighbours();
+					for ( int j = 0; j < p_neighbours->size(); j++ )
 					{
-						const std::vector<int> * p_neighbours = p->get_neighbours();
-						for ( int j = 0; j < p_neighbours->size(); j++ )
+						if ( traveled_point[ ( *p_neighbours )[ j ] ] != _id )
 						{
-							if ( traveled_point[ ( *p_neighbours )[ j ] ] != _id )
-							{
-								_particules_attract.emplace_back( ( *p_neighbours )[ j ] );
-								traveled_point[ ( *p_neighbours )[ j ] ] = _id;
-							}
+							_particules_attract.emplace_back( ( *p_neighbours )[ j ] );
+							traveled_point[ ( *p_neighbours )[ j ] ] = _id;
 						}
-						i++;
 					}
-
-					else
-					{
-						_particules_attract.erase( _particules_attract.begin() + i );
-					}
+					i++;
 				}
+
 				else
 				{
 					_particules_attract.erase( _particules_attract.begin() + i );
 				}
+			}
+			else
+			{
+				_particules_attract.erase( _particules_attract.begin() + i );
+			}
 		
 		}
 	}
@@ -430,7 +428,8 @@ namespace SIM_PART
 		}
 
 		Particle * p;
-		for ( int i = 0; i < _possible_futur_attract.size(); i++ )
+		int possible_futur_attract_size = _possible_futur_attract.size();
+		for ( int i = 0; i < possible_futur_attract_size; i++ )
 		{
 				p = point_list[ _possible_futur_attract[ i ] ];
 				if ( this->is_attract( p, rayon ) )

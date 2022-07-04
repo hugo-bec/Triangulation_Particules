@@ -12,7 +12,7 @@ namespace SIM_PART
 	 * ---------------------- INITIALIZATION FUNCTIONS -----------------------
 	 * ----------------------------------------------------------------------- */
 
-	void DelaunayStructure::init_particules( const std::vector<Particle* > & p_particules )
+	void DelaunayStructure::init_particules( const std::vector<Particle* > & p_particules, int p_refresh_rate )
 	{
 		_nbparticules = p_particules.size();
 		_list_points  = p_particules;
@@ -34,6 +34,7 @@ namespace SIM_PART
 
 			_colors.push_back( Vec3f( 0 ) );
 		}
+		_refresh_frame = p_refresh_rate;
 	}
 
 	void DelaunayStructure::init_structure()
@@ -48,7 +49,7 @@ namespace SIM_PART
 
 		_chrono.start();
 		update_structure();
-		_chrono.stop_and_print( "time update particles: " );
+		_chrono.stop_and_print( "time update structure: " );
 	}
 
 	void DelaunayStructure::init_buffers() 
@@ -59,9 +60,9 @@ namespace SIM_PART
 		glCreateVertexArrays( 1, &_vao );
 	}
 
-	void DelaunayStructure::init_all(GLuint program, const std::vector<Particle*>& p_particules ) 
+	void DelaunayStructure::init_all( GLuint program, const std::vector<Particle *> & p_particules, int p_refresh_rate ) 
 	{
-		init_particules( p_particules );
+		init_particules( p_particules, p_refresh_rate );
 
 		init_structure();
 		update_rendering();
@@ -321,7 +322,6 @@ namespace SIM_PART
 							//_refresh_frame, _degre_voisinage );
 					
 				}
-
 				if ( _iteration%2==0)
 					_degre_voisinage++;
 			}
@@ -375,15 +375,16 @@ namespace SIM_PART
 		#pragma omp parallel
 		{
 			std::vector<int> traveled_points( _nbparticules, -1 );
+			int list_points_size = _list_points.size();
 			#pragma omp for
-			for ( int i = 0; i < (int)_list_points.size(); i++ )
+			for ( int i = 0; i < list_points_size; i++ )
 			{
 				//_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
 				//_list_points[ i ]->compute_point_attract_parallelisable( _rayon_attract, _list_points, TETRA_REFRESH_RATE /*, traveled_points */ );
 				_list_points[ i ]->compute_point_attract_parallelisable_v2(
 					_rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
-				if ( _verbose && i % 1000 == 0 )
-					std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
+				//if ( _verbose && i % 1000 == 0 )
+					//std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
 			}
 		}
 		

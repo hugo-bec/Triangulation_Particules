@@ -46,7 +46,7 @@ namespace SIM_PART
 
 		// Init Particules
 		s1.load( "origin_model", "data/model/icosphere2.obj" );
-		create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE );
+		create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES );
 		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
 			_particules[ i ]->set_fix( true );
 
@@ -54,7 +54,7 @@ namespace SIM_PART
 		// Init Delaunay Structure
 		_dstructure.set_verbose( DSTRUCTURE_VERBOSE ); // for printing all time execution 
 		_dstructure.set_attract_radius( ATTRACT_RADIUS );
-		_dstructure.init_all( _program, _particules );
+		_dstructure.init_all( _program, _particules, TETRA_REFRESH_RATE );
 
 		//init camera
 		_initCamera();
@@ -114,14 +114,14 @@ namespace SIM_PART
 	}
 
 
-	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size ) 
+	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size, float speed ) 
 	{
 		for (int i=0; i<nb; i++)
 			_particules.push_back( new Particle(
 				i,	getRandomFloat() * cage_dim.x, 
 					getRandomFloat() * cage_dim.y, 
 					getRandomFloat() * cage_dim.z,
-					s1, size) );
+					s1, size, speed) );
 	}
 
 
