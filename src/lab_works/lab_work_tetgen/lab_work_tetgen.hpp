@@ -25,7 +25,10 @@ namespace SIM_PART
 		void animate( const float p_deltaTime ) override;
 		void render() override;
 
-		void create_particules( const unsigned int nb, Vec3f cage_dim, float size, float speed );
+		void create_particules( const unsigned int nb,
+								Vec3f			   cage_dim,
+								float			   size,
+								float speed, std::vector<TriangleMeshModel *> & tmm_container );
 
 
 

@@ -45,8 +45,10 @@ namespace SIM_PART
 		_cage.init_all( _program, CAGE_DIM );
 
 		// Init Particules
-		s1.load( "origin_model", "data/model/icosphere2.obj" );
-		create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES );
+		//s1.load( "origin_model", "data/model/icosphere2.obj" );
+		std::vector<TriangleMeshModel * > tmm_container;
+		s1.load_multiple_model( "sphere", "data/model/icosphere2.obj", tmm_container, NB_PARTICULES );
+		create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES, tmm_container );
 		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
 			_particules[ i ]->set_fix( true );
 
@@ -114,14 +116,17 @@ namespace SIM_PART
 	}
 
 
-	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size, float speed ) 
+	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size, float speed,
+											std::vector<TriangleMeshModel * > & tmm_container) 
 	{
 		for (int i=0; i<nb; i++)
 			_particules.push_back( new Particle(
 				i,	getRandomFloat() * cage_dim.x, 
 					getRandomFloat() * cage_dim.y, 
 					getRandomFloat() * cage_dim.z,
-					s1, size, speed) );
+												 *tmm_container[ i ],
+												 size,
+												 speed ) );
 	}
 
 

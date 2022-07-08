@@ -19,14 +19,24 @@ namespace SIM_PART
 
 		~DelaunayStructure()
 		{
-			if ( _vao != GL_INVALID_INDEX )
+			if ( _vaoParticules != GL_INVALID_INDEX )
 			{
-				glDisableVertexArrayAttrib( _vao, 0 );
-				glDisableVertexArrayAttrib( _vao, 1 );
-				glDeleteVertexArrays( 1, &_vao );
+				glDisableVertexArrayAttrib( _vaoParticules, 0 );
+				glDisableVertexArrayAttrib( _vaoParticules, 1 );
+				glDeleteVertexArrays( 1, &_vaoParticules );
 			}
-			if ( _vboPoints != GL_INVALID_INDEX )
-				glDeleteBuffers( 1, &_vboPoints );
+			if ( _vaoMesh != GL_INVALID_INDEX )
+			{
+				glDisableVertexArrayAttrib( _vaoMesh, 0 );
+				glDisableVertexArrayAttrib( _vaoMesh, 1 );
+				glDeleteVertexArrays( 1, &_vaoMesh );
+			}
+			if ( _vboPositions != GL_INVALID_INDEX )
+				glDeleteBuffers( 1, &_vboPositions );
+			if ( _vboColors != GL_INVALID_INDEX )
+				glDeleteBuffers( 1, &_vboColors );
+			if ( _vboVertices != GL_INVALID_INDEX )
+				glDeleteBuffers( 1, &_vboVertices );
 		}
 
 		/* -----------------------------------------------------------------------
@@ -58,6 +68,7 @@ namespace SIM_PART
 		/* --- INITIALIZATION FUNCTIONS --- */ 
 		void init_particules( const std::vector<Particle *> & p_particules, int p_refresh_rate );
 		void init_structure();
+		void init_mesh();
 		void init_buffers();
 		void init_all( GLuint program, const std::vector<Particle *> & p_particules, int p_refresh_rate );
 
@@ -73,6 +84,7 @@ namespace SIM_PART
 		/* --- COMPUTE & RENDER FUNCTIONS --- */ 
 		void compute_attract_points();
 		void render( GLuint _program );
+
 		void coloration();
 
 
@@ -85,6 +97,8 @@ namespace SIM_PART
 		int	  _nbparticules;
 		float _rayon_attract;
 		int	  nb_non_fix	 = NB_PARTICULES - NB_INIT_FIXED_POINTS;
+		std::vector<int> _traveled_point;
+		int				 _refresh_frame;
 
 		std::vector<Particle *>		_list_points;
 		std::vector<Tetrahedron *>	_list_tetras;
@@ -93,10 +107,12 @@ namespace SIM_PART
 		std::vector<Vec3f>		  _positions;
 		std::vector<Vec3f>		  _colors;
 		std::vector<unsigned int> _indices;
-		std::vector<int>		  _traveled_point;
-		int						  _refresh_frame;
+		std::vector<Vertex>		  _mesh_vertices;
+		std::vector<unsigned int> _mesh_indices;
+		
 
 		Mat4f  _transformation = MAT4F_ID;
+		aiMesh * _model;
 
 		// ================ Rendering & Utils data.
 		Chrono	_chrono;
@@ -113,12 +129,16 @@ namespace SIM_PART
 
 
 		// ================ GL data.
-		GLuint _vao = GL_INVALID_INDEX; // Vertex Array Object
-		GLuint _ebo = GL_INVALID_INDEX; // Element Buffer Object
+		GLuint _vaoParticules = GL_INVALID_INDEX; 
+		GLuint _eboParticules = GL_INVALID_INDEX;
+		GLuint _vboPositions  = GL_INVALID_INDEX;
+		GLuint _vboColors	  = GL_INVALID_INDEX;
 
-		// Vertex Buffer Objects.
-		GLuint _vboPoints = GL_INVALID_INDEX;
-		GLuint _vboColors = GL_INVALID_INDEX;
+		GLuint _vaoMesh = GL_INVALID_INDEX;
+		GLuint _eboMesh = GL_INVALID_INDEX;
+		GLuint _vboVertices = GL_INVALID_INDEX;
+
+
 		GLint  _uModelMatrixLoc = GL_INVALID_INDEX;
 		// ================
 	};
