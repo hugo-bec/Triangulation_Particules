@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdio>
 #include "define.hpp"
+#include "parameters.hpp"
 #include "common/models/triangle_mesh_model.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
@@ -62,40 +63,20 @@ namespace SIM_PART
 
 		void compute_neighbours( std::vector<Tetrahedron *> tetra_list );
 
-		void compute_neighbours_v2( std::vector<Tetrahedron *> tetra_list );
 
-		bool is_same( Particle * p ) const;
+		void compute_point_attract_parallelisable_brut( float							r,
+														const std::vector<Particle *> & point_list,
+														int								refresh_mesh );
 
-		void compute_point_attract( float r, std::vector<Particle *> point_list );
+		void compute_point_attract_parallelisable_without_double_radius(  float							  r,
+																		  const std::vector<Particle *> & pointList,
+																		  std::vector<int> &			  traveled_point );
 
-
-		void compute_point_attract_v4(	float				 r,
-										const std::vector<Particle *> &point_list,
-									   std::vector<int> &			   traveled_point,
-									   int							   refresh_mesh );
-
-		void compute_point_attract_parallelisable(	float						   r, const std::vector<Particle *> & point_list, int refresh_mesh
-												   /* std::vector<int>		   traveled_point*/ );
-
-		void compute_point_attract_parallelisable_v2( float							  r,
-													  const std::vector<Particle *> & pointList,
-													  std::vector<int> &			  traveled_point,
-													  int							  refresh_mesh );
-
-
-		//=============Point Attract Version brute============
-
-		void compute_point_attract_brut( float r, std::vector<Particle *> point_list );
-
-		//=============Trouver point attract sans refaire les t�trah�dres============
 		
-		void compute_attract_by_double_radius( float                           rayon, 
-		                                       const std::vector<Particle *> & point_list,
-		                                       std::vector<int>		&          traveled_point,
-		                                       int                             iteration,
-		                                       int                             refresh_frame );
+		//=============Trouver points attracts sans refaire les tetrahedres============
+		
 
-		void compute_attract_by_double_radius_parallelisable(	const float						rayon,
+		void compute_attract_by_double_radius(	const float						rayon,
 																const std::vector<Particle *> & point_list,
 																std::vector<int> &				traveled_point,
 																int								iteration,
@@ -108,6 +89,21 @@ namespace SIM_PART
 		                                  int                             iteration,
 		                                  int                             refresh_frame, 
 		                                  int                             degre_voisinage );
+
+		
+		void compute_point_attract_parallelisable_double_radius( float							 r,
+																 const std::vector<Particle *> & pointList,
+																 std::vector<int> &				 traveled_point,
+																 int							 refresh_mesh );
+
+		void compute_diffusion_limited_aggregation( float							rayon,
+													const std::vector<Particle *> & pointList,
+													std::vector<int> &				traveled_point,
+													int								iteration,
+													int								refresh_frame,
+													int								nb_non_fix );
+
+
 		
 		inline float compute_distance( Particle * point ) const;
 
@@ -116,35 +112,19 @@ namespace SIM_PART
 		void apply_brownian_mvt( float speed, Vec3f dimCage );
 
 		
-
 		
 
-		void compute_diffusion_limited_aggregation( float                           rayon,
-		                                            const std::vector<Particle *> & pointList,
-		                                            std::vector<int> &              traveled_point,
-		                                            int                             iteration,
-		                                            int                             refresh_frame,
-													int								nb_non_fix );
-
-		void compute_diffusion_limited_aggregation_V2( const float					 rayon,
-																 const std::vector<Particle *> & pointList,
-																 std::vector<int> &				 traveled_point,
-																 int							 iteration,
-																   int							   refresh_frame,
-																   int							   nb_non_fix );
 		
 	  private:
 		int	  _id;
 		float _coord[ 3 ];
-		float _speed = 0.01f;
-		Vec3f _color;
+		float _speed = SPEED_PARTICULES;
 		TriangleMeshModel _model;
 
 		std::vector<int> _tetras;
 		std::vector<int> _particules_attract;
 		std::vector<int> _neighbours;
 		std::vector<int> _possible_futur_attract;
-		int				 _taille_attract;
 
 		//Diffusion Limited Aggregation
 		bool	_fix = false;
