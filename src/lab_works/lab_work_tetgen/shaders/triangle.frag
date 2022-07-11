@@ -18,7 +18,7 @@ void main()
 	vec3 eclairage_ambient = color * 0.2f;
 	vec3 eclairage_diffus = max ( dot( normalize(aVertexNormalOut) , Li ), 0.f ) * color;
 
-	vec3 col = mix(eclairage_ambient + eclairage_diffus, vec3(0.2), -aVertexPositionOut.z/20  );
+	vec3 col = mix(eclairage_ambient + eclairage_diffus, vec3(0.2), min(( -aVertexPositionOut.z - 5 ) / 20, 1)  );
 
 	fragColor = vec4( col, 1.f ); 
 	
