@@ -237,27 +237,33 @@ namespace SIM_PART
 		//std::cout << "_draw_all_edges: " << _draw_all_edges << ", _active_particle: " << _active_particle << std::endl;
 		std::vector<int> edges, tmp;
 		const std::vector<int> *tp;
-		
 
 		if ( !_draw_all_edges )
 		{
-			std::vector<int> attract_actif_points = ( *_list_points[ _active_particle ]->get_point_attract() );
-			std::vector<int> tetra_actif_points, list_tetra_tmp;
-			//std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
+			if ( _mode_type == 0 )
+				_filtered_points = ( *_list_points[ _active_particle ]->get_point_attract() );
+			else if ( _mode_type == 1 )
+				for ( int i = 0; i < _nbparticules; i++ )
+					if ( _list_points[ i ]->is_fix() )
+						_filtered_points.emplace_back( i );
 
-			for ( int i = 0; i < attract_actif_points.size(); i++ )
+			std::vector<int> tetra_filtered_points, list_tetra_tmp;
+			// std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
+
+			for ( int i = 0; i < _filtered_points.size(); i++ )
 			{
-				list_tetra_tmp = ( *_list_points[ attract_actif_points[ i ] ]->get_tetrahedron() );
-				tetra_actif_points.insert( tetra_actif_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
+				list_tetra_tmp = ( *_list_points[ _filtered_points[ i ] ]->get_tetrahedron() );
+				tetra_filtered_points.insert(
+					tetra_filtered_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
 			}
 
-			sort( tetra_actif_points.begin(), tetra_actif_points.end() );
-			auto last = std::unique( tetra_actif_points.begin(), tetra_actif_points.end() );
-			tetra_actif_points.erase( last, tetra_actif_points.end() );
+			sort( tetra_filtered_points.begin(), tetra_filtered_points.end() );
+			auto last = std::unique( tetra_filtered_points.begin(), tetra_filtered_points.end() );
+			tetra_filtered_points.erase( last, tetra_filtered_points.end() );
 
-			for ( int i = 0; i < (int)tetra_actif_points.size(); i++ )
+			for ( int i = 0; i < (int)tetra_filtered_points.size(); i++ )
 			{
-				tp	= _list_tetras[ tetra_actif_points[ i ] ]->get_points();
+				tp = _list_tetras[ tetra_filtered_points[ i ] ]->get_points();
 				tmp.clear();
 				tmp = { tp->at( 0 ), tp->at( 1 ), tp->at( 0 ), tp->at( 2 ), tp->at( 0 ), tp->at( 3 ),
 						tp->at( 1 ), tp->at( 2 ), tp->at( 1 ), tp->at( 3 ), tp->at( 2 ), tp->at( 3 ) };
@@ -265,7 +271,6 @@ namespace SIM_PART
 			}
 			this->_indices.clear();
 			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
-
 		}
 		else 
 		{
@@ -481,9 +486,8 @@ namespace SIM_PART
 			_list_points[ _active_particle ]->render( program );
 			 if ( !_draw_all_edges )
 			{
-				const std::vector<int> * attract_particules_active = _list_points[ _active_particle ]->get_point_attract();
-				for ( int i = 0; i < attract_particules_active->size(); i++ )
-					_list_points[ ( *attract_particules_active )[ i ] ]->render( program );
+				for ( int i = 0; i < _filtered_points.size(); i++ )
+					_list_points[ _filtered_points[ i ] ]->render( program );
 			}
 			else
 			{
