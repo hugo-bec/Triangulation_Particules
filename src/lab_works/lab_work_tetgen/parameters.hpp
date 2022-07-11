@@ -16,7 +16,7 @@ namespace SIM_PART
 
 	extern bool DSTRUCTURE_VERBOSE;
 
-
+	
 }
 	
 #endif

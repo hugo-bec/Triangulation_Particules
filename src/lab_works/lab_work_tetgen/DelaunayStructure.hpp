@@ -123,7 +123,7 @@ namespace SIM_PART
 		bool	_point_mode		 = false;
 		int		_mode_type		 = 1;
 		int		_active_particle = 0;
-		int		_degre_voisinage = 1;
+		int		_degre_voisinage = 2;
 		int		_iteration		 = 1;
 
 

@@ -349,6 +349,7 @@ namespace SIM_PART
 				_chrono.stop_and_print( "time TETGEN tetrahedralize: " );
 
 				update_structure();
+				_degre_voisinage = 2;
 				
 			}
 
@@ -357,20 +358,35 @@ namespace SIM_PART
 			//std::cout << "_mode_type " << _mode_type << std::endl; 
 			if ( _mode_type == 0 )
 			{
-				
 				#pragma omp parallel
 				{
 					std::vector<int> private_traveled_points( _nbparticules, -1 );
 					#pragma omp for
 					for ( int j = 0; j < _list_points.size(); j++ )
-						_list_points[ j ]->compute_attract_by_double_radius_parallelisable(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame ); 
-						//_list_points[ j]->compute_attract_by_double_radius( _rayon_attract, _list_points, _traveled_point,_iteration, _refresh_frame );
-						//_list_points[ j ]->compute_attract_by_flooding(_rayon_attract, _list_points, private_traveled_points, _iteration, 
-							//_refresh_frame, _degre_voisinage );
+						//_list_points[ j ]->compute_attract_by_double_radius(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame ); 
+						_list_points[ j ]->compute_attract_by_flooding(_rayon_attract, _list_points, private_traveled_points, _iteration, _refresh_frame, _degre_voisinage );
 					
 				}
+				_chrono.stop_and_print( "time compute attract point with double radius parallelisable: " );
+
+				std::cout << "nb point attract double rayon " << _list_points[ 0 ]->get_point_attract()->size()
+						  << std::endl;
+				
+				_list_points[ 0 ]->compute_point_attract_parallelisable_brut(
+					_rayon_attract, _list_points, TETRA_REFRESH_RATE );
+
 				if ( _iteration%2==0)
 					_degre_voisinage++;
+
+				
+				int p = 0;
+				const std::vector<int>* voisin;
+				_chrono.start();
+				for ( int j = 0; j < _list_points.size(); j++ )
+				{
+					voisin = _list_points[ j ]->get_neighbours();
+				}
+				_chrono.stop_and_print( "parcours points : " );
 			}
 			else
 			{
@@ -395,8 +411,9 @@ namespace SIM_PART
 				}
 			}
 
-			_chrono.stop_and_print( "time compute attract point with double radius: " );
+			//_chrono.stop_and_print( "time compute attract point with double radius: " );
 			_iteration++;
+
 		}
 
 		_chrono.set_verbose( _play_mode && _verbose );
@@ -426,14 +443,15 @@ namespace SIM_PART
 			#pragma omp for
 			for ( int i = 0; i < list_points_size; i++ )
 			{
-				//_list_points[ i ]->compute_point_attract_v4( _rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
 				//_list_points[ i ]->compute_point_attract_parallelisable( _rayon_attract, _list_points, TETRA_REFRESH_RATE /*, traveled_points */ );
-				_list_points[ i ]->compute_point_attract_parallelisable_v2(
-					_rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
+				//_list_points[ i ]->compute_point_attract_parallelisable_without_double_radius(_rayon_attract, _list_points, traveled_points );
+				_list_points[ i ]->compute_point_attract_parallelisable_double_radius(_rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
 				//if ( _verbose && i % 1000 == 0 )
 					//std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
 			}
 		}
+		std::cout << "nb point attract double rayon " << _list_points[ 0 ]->get_point_attract()->size() << std::endl;
+		_list_points[ 0 ]->compute_point_attract_parallelisable_brut( _rayon_attract, _list_points, TETRA_REFRESH_RATE );
 		
 		std::cout << std::endl;
 		
