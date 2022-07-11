@@ -140,7 +140,7 @@ namespace SIM_PART
 		int	  _id;
 		float _coord[ 3 ];
 		float _speed = 0.01f;
-		Vec3f _color;
+		//Vec3f _color;
 		TriangleMeshModel _model;
 
 		std::vector<int> _tetras;

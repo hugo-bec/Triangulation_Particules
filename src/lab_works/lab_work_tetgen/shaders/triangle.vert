@@ -1,14 +1,13 @@
 #version 450
 
 // particle data
-layout( location = 0 ) in vec3 aParticlePosition;
-layout( location = 1 ) in vec3 aParticleColor;
-layout( location = 2 ) in vec3 aParticleNormal;
+layout( location = 0 ) in vec3 aVertexPosition;
+layout( location = 1 ) in vec3 aVertexColor;
+layout( location = 2 ) in vec3 aVertexNormal;
 
 out vec3 color;
-out vec3 normal;
+out vec3 aVertexNormalOut;
 out vec3 aVertexPositionOut;
-out vec3 vs_source_light;
 
 uniform mat4 uModelMatrix;
 uniform mat4 uViewMatrix;
@@ -16,13 +15,17 @@ uniform mat4 uProjectionMatrix;
 
 void main()
 {
-	color = aParticleColor;
-	normal = aParticleNormal;
+	color = aVertexColor;
 
-	aVertexPositionOut = vec3( uViewMatrix * uModelMatrix * vec4(aParticlePosition, 1.f) );
+	//compute position view space
+	aVertexPositionOut = vec3( uViewMatrix * uModelMatrix * vec4(aVertexPosition, 1.f) );
 
-	vs_source_light = vec3( uViewMatrix * vec4(vec3(0), 1.f) );
+	//compute normal view space
+	vec3 vertexAddNormal = aVertexPosition + aVertexNormal;
+	vec3 aVertexAddNormalOut = vec3( uViewMatrix * uModelMatrix * vec4(vertexAddNormal, 1.f) );
+	aVertexNormalOut = aVertexAddNormalOut - aVertexPositionOut;
 
-	gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4( aParticlePosition , 1.f );
+
+	gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4( aVertexPosition , 1.f );
 
 }
