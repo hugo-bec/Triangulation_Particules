@@ -18,17 +18,23 @@ namespace SIM_PART
 		// Load a 3D model with Assimp.
 		void load( const std::string & p_name, const FilePath & p_filePath );
 
-		void load_with_model( const std::string & p_name, const TriangleMeshModel & origin_model );
+		void load_multiple_model( const std::string &				 p_name,
+								  const FilePath &					 p_filePath,
+								  std::vector<TriangleMeshModel *> & tmm_container,
+								  const int							 nb_copy );
 
 		void render( const GLuint p_glProgram ) const override;
 
 		void cleanGL() override;
+
+		void setColor(Vec3f color) { for ( int i = 0; i < _meshes.size(); i++ ) _meshes[ i ].update_color( color ); }
 
 	  private:
 		void	 _loadMesh( const aiMesh * const p_mesh, const aiScene * const p_scene );
 
 	  public:
 		std::vector<TriangleMesh> _meshes;		   // A model can contain several meshes.
+
 		// Some stats.
 		int _nbTriangles = 0;
 		int _nbVertices	 = 0;

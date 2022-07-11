@@ -11,6 +11,7 @@ namespace SIM_PART
 	struct Vertex
 	{
 		Vec3f _position;
+		Vec3f _color;
 		Vec3f _normal;
 	};
 
@@ -18,8 +19,6 @@ namespace SIM_PART
 	{
 		Vec3f _ambient	 = VEC3F_ZERO;
 		Vec3f _diffuse	 = VEC3F_ZERO;
-		Vec3f _specular	 = VEC3F_ZERO;
-		float _shininess = 0.f;
 	};
 
 	class TriangleMesh
@@ -27,11 +26,13 @@ namespace SIM_PART
 	  public:
 		TriangleMesh() = delete;
 		TriangleMesh( const std::string &				p_name,
-					  const std::vector<Vertex> &		p_vertices,
-					  const std::vector<unsigned int> & p_indices,
+					  const std::vector<Vertex>		p_vertices,
+					  const std::vector<unsigned int> p_indices,
 					  const Material &					p_material );
 
 		~TriangleMesh() = default;
+
+		void update_color( Vec3f color );
 
 		void render( const GLuint p_glProgram, Mat4f transformation ) const;
 

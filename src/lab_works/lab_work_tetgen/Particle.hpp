@@ -18,21 +18,23 @@ namespace SIM_PART
 
 	  public:
 
-		Particle( int p_id, float p_x, float p_y, float p_z, TriangleMeshModel & p_origin_model, float p_size, float p_speed ) :
+		Particle( int p_id, float p_x, float p_y, float p_z, TriangleMeshModel & p_model, float p_size, float p_speed ) :
 			_id( p_id ),
-			_speed( p_speed )
+			_speed( p_speed ), _model( p_model )
 		{
 			_coord[ 0 ] = p_x;
 			_coord[ 1 ] = p_y;
 			_coord[ 2 ] = p_z;
-			_model.load_with_model( "p" + std::to_string(p_id), p_origin_model );
+			//_model.load_with_model( "p" + std::to_string(p_id), p_origin_model );
+			//_model.load( "p" + std::to_string( p_id ), "data/model/icosphere2.obj" );
+			
 			_model._transformation = glm::translate( _model._transformation, Vec3f( p_x, p_y, p_z ) );
 			_model._transformation = glm::scale( _model._transformation, Vec3f( p_size ) );
-
-
 		}
 
 		~Particle() {};
+
+		void create_model();
 
 		const float *            get_coord() const { return _coord; }
 		int                      get_id() const { return _id; }
@@ -53,6 +55,7 @@ namespace SIM_PART
 		void set_speed( const float s ) { _speed = s; }
 		void set_coord( float px, float py, float pz );
 		void set_coord_mesh( float px, float py, float pz );
+		void set_color( Vec3f color ) { _model.setColor( color ); }
 
 		void printCoord() const { printf( "(x: %lf, y: %lf, z: %lf\n)", _coord[ 0 ], _coord[ 1 ], _coord[ 2 ] ); };
 		void tri_voisin();

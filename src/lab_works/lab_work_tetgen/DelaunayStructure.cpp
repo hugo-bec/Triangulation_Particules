@@ -5,6 +5,7 @@
 #include "parameters.hpp"
 #include "utils/random.hpp"
 #include "utils/Chrono.hpp"
+#include <assimp/postprocess.h>
 
 namespace SIM_PART
 {
@@ -52,17 +53,96 @@ namespace SIM_PART
 		_chrono.stop_and_print( "time update structure: " );
 	}
 
+	void DelaunayStructure::init_mesh()
+	{
+		const FilePath p_filePath = "data/model/icosphere2.obj";
+		Assimp::Importer importer;
+
+		// Importer options
+		// Cf. http://assimp.sourceforge.net/lib_html/postprocess_8h.html.
+		const unsigned int flags = aiProcessPreset_TargetRealtime_Fast | aiProcess_FlipUVs;
+		const aiScene * const scene = importer.ReadFile( p_filePath, flags );
+		if ( scene == nullptr )
+			throw std::runtime_error( "Fail to load file \" " + p_filePath.str() + "\": " + importer.GetErrorString() );
+
+		_model = scene->mMeshes[ 0 ];
+
+		_mesh_vertices.resize( _model->mNumVertices );
+		for ( unsigned int v = 0; v < _model->mNumVertices; ++v )
+		{
+			Vertex & vertex = _mesh_vertices[ v ];
+			// Position.
+			vertex._position.x = _model->mVertices[ v ].x;
+			vertex._position.y = _model->mVertices[ v ].y;
+			vertex._position.z = _model->mVertices[ v ].z;
+			// Color.
+			vertex._color = Vec3f(0);
+			// Normal.
+			vertex._normal.x = _model->mNormals[ v ].x;
+			vertex._normal.y = _model->mNormals[ v ].y;
+			vertex._normal.z = _model->mNormals[ v ].z;
+		}
+
+		_mesh_indices.resize( _model->mNumFaces * 3 ); // Triangulated.
+		for ( unsigned int f = 0; f < _model->mNumFaces; ++f )
+		{
+			const aiFace &	   face = _model->mFaces[ f ];
+			const unsigned int f3	= f * 3;
+			_mesh_indices[ f3 ]		= face.mIndices[ 0 ];
+			_mesh_indices[ f3 + 1 ] = face.mIndices[ 1 ];
+			_mesh_indices[ f3 + 2 ] = face.mIndices[ 2 ];
+		}
+		
+	}
+
 	void DelaunayStructure::init_buffers() 
 	{
-		glCreateBuffers( 1, &_vboPoints );
+		/* ------------------
+		 * --- PARTICULES ---
+		 * ------------------ */
+
+		glCreateBuffers( 1, &_vboPositions );
 		glCreateBuffers( 1, &_vboColors );
-		glCreateBuffers( 1, &_ebo );
-		glCreateVertexArrays( 1, &_vao );
+		glCreateBuffers( 1, &_eboParticules );
+		glCreateVertexArrays( 1, &_vaoParticules );
+
+		// VAO
+		GLuint indexVBO_positions = 0;
+		GLuint indexVBO_colors = 1;
+
+		// liaison VAO avec VBO Points
+		glEnableVertexArrayAttrib( _vaoParticules, indexVBO_positions );
+		glVertexArrayAttribFormat( _vaoParticules,
+								   indexVBO_positions,
+								   3 /*car Vec3f*/,
+								   GL_FLOAT /*car Vec3f*/,
+								   GL_FALSE /*non normalis�*/,
+								   0 /*aucune sparation entre les elements*/ );
+
+		glVertexArrayVertexBuffer( _vaoParticules, indexVBO_positions, _vboPositions, 0 /*dbute 0*/, sizeof( Vec3f ) );
+		glVertexArrayAttribBinding( _vaoParticules, indexVBO_positions, indexVBO_positions );
+
+		// liaisin VAO avec VBO couleurs
+		glEnableVertexArrayAttrib( _vaoParticules, indexVBO_colors );
+		glVertexArrayAttribFormat( _vaoParticules,
+								   indexVBO_colors,
+								   3 /*car Vec3f*/,
+								   GL_FLOAT /*car Vec3f*/,
+								   GL_FALSE /*non normalis�*/,
+								   0 /*aucune sparation entre les lments*/ );
+		glVertexArrayVertexBuffer( _vaoParticules, indexVBO_colors, _vboColors, 0, sizeof( Vec3f ) );
+		// connexion avec le shader (layout(location = 0))
+		glVertexArrayAttribBinding( _vaoParticules, indexVBO_colors, indexVBO_colors );
+
+		// liaison VAO avec l'EBO
+		glVertexArrayElementBuffer( _vaoParticules, _eboParticules );
+
 	}
 
 	void DelaunayStructure::init_all( GLuint program, const std::vector<Particle *> & p_particules, int p_refresh_rate ) 
 	{
 		init_particules( p_particules, p_refresh_rate );
+		init_mesh();
 
 		init_structure();
 		update_rendering();
@@ -225,57 +305,24 @@ namespace SIM_PART
 
 	void DelaunayStructure::update_buffers()
 	{
-		// VBO Points
-		glNamedBufferData( _vboPoints,
+		/* PARTICULES */
+		glNamedBufferData( _vboPositions,
 						   _positions.size() * sizeof( Vec3f ),
 						   _positions.data(),
 						   GL_DYNAMIC_DRAW );	//attention!
 
-		// VBO couleurs
 		glNamedBufferData( _vboColors,
 						   _colors.size() * sizeof( Vec3f ),
 						   _colors.data(),
 						   GL_DYNAMIC_DRAW );
 
-		// EBO segments
-		glNamedBufferData( _ebo,
+		glNamedBufferData( _eboParticules,
 						   _indices.size() * sizeof( unsigned int ),
 						   _indices.data(),
 						   GL_DYNAMIC_DRAW );
 
-		// VAO
-		GLuint indexVBO_points = 0;
-		GLuint indexVBO_colors = 1;
-
-		// liaison VAO avec VBO Points
-		glEnableVertexArrayAttrib( _vao, indexVBO_points );
-		glVertexArrayAttribFormat( _vao,
-								   indexVBO_points,
-								   3 /*car Vec3f*/,
-								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE /*non normalis�*/,
-								   0 /*aucune sparation entre les elements*/ );
-
-		glVertexArrayVertexBuffer(
-			_vao, indexVBO_points, _vboPoints, 0 /*dbute 0*/, sizeof( Vec3f ) );
-		
-		glVertexArrayAttribBinding( _vao, 0, indexVBO_points );
-
-		// liaisin VAO avec VBO couleurs
-		glEnableVertexArrayAttrib( _vao, indexVBO_colors );
-		glVertexArrayAttribFormat( _vao,
-								   indexVBO_colors,
-								   3 /*car Vec3f*/,
-								   GL_FLOAT /*car Vec3f*/,
-								   GL_FALSE /*non normalis�*/,
-								   0 /*aucune sparation entre les lments*/ );
-		glVertexArrayVertexBuffer( _vao, indexVBO_colors, _vboColors, 0, sizeof( Vec3f ) );
-		// connexion avec le shader (layout(location = 0))
-		glVertexArrayAttribBinding( _vao, 1, indexVBO_colors );
-
-
-		// liaison VAO avec l'EBO
-		glVertexArrayElementBuffer( _vao, _ebo );
+		for ( int i = 0; i < _colors.size(); i++ )
+			_list_points[ i ]->set_color( _colors[ i ] );
 	}
 
 	void DelaunayStructure::update_all() 
@@ -414,7 +461,7 @@ namespace SIM_PART
 	{
 		if ( _edges_mode )	//draw edges
 		{
-			glBindVertexArray( _vao ); /*bind particules VAO with the program*/
+			glBindVertexArray( _vaoParticules ); /*bind particules VAO with the program*/
 			glProgramUniformMatrix4fv(
 				program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
 			glDrawElements( GL_LINES, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
@@ -423,15 +470,16 @@ namespace SIM_PART
 
 		if ( _point_mode )
 		{
-			glBindVertexArray( _vao ); /*bind particules VAO with the program*/
+			glBindVertexArray( _vaoParticules ); /*bind particules VAO with the program*/
 			glProgramUniformMatrix4fv( program, _uModelMatrixLoc, 1, GL_FALSE, glm::value_ptr( _transformation ) );
 			glDrawElements( GL_POINTS, _indices.size(), GL_UNSIGNED_INT, 0 ); /*launching pipeline*/
-			glBindVertexArray( 0 );											  /*debind VAO*/
+			glBindVertexArray( 0 );	 /*debind VAO*/
 		}
 		else	//print particles with sphere
 		{
+			
 			_list_points[ _active_particle ]->render( program );
-			if ( !_draw_all_edges )
+			 if ( !_draw_all_edges )
 			{
 				const std::vector<int> * attract_particules_active = _list_points[ _active_particle ]->get_point_attract();
 				for ( int i = 0; i < attract_particules_active->size(); i++ )
@@ -439,18 +487,22 @@ namespace SIM_PART
 			}
 			else
 			{
+				glEnable( GL_CULL_FACE );
+				glCullFace( GL_BACK );
+				glEnable( GL_DEPTH_TEST );
+				glDepthFunc( GL_LEQUAL );
 				for ( int i = 0; i < _list_points.size(); i++ )
 					_list_points[ i ]->render( program );
 			}
 		}
-		
+
 	}
 
 
 	void DelaunayStructure::coloration() 
 	{
 		for (int i = 0; i < _nbparticules; i++) {
-			_colors[ i ] = Vec3f( 0 );
+			_colors[ i ] = Vec3f( 0.5 );
 		}
 
 		std::vector<int> point_attract;
@@ -468,7 +520,7 @@ namespace SIM_PART
 					if ( _list_points[ i ]->is_fix() )
 						this->_colors[ i ] = Vec3f( 0, 1, 0 );
 					else
-						this->_colors[ i ] = Vec3f( 0 );
+						this->_colors[ i ] = Vec3f( 0.5 );
 				}
 				
 				break;
@@ -479,6 +531,10 @@ namespace SIM_PART
 			_indices.push_back( _active_particle );
 
 		this->_colors[ _active_particle ] = Vec3f( 0, 1, 1 );
+
+
+		for ( int i = 0; i < _list_points.size(); i++ )
+			_list_points[ i ]->set_color( _colors[ i ] );
 	}
 
 }
