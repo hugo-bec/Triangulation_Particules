@@ -55,7 +55,7 @@ namespace SIM_PART
 
 		// Init Delaunay Structure
 		_dstructure.set_verbose( DSTRUCTURE_VERBOSE ); // for printing all time execution 
-		_dstructure.set_attract_radius( ATTRACT_RADIUS );
+		//_dstructure.set_attract_radius( ATTRACT_RADIUS );
 		_dstructure.init_all( _program, _particules, TETRA_REFRESH_RATE );
 
 		//init camera

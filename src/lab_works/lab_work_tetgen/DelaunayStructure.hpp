@@ -49,8 +49,7 @@ namespace SIM_PART
 			_verbose = b;
 			_chrono.set_verbose( b );
 		}
-		inline void set_attract_radius( float r ) { _rayon_attract = r; }
-		inline void set_refresh_rate( int f ) { _refresh_frame = f; }
+
 		inline void set_draw_all_edges( bool b ) { _draw_all_edges = b; }
 		inline void set_point_mode( bool b ) { _point_mode = b; }
 		inline void set_edges_mode( bool b ) { _edges_mode = b; }
@@ -63,7 +62,10 @@ namespace SIM_PART
 				_mode_type = 0;
 		}
 
-		inline void set_active_particle( int i ) { _active_particle = i < 0 ? _nbparticules - (i*(-1))%_nbparticules : i % _nbparticules; }
+		inline void set_active_particle( int i )
+		{
+			_active_particle = i < 0 ? NB_PARTICULES - ( i * ( -1 ) ) % NB_PARTICULES : i % NB_PARTICULES;
+		}
 
 		/* --- INITIALIZATION FUNCTIONS --- */ 
 		void init_particules( const std::vector<Particle *> & p_particules, int p_refresh_rate );
@@ -93,9 +95,9 @@ namespace SIM_PART
 		 * ----------------------------------------------------------------------- */
 
 		// ================ Geometric data.
-		Vec3f _dimCage;
-		int	  _nbparticules;
-		float _rayon_attract;
+		//Vec3f _dimCage;
+		//int	  _nbparticules;
+		//float _rayon_attract;
 		int	  nb_non_fix	 = NB_PARTICULES - NB_INIT_FIXED_POINTS;
 		std::vector<int> _traveled_point;
 		int				 _refresh_frame;

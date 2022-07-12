@@ -15,15 +15,15 @@ namespace SIM_PART
 
 	void DelaunayStructure::init_particules( const std::vector<Particle* > & p_particules, int p_refresh_rate )
 	{
-		_nbparticules = p_particules.size();
+		//_nbparticules = p_particules.size();
 		_list_points  = p_particules;
-		std::cout << "Number of particles: " << _nbparticules << std::endl;
+		std::cout << "Number of particles: " << NB_PARTICULES << std::endl;
 
 		_tetgen_mesh.initialize();
-		_tetgen_mesh.numberofpoints = _nbparticules;
+		_tetgen_mesh.numberofpoints = NB_PARTICULES;
 		_tetgen_mesh.pointlist		= new REAL[ _tetgen_mesh.numberofpoints * 3 ];
 
-		for ( int i = 0; i < _nbparticules; i++ )
+		for ( int i = 0; i < NB_PARTICULES; i++ )
 		{
 			const float * coord_p = _list_points[ i ]->get_coord();
 			_positions.push_back( Vec3f( coord_p[ 0 ], coord_p[ 1 ], coord_p[ 2 ] ) );
@@ -160,7 +160,7 @@ namespace SIM_PART
 
 	void DelaunayStructure::tetrahedralize_particules( char * tetgen_parameters )
 	{
-		_tetgen_mesh.numberofpoints = _nbparticules;
+		_tetgen_mesh.numberofpoints = NB_PARTICULES;
 		_tetgen_mesh.pointlist		= _tetgen_mesh.pointlist;
 		std::cout << "TETGEN: Tetrahedralization..." << std::endl;
 		
@@ -385,11 +385,16 @@ namespace SIM_PART
 			{
 				#pragma omp parallel
 				{
-					std::vector<int> private_traveled_points( _nbparticules, -1 );
+					std::vector<int> private_traveled_points( NB_PARTICULES, -1 );
 					#pragma omp for
 					for ( int j = 0; j < _list_points.size(); j++ )
 						//_list_points[ j ]->compute_attract_by_double_radius(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame ); 
-						_list_points[ j ]->compute_attract_by_flooding(_rayon_attract, _list_points, private_traveled_points, _iteration, _refresh_frame, _degre_voisinage );
+						_list_points[ j ]->compute_attract_by_flooding( ATTRACT_RADIUS,
+																		_list_points,
+																		private_traveled_points,
+																		_iteration,
+																		_refresh_frame,
+																		_degre_voisinage );
 					
 				}
 				_chrono.stop_and_print( "time compute attract point with double radius parallelisable: " );
@@ -398,7 +403,7 @@ namespace SIM_PART
 						  << std::endl;
 				
 				_list_points[ 0 ]->compute_point_attract_parallelisable_brut(
-					_rayon_attract, _list_points, TETRA_REFRESH_RATE );
+					ATTRACT_RADIUS, _list_points, TETRA_REFRESH_RATE );
 
 				if ( _iteration%2==0)
 					_degre_voisinage++;
@@ -419,7 +424,7 @@ namespace SIM_PART
 				{
 					for ( int j = 0; j < _list_points.size(); j++ )
 						_list_points[ j ]->compute_diffusion_limited_aggregation(
-							_rayon_attract, _list_points, nb_non_fix, _iteration );
+							ATTRACT_RADIUS, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
 
 					nb_non_fix = 0;
 					for ( int j = 0; j < _list_points.size(); j++ )
@@ -462,20 +467,22 @@ namespace SIM_PART
 
 		#pragma omp parallel
 		{
-			std::vector<int> traveled_points( _nbparticules, -1 );
+			std::vector<int> traveled_points( NB_PARTICULES, -1 );
 			int list_points_size = _list_points.size();
 			#pragma omp for
 			for ( int i = 0; i < list_points_size; i++ )
 			{
 				//_list_points[ i ]->compute_point_attract_parallelisable( _rayon_attract, _list_points, TETRA_REFRESH_RATE /*, traveled_points */ );
 				//_list_points[ i ]->compute_point_attract_parallelisable_without_double_radius(_rayon_attract, _list_points, traveled_points );
-				_list_points[ i ]->compute_point_attract_parallelisable_double_radius(_rayon_attract, _list_points, traveled_points, TETRA_REFRESH_RATE );
+				_list_points[ i ]->compute_point_attract_parallelisable_double_radius(
+					ATTRACT_RADIUS, _list_points, traveled_points, TETRA_REFRESH_RATE );
 				//if ( _verbose && i % 1000 == 0 )
 					//std::cout << "compute attract points: " << i + 1000 << " / " << _nbparticules << "\r";
 			}
 		}
 		std::cout << "nb point attract double rayon " << _list_points[ 0 ]->get_point_attract()->size() << std::endl;
-		_list_points[ 0 ]->compute_point_attract_parallelisable_brut( _rayon_attract, _list_points, TETRA_REFRESH_RATE );
+		_list_points[ 0 ]->compute_point_attract_parallelisable_brut(
+			ATTRACT_RADIUS, _list_points, TETRA_REFRESH_RATE );
 		
 		std::cout << std::endl;
 		
@@ -524,10 +531,31 @@ namespace SIM_PART
 
 	void DelaunayStructure::coloration() 
 	{
-		for ( int i = 0; i < _nbparticules; i++ )
+		for (int i = 0; i < NB_PARTICULES; i++) {
+			_colors[ i ] = Vec3f( 0.5 );
+		}
+
+		std::vector<int> point_attract;
+		switch ( _mode_type )
 		{
-			_list_points[ i ]->compute_coloration( _mode_type );
-			_colors[ i ] = _list_points[ i ]->get_color();
+			case 0: 
+				point_attract = ( *_list_points[ _active_particle ]->get_point_attract() );
+				for ( int i = 0; i < point_attract.size(); i++ )
+					this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
+				break;
+
+			case 1: 
+				for ( int i = 0; i < NB_PARTICULES; i++ )
+				{
+					if ( _list_points[ i ]->is_fix() )
+						this->_colors[ i ] = Vec3f( 0, 1, 0 );
+					else
+						this->_colors[ i ] = Vec3f( 0.5 );
+				}
+				
+				break;
+			
+			default: break;
 		}
 
 		//for ( int i = 0; i < _list_points.size(); i++ )
