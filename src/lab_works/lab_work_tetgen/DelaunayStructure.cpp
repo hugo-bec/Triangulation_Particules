@@ -238,7 +238,7 @@ namespace SIM_PART
 		std::vector<int> tp;
 		_filtered_points.clear();
 
-		for ( int i = 0; i < _nbparticules; i++ )
+		for ( int i = 0; i < NB_PARTICULES; i++ )
 			_list_points[ i ]->set_attract( false );
 
 		if ( !_draw_all_edges )
@@ -267,7 +267,7 @@ namespace SIM_PART
 			}
 			else if ( _mode_type == 1 )
 			{
-				for ( int i = 0; i < _nbparticules; i++ )
+				for ( int i = 0; i < NB_PARTICULES; i++ )
 					if ( _list_points[ i ]->is_fix() )
 						_filtered_points.emplace_back( i );
 
@@ -424,7 +424,7 @@ namespace SIM_PART
 				{
 					for ( int j = 0; j < _list_points.size(); j++ )
 						_list_points[ j ]->compute_diffusion_limited_aggregation(
-							ATTRACT_RADIUS, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
+							ATTRACT_RADIUS, _list_points, nb_non_fix, _iteration );
 
 					nb_non_fix = 0;
 					for ( int j = 0; j < _list_points.size(); j++ )
@@ -531,35 +531,11 @@ namespace SIM_PART
 
 	void DelaunayStructure::coloration() 
 	{
-		for (int i = 0; i < NB_PARTICULES; i++) {
-			_colors[ i ] = Vec3f( 0.5 );
-		}
-
-		std::vector<int> point_attract;
-		switch ( _mode_type )
+		for ( int i = 0; i < NB_PARTICULES; i++ )
 		{
-			case 0: 
-				point_attract = ( *_list_points[ _active_particle ]->get_point_attract() );
-				for ( int i = 0; i < point_attract.size(); i++ )
-					this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
-				break;
-
-			case 1: 
-				for ( int i = 0; i < NB_PARTICULES; i++ )
-				{
-					if ( _list_points[ i ]->is_fix() )
-						this->_colors[ i ] = Vec3f( 0, 1, 0 );
-					else
-						this->_colors[ i ] = Vec3f( 0.5 );
-				}
-				
-				break;
-			
-			default: break;
+			_list_points[ i ]->compute_coloration( _mode_type );
+			_colors[ i ] = _list_points[ i ]->get_color();
 		}
-
-		//for ( int i = 0; i < _list_points.size(); i++ )
-			//_list_points[ i ]->set_color( _colors[ i ] );
 
 	}
 
