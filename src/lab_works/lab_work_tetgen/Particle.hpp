@@ -64,8 +64,6 @@ namespace SIM_PART
 
 		bool is_attract( Particle * p, float attract_distance ) const;
 
-		void compute_neighbours( std::vector<Tetrahedron *> tetra_list );
-
 
 		void compute_point_attract_parallelisable_brut( float							r,
 														const std::vector<Particle *> & point_list,
@@ -75,7 +73,10 @@ namespace SIM_PART
 																		  const std::vector<Particle *> & pointList,
 																		  std::vector<int> &			  traveled_point );
 
-		
+		void compute_point_attract_parallelisable_double_radius( float							 r,
+																 const std::vector<Particle *> & pointList,
+																 std::vector<int> &				 traveled_point,
+																 int							 refresh_mesh );
 		//=============Trouver points attracts sans refaire les tetrahedres============
 		
 
@@ -94,10 +95,7 @@ namespace SIM_PART
 		                                  int                             degre_voisinage );
 
 		
-		void compute_point_attract_parallelisable_double_radius( float							 r,
-																 const std::vector<Particle *> & pointList,
-																 std::vector<int> &				 traveled_point,
-																 int							 refresh_mesh );
+		
 
 		void compute_diffusion_limited_aggregation( float							rayon,
 													const std::vector<Particle *> & pointList,

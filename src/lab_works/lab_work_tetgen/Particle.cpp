@@ -51,36 +51,7 @@ namespace SIM_PART
 		_neighbours.erase( last,_neighbours.end() );
 	}
 
-	void Particle::compute_neighbours( std::vector<Tetrahedron *> tetra_list )
-	{
-		bool belongs = false;
-		Tetrahedron * tetrahedron;
 
-		for ( int i = 0; i < (int)_tetras.size(); i++ )
-		{
-			tetrahedron = tetra_list[ _tetras[ i ] ];
-			for ( int j = 0; j < 4; j++ )
-			{
-				belongs = false;
-				const std::vector<int> * tetra_points = tetrahedron->get_points();
-				if ( _id != (*tetra_points)[ j ] )
-				{
-					for ( int k = 0; k < (int)_neighbours.size(); k++ )
-					{
-						if ( this->_neighbours[ k ] == (*tetra_points)[ j ] )
-						{
-							belongs = true;
-							break;
-						}
-					}
-
-					if ( !belongs )
-						_neighbours.emplace_back( (*tetra_points)[ j ] );
-				}
-			}
-		}
-	}
-	
 	void Particle::compute_point_attract_parallelisable_brut( float						   r,
 														 const std::vector<Particle *> & point_list,
 														 int							 refresh_mesh)
