@@ -21,10 +21,17 @@ void main()
 	aVertexPositionOut = vec3( uViewMatrix * uModelMatrix * vec4(aVertexPosition, 1.f) );
 
 	//compute normal view space
-	vec3 vertexAddNormal = aVertexPosition + aVertexNormal;
-	vec3 aVertexAddNormalOut = vec3( uViewMatrix * uModelMatrix * vec4(vertexAddNormal, 1.f) );
-	aVertexNormalOut = aVertexAddNormalOut - aVertexPositionOut;
+	if ( aVertexNormal.x != 0 || aVertexNormal.y != 0 || aVertexNormal.z != 0 )
+	{
+		vec3 vertexAddNormal = aVertexPosition + aVertexNormal;
+		vec3 aVertexAddNormalOut = vec3( uViewMatrix * uModelMatrix * vec4(vertexAddNormal, 1.f) );
+		aVertexNormalOut = aVertexAddNormalOut - aVertexPositionOut;
+	} else {
+		aVertexNormalOut = vec3(0,0,1);
+	}
 
+	
+		
 
 	gl_Position = uProjectionMatrix * uViewMatrix * uModelMatrix * vec4( aVertexPosition , 1.f );
 

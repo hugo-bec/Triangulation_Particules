@@ -101,6 +101,7 @@ namespace SIM_PART
 		int	  nb_non_fix	 = NB_PARTICULES - NB_INIT_FIXED_POINTS;
 		std::vector<int> _traveled_point;
 		int				 _refresh_frame;
+		std::vector<int> _filtered_points;
 
 		std::vector<Particle *>		_list_points;
 		std::vector<Tetrahedron *>	_list_tetras;
