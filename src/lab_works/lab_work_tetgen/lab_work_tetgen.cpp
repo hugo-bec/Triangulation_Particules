@@ -50,7 +50,7 @@ namespace SIM_PART
 		s1.load_multiple_model( "sphere", "data/model/icosphere2.obj", tmm_container, NB_PARTICULES );
 		create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES, tmm_container );
 		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
-			_particules[ i ]->set_fix( true );
+			_particules[ i ]->set_fix( 0 );
 
 
 		// Init Delaunay Structure

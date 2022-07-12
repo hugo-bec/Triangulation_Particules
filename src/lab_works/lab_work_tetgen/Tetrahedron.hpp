@@ -20,9 +20,10 @@ namespace SIM_PART
 		}
 		~Tetrahedron() {}
 
-		const std::vector<int>* get_points();
+		const std::vector<int> & get_points();
 		int						get_id();
 		void					print_points( std::vector<Particle *> list_points );
+		bool					is_fix( std::vector<Particle *> list_points );
 
 	  private:
 		int				 id;

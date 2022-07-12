@@ -187,8 +187,7 @@ namespace SIM_PART
 		if ( _verbose ) std::cout << "Adding neighbours from tetrahedrization..." << std::endl;
 		for ( int j = 0; j < _list_tetras.size(); j++ )
 		{
-			const std::vector<int> * plp = _list_tetras[ j ]->get_points();
-			const std::vector<int> & lp	 = *plp;
+			const std::vector<int> & lp = _list_tetras[ j ]->get_points();
 			_list_points[ lp[ 0 ] ]->add_tetrahedron( _list_tetras[ j ] );
 			_list_points[ lp[ 1 ] ]->add_tetrahedron( _list_tetras[ j ] );
 			_list_points[ lp[ 2 ] ]->add_tetrahedron( _list_tetras[ j ] );
@@ -236,53 +235,72 @@ namespace SIM_PART
 		// edges
 		//std::cout << "_draw_all_edges: " << _draw_all_edges << ", _active_particle: " << _active_particle << std::endl;
 		std::vector<int> edges, tmp;
-		const std::vector<int> *tp;
+		std::vector<int> tp;
+		_filtered_points.clear();
+
+		for ( int i = 0; i < _nbparticules; i++ )
+			_list_points[ i ]->set_attract( false );
 
 		if ( !_draw_all_edges )
 		{
+			std::vector<int> tetra_filtered_points, list_tetra_tmp;
 			if ( _mode_type == 0 )
+			{
 				_filtered_points = ( *_list_points[ _active_particle ]->get_point_attract() );
+				for ( int i = 0; i < _filtered_points.size(); i++ )
+				{
+					_list_points[ _filtered_points[ i ] ]->set_attract( true );
+					list_tetra_tmp = ( *_list_points[ _filtered_points[ i ] ]->get_tetrahedron() );
+					tetra_filtered_points.insert(
+						tetra_filtered_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
+				}
+
+				this->_indices.clear();
+				for ( int i = 0; i < (int)tetra_filtered_points.size(); i++ )
+				{
+					tp = _list_tetras[ tetra_filtered_points[ i ] ]->get_points();
+					tmp.clear();
+					tmp = { tp[ 0 ], tp[ 1 ], tp[ 0 ], tp[ 2 ], tp[ 0 ], tp[ 3 ],
+							tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
+					_indices.insert( _indices.end(), tmp.begin(), tmp.end() );
+				}
+			}
 			else if ( _mode_type == 1 )
+			{
 				for ( int i = 0; i < _nbparticules; i++ )
 					if ( _list_points[ i ]->is_fix() )
 						_filtered_points.emplace_back( i );
 
-			std::vector<int> tetra_filtered_points, list_tetra_tmp;
-			// std::cout << "nb tetra of point 0: " << _list_points[ 0 ]->get_tetrahedron()->size() << std::endl;
+				for ( int i = 0; i < _filtered_points.size(); i++ )
+				{
+					list_tetra_tmp = ( *_list_points[ _filtered_points[ i ] ]->get_tetrahedron() );
+					tetra_filtered_points.insert(
+						tetra_filtered_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
+				}
 
-			for ( int i = 0; i < _filtered_points.size(); i++ )
-			{
-				list_tetra_tmp = ( *_list_points[ _filtered_points[ i ] ]->get_tetrahedron() );
-				tetra_filtered_points.insert(
-					tetra_filtered_points.end(), list_tetra_tmp.begin(), list_tetra_tmp.end() );
+				this->_indices.clear();
+				for ( int i = 0; i < (int)tetra_filtered_points.size(); i++ )
+				{
+					tp = _list_tetras[ tetra_filtered_points[ i ] ]->get_points();
+					tmp.clear();
+					tmp = { tp[ 0 ], tp[ 1 ], tp[ 0 ], tp[ 2 ], tp[ 0 ], tp[ 3 ],
+							tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
+					_indices.insert( _indices.end(), tmp.begin(), tmp.end() );
+				}
+				
 			}
-
-			sort( tetra_filtered_points.begin(), tetra_filtered_points.end() );
-			auto last = std::unique( tetra_filtered_points.begin(), tetra_filtered_points.end() );
-			tetra_filtered_points.erase( last, tetra_filtered_points.end() );
-
-			for ( int i = 0; i < (int)tetra_filtered_points.size(); i++ )
-			{
-				tp = _list_tetras[ tetra_filtered_points[ i ] ]->get_points();
-				tmp.clear();
-				tmp = { tp->at( 0 ), tp->at( 1 ), tp->at( 0 ), tp->at( 2 ), tp->at( 0 ), tp->at( 3 ),
-						tp->at( 1 ), tp->at( 2 ), tp->at( 1 ), tp->at( 3 ), tp->at( 2 ), tp->at( 3 ) };
-				edges.insert( edges.end(), tmp.begin(), tmp.end() );
-			}
-			this->_indices.clear();
-			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 		}
 		else 
 		{
+			this->_indices.clear();
 			for ( int i = 0; i < (int)_list_tetras.size(); i++ )
 			{
 				tp	= _list_tetras[ i ]->get_points();
-				tmp = { tp->at( 0 ), tp->at( 1 ), tp->at( 0 ), tp->at( 2 ), tp->at( 0 ), tp->at( 3 ),
-						tp->at( 1 ), tp->at( 2 ), tp->at( 1 ), tp->at( 3 ), tp->at( 2 ), tp->at( 3 ) };
-				edges.insert( edges.end(), tmp.begin(), tmp.end() );
+				tmp = { tp[ 0 ], tp[ 1 ], tp[ 0 ], tp[ 2 ],	tp[ 0 ], tp[ 3 ],
+						tp[ 1 ], tp[ 2 ], tp[ 1 ], tp[ 3 ], tp[ 2 ], tp[ 3 ] };
+				_indices.insert( _indices.end(), tmp.begin(), tmp.end() );
 			}
-			this->_indices.clear();
-			this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
+			//this->_indices.insert( this->_indices.end(), edges.begin(), edges.end() );
 		}
 		//std::cout << "indices size: " << _indices.size() << std::endl;
 	
@@ -326,8 +344,10 @@ namespace SIM_PART
 						   _indices.data(),
 						   GL_DYNAMIC_DRAW );
 
-		for ( int i = 0; i < _colors.size(); i++ )
-			_list_points[ i ]->set_color( _colors[ i ] );
+		if ( !_point_mode )
+			for ( int i = 0; i < NB_PARTICULES; i++ )
+				_list_points[ i ]->update_mesh();
+
 	}
 
 	void DelaunayStructure::update_all() 
@@ -399,7 +419,7 @@ namespace SIM_PART
 				{
 					for ( int j = 0; j < _list_points.size(); j++ )
 						_list_points[ j ]->compute_diffusion_limited_aggregation(
-							_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame, nb_non_fix );
+							_rayon_attract, _list_points, nb_non_fix, _iteration );
 
 					nb_non_fix = 0;
 					for ( int j = 0; j < _list_points.size(); j++ )
@@ -418,7 +438,6 @@ namespace SIM_PART
 
 			//_chrono.stop_and_print( "time compute attract point with double radius: " );
 			_iteration++;
-
 		}
 
 		_chrono.set_verbose( _play_mode && _verbose );
@@ -505,40 +524,15 @@ namespace SIM_PART
 
 	void DelaunayStructure::coloration() 
 	{
-		for (int i = 0; i < _nbparticules; i++) {
-			_colors[ i ] = Vec3f( 0.5 );
-		}
-
-		std::vector<int> point_attract;
-		switch ( _mode_type )
+		for ( int i = 0; i < _nbparticules; i++ )
 		{
-			case 0: 
-				point_attract = ( *_list_points[ _active_particle ]->get_point_attract() );
-				for ( int i = 0; i < point_attract.size(); i++ )
-					this->_colors[ point_attract[ i ] ] = Vec3f( 1, 0, 0 );
-				break;
-
-			case 1: 
-				for ( int i = 0; i < _nbparticules; i++ )
-				{
-					if ( _list_points[ i ]->is_fix() )
-						this->_colors[ i ] = Vec3f( 0, 1, 0 );
-					else
-						this->_colors[ i ] = Vec3f( 0.5 );
-				}
-				
-				break;
-			
-			default: break;
+			_list_points[ i ]->compute_coloration( _mode_type );
+			_colors[ i ] = _list_points[ i ]->get_color();
 		}
-		if ( _list_points[ _active_particle ]->get_point_attract()->empty() )
-			_indices.push_back( _active_particle );
 
-		this->_colors[ _active_particle ] = Vec3f( 0, 1, 1 );
+		//for ( int i = 0; i < _list_points.size(); i++ )
+			//_list_points[ i ]->set_color( _colors[ i ] );
 
-
-		for ( int i = 0; i < _list_points.size(); i++ )
-			_list_points[ i ]->set_color( _colors[ i ] );
 	}
 
 }

@@ -41,6 +41,7 @@ namespace SIM_PART
 		const std::vector<int> * get_tetrahedron() const { return &_tetras; }
 		const std::vector<int> * get_point_attract() const { return &_particules_attract; }
 		const std::vector<int> * get_neighbours() const { return &_neighbours; }
+		const Vec3f 			 get_color() const { return _color; }
 		bool                     is_fix() const { return _fix; }
 
 		void add_point( Particle * p ) { _particules_attract.emplace_back( p->get_id() ); }
@@ -51,15 +52,20 @@ namespace SIM_PART
 
 		void clear_tetrahedron() { _tetras.clear(); }
 
-		void set_fix( const bool b ) { _fix = b; }
+		void set_fix( const int p_nb_frame ) {
+			if (!_fix) {_fix = true; _nb_frame_free = p_nb_frame;}
+		}
+		void set_attract( const bool b ) { _attract = b; }
 		void set_speed( const float s ) { _speed = s; }
 		void set_coord( float px, float py, float pz );
 		void set_coord_mesh( float px, float py, float pz );
-		void set_color( Vec3f color ) { _model.setColor( color ); }
+		void set_color( Vec3f color ) { _color = color; }
 
 		void printCoord() const { printf( "(x: %lf, y: %lf, z: %lf\n)", _coord[ 0 ], _coord[ 1 ], _coord[ 2 ] ); };
 		void tri_voisin();
-		
+
+		void compute_coloration( int mode_type );
+		void update_mesh() { _model.setColor( _color ); }
 		void render( GLuint program ) { _model.render( program ); }
 
 		bool is_attract( Particle * p, float attract_distance ) const;
@@ -101,10 +107,8 @@ namespace SIM_PART
 
 		void compute_diffusion_limited_aggregation( float							rayon,
 													const std::vector<Particle *> & pointList,
-													std::vector<int> &				traveled_point,
-													int								iteration,
-													int								refresh_frame,
-													int								nb_non_fix );
+													int								nb_non_fix,
+													int								time_frame );
 
 
 		
@@ -122,6 +126,7 @@ namespace SIM_PART
 		int	  _id;
 		float _coord[ 3 ];
 		float _speed = SPEED_PARTICULES;
+		Vec3f			  _color = Vec3f(0);
 		TriangleMeshModel _model;
 
 		std::vector<int> _tetras;
@@ -129,8 +134,9 @@ namespace SIM_PART
 		std::vector<int> _neighbours;
 		std::vector<int> _possible_futur_attract;
 
-		//Diffusion Limited Aggregation
 		bool	_fix = false;
+		bool	_attract = false;
+		int		_nb_frame_free = 0;
 		
 	};
 } // namespace tetrasearch

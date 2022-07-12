@@ -2,7 +2,7 @@
 
 namespace SIM_PART
 {
-	const std::vector<int>* Tetrahedron::get_points() { return &points; }
+	const std::vector<int> & Tetrahedron::get_points() { return points; }
 
 	int Tetrahedron::get_id() { return id; }
 
@@ -19,4 +19,11 @@ namespace SIM_PART
 						coord[ 2 ] );
 		}
 	}
+
+	bool Tetrahedron::is_fix( std::vector<Particle *> list_points ) 
+	{
+		return list_points[ points[ 0 ] ]->is_fix() || list_points[ points[ 1 ] ]->is_fix()
+			   || list_points[ points[ 2 ] ]->is_fix() || list_points[ points[ 3 ] ]->is_fix();
+	}
+
 } // namespace tetrasearch

@@ -9,7 +9,7 @@ namespace SIM_PART
 	int	  TETRA_REFRESH_RATE	= 5;
 
 	Vec3f CAGE_DIM				= Vec3f( 10 );
-	int	 NB_INIT_FIXED_POINTS	= 50;
+	int	 NB_INIT_FIXED_POINTS	= 1;
 
 	bool DSTRUCTURE_VERBOSE = true;
 }

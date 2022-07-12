@@ -42,7 +42,41 @@ namespace SIM_PART
 		return ( dx * dx + dy * dy + dz * dz <= attract_distance * attract_distance);
 	}
 
+	void Particle::compute_coloration( int mode_type )
+	{
+		switch(mode_type)
+		{
+		case 0:
+			if (_attract) set_color( Vec3f(1,0,0) );
+			else set_color( Vec3f(0.5) );
+			break;
+		case 1:
+			if ( _fix )
+			{
+				float lf = _nb_frame_free%1000 / 1000.f;
+				float r, g, b;
 
+				float lf_case = lf * 6;
+				int	  lf_case_int = int( lf_case );
+				float lf_case_reste = lf_case - lf_case_int;
+
+				switch (int(lf_case))
+				{
+				case 0: r = 1; g = lf_case_reste; b = 0; break;
+				case 1: r = 1-lf_case_reste; g = 1; b = 0; break;
+				case 2: r = 0; g = 1; b = lf_case_reste; break;
+				case 3: r = 0; g = 1-lf_case_reste; b = 1; break;
+				case 4: r = lf_case_reste; g = 0; b = 1; break;
+				case 5: r = 1; g = 0; b = 1-lf_case_reste; break;
+				}
+
+				set_color( Vec3f( r, g, b ) );
+				//set_color( Vec3f(0, 1, 0) );
+			}
+			else set_color( Vec3f(0.5) );
+			break;
+		}
+	}
 	
 	void Particle::tri_voisin()
 	{
@@ -62,12 +96,12 @@ namespace SIM_PART
 			for ( int j = 0; j < 4; j++ )
 			{
 				belongs = false;
-				const std::vector<int> * tetra_points = tetrahedron->get_points();
-				if ( _id != (*tetra_points)[ j ] )
+				const std::vector<int> & tetra_points = tetrahedron->get_points();
+				if ( _id != tetra_points[ j ] )
 				{
 					for ( int k = 0; k < (int)_neighbours.size(); k++ )
 					{
-						if ( this->_neighbours[ k ] == (*tetra_points)[ j ] )
+						if ( this->_neighbours[ k ] == tetra_points[ j ] )
 						{
 							belongs = true;
 							break;
@@ -75,7 +109,7 @@ namespace SIM_PART
 					}
 
 					if ( !belongs )
-						_neighbours.emplace_back( (*tetra_points)[ j ] );
+						_neighbours.emplace_back( tetra_points[ j ] );
 				}
 			}
 		}
@@ -267,11 +301,9 @@ namespace SIM_PART
 	
 
 	void Particle::compute_diffusion_limited_aggregation( const float				   rayon, 
-												  const std::vector<Particle *> & pointList,
-												  std::vector<int>	   &traveled_point,
-												  int				   iteration,
-												  int				   refresh_frame,
-												  int				   nb_non_fix )
+														  const std::vector<Particle *> & pointList,
+														  int					nb_non_fix,
+														  int					time_frame)
 	{
 		if ( ( nb_non_fix <= pointList.size() / 2 && !_fix ) || ( nb_non_fix > pointList.size() / 2 && _fix ) )
 		{
@@ -287,7 +319,7 @@ namespace SIM_PART
 					if ( _fix || p->is_fix() )
 					{
 						_fix = true;
-						p->set_fix( true );
+						p->set_fix( time_frame );
 					}
 				}
 			}
