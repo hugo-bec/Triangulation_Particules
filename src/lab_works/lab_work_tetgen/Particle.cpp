@@ -172,12 +172,13 @@ namespace SIM_PART
 			if ( is_attract( p, radius_futur ) )
 			{
 				i++;
-				for ( int j = 0; j < p->get_neighbours()->size(); j++ )
+				const std::vector<int>* p_neighbours = p->get_neighbours();
+				for ( int j = 0; j < p_neighbours->size(); j++ )
 				{
-					if ( traveled_point[ ( *p->get_neighbours() )[ j ] ] != _id )
+					if ( traveled_point[ ( *p_neighbours )[ j ] ] != _id )
 					{
-						_possible_futur_attract.emplace_back( ( *p->get_neighbours() )[ j ] );
-						traveled_point[ ( *p->get_neighbours() )[ j ] ] = _id;
+						_possible_futur_attract.emplace_back( ( *p_neighbours )[ j ] );
+						traveled_point[ ( *p_neighbours )[ j ] ] = _id;
 					}
 				}
 
@@ -287,11 +288,10 @@ namespace SIM_PART
 				if ( this->is_attract( p, rayon ) )
 				{
 					this->_particules_attract.push_back( p->_id );
-					if ( _fix || p->is_fix() )
-					{
-						_fix = true;
+					if ( _fix )
 						p->set_fix( time_frame );
-					}
+					else if ( p->is_fix() )
+						set_fix( time_frame );
 				}
 			}
 
