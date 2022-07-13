@@ -388,13 +388,8 @@ namespace SIM_PART
 					std::vector<int> private_traveled_points( NB_PARTICULES, -1 );
 					#pragma omp for
 					for ( int j = 0; j < _list_points.size(); j++ )
-						//_list_points[ j ]->compute_attract_by_double_radius(_rayon_attract, _list_points, _traveled_point, _iteration, _refresh_frame ); 
-						_list_points[ j ]->compute_attract_by_flooding( ATTRACT_RADIUS,
-																		_list_points,
-																		private_traveled_points,
-																		_iteration,
-																		_refresh_frame,
-																		_degre_voisinage );
+						_list_points[ j ]->compute_attract_by_double_radius( ATTRACT_RADIUS, _list_points, _traveled_point, _iteration, _refresh_frame ); 
+						//_list_points[ j ]->compute_attract_by_flooding( ATTRACT_RADIUS,_list_points,private_traveled_points,_iteration,_refresh_frame,_degre_voisinage );
 					
 				}
 				_chrono.stop_and_print( "time compute attract point with double radius parallelisable: " );
@@ -472,8 +467,7 @@ namespace SIM_PART
 			#pragma omp for
 			for ( int i = 0; i < list_points_size; i++ )
 			{
-				//_list_points[ i ]->compute_point_attract_parallelisable( _rayon_attract, _list_points, TETRA_REFRESH_RATE /*, traveled_points */ );
-				//_list_points[ i ]->compute_point_attract_parallelisable_without_double_radius(_rayon_attract, _list_points, traveled_points );
+				//_list_points[ i ]->compute_point_attract_parallelisable_without_double_radius(ATTRACT_RADIUS, _list_points, traveled_points );
 				_list_points[ i ]->compute_point_attract_parallelisable_double_radius(
 					ATTRACT_RADIUS, _list_points, traveled_points, TETRA_REFRESH_RATE );
 				//if ( _verbose && i % 1000 == 0 )

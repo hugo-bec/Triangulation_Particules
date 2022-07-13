@@ -119,7 +119,12 @@ namespace SIM_PART
 	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size, float speed,
 											std::vector<TriangleMeshModel * > & tmm_container) 
 	{
-		for (int i=0; i<nb; i++)
+		_particules.push_back( new Particle( 0,
+											 5.f, 3.f, 5.f,
+											 *tmm_container[ 0 ],
+											 size,
+											 speed ) );
+		for (int i=1; i<nb; i++)
 			_particules.push_back( new Particle(
 				i,	getRandomFloat() * cage_dim.x, 
 					getRandomFloat() * cage_dim.y, 
