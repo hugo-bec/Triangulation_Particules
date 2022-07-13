@@ -288,11 +288,10 @@ namespace SIM_PART
 				if ( this->is_attract( p, rayon ) )
 				{
 					this->_particules_attract.push_back( p->_id );
-					if ( _fix || p->is_fix() )
-					{
-						_fix = true;
+					if ( _fix )
 						p->set_fix( time_frame );
-					}
+					else if ( p->is_fix() )
+						set_fix( time_frame );
 				}
 			}
 
