@@ -53,7 +53,7 @@ namespace SIM_PART
 		case 1:
 			if ( _fix )
 			{
-				float lf = _nb_frame_free%1000 / 1000.f;
+				float lf = _nb_frame_free%2000 / 2000.f;
 				float r, g, b;
 
 				float lf_case = lf * 6;
