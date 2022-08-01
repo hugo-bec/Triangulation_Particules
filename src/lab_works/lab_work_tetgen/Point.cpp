@@ -29,14 +29,9 @@ namespace SIM_PART
 	{
 		_model._transformation = MAT4F_ID;
 
-		_model._transformation[ 3 ][ 0 ] = 0;
-		_model._transformation[ 3 ][ 1 ] = 0;
-		_model._transformation[ 3 ][ 2 ] = 0;
-
 		_model._transformation
 			= glm::translate( _model._transformation, Vec3f( _coord[ 0 ], _coord[ 1 ], _coord[ 2 ] ) );
 		_model._transformation = glm::scale( _model._transformation, _model_scale );
-		
 	}
 
 	bool Point::is_attract( Point * p, float attract_distance ) const
@@ -325,7 +320,6 @@ namespace SIM_PART
 						n2.push_back( (*tmp)[ j ] );
 						traveled_point[ (*tmp)[ j ] ] = _id;
 					}	
-
 				}
 			}
 

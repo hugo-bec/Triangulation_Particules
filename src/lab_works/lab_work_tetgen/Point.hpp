@@ -83,8 +83,8 @@ namespace SIM_PART
 																 const std::vector<Point *> & pointList,
 																 std::vector<int> &				 traveled_point,
 																 int							 refresh_mesh );
-		//=============Trouver points attracts sans refaire les tetrahedres============
-		
+
+		//=============Find attract points without recomputing tetrahedralisation ============
 
 		void compute_attract_by_double_radius(	const float						rayon,
 																const std::vector<Point *> & point_list,
@@ -123,7 +123,7 @@ namespace SIM_PART
 	  protected:
 		int	  _id;
 		float _coord[ 3 ];
-		float _speed = SPEED_PARTICULES;
+		float _speed = SPEED_POINTS;
 		Vec3f			  _color = Vec3f(0);
 
 		TriangleMeshModel _model;
@@ -138,7 +138,6 @@ namespace SIM_PART
 		bool	_fix = false;
 		bool	_attract = false;
 		int		_nb_frame_free = 0;
-		
 	};
 } // namespace tetrasearch
 

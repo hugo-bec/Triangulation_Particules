@@ -2,6 +2,12 @@
 
 namespace SIM_PART
 {
+	/* sources:
+	 * http://www.red3d.com/cwr/boids/
+	 * http://www.kfish.org/boids/pseudocode.html
+	 * https://github.com/beneater/boids/blob/master/boids.js
+	 */
+
 	void Boid::update_transformation_matrix_with_rotation()
 	{
 		update_transformation_matrix();
@@ -66,7 +72,7 @@ namespace SIM_PART
 		_vel += v_separation;
 		_vel += v_alignment;
 
-		_limit_mag_velocity( SPEED_BOIDS );
+		_limit_mag_velocity( SPEED_POINTS );
 		_manage_collision( dimCage );
 
 		set_coord( _coord[ 0 ] + _vel.x, _coord[ 1 ] + _vel.y, _coord[ 2 ] + _vel.z );
@@ -74,7 +80,6 @@ namespace SIM_PART
 
 	Vec3f Boid::_cohesion()
 	{
-		float cohesion_factor = 0.005;
 		Vec3f ret			  = Vec3f(0);
 
 		if ( !_points_attract.empty() )
@@ -95,14 +100,13 @@ namespace SIM_PART
 			ret.y -= _coord[ 1 ];
 			ret.z -= _coord[ 2 ];
 			//ret.mult( cohesion_factor );
-			ret *= cohesion_factor;
+			ret *= BOIDS_COHESION_FACTOR;
 		}
 		return ret;
 	}
 
 	Vec3f Boid::_alignment()
 	{
-		float alignement_factor = 0.005;
 		Vec3f ret			  = Vec3f( 0 );
 
 		if ( !_points_attract.empty() )
@@ -115,15 +119,13 @@ namespace SIM_PART
 			// ret.div( voisins.size() );
 			ret /= _points_attract.size();
 			ret -= _vel;
-			ret *= alignement_factor;
+			ret *= BOIDS_ALIGNMENT_FACTOR;
 		}
 		return ret;
 	}
 
 	Vec3f Boid::_separation()
 	{
-		float	avoid_distance = 0.1f;
-		float	avoid_factor   = 0.05;
 		Vec3f	ret			   = Vec3f( 0 );
 
 		if ( !_points_attract.empty() )
@@ -137,7 +139,7 @@ namespace SIM_PART
 				float		  dz	   = _coord[ 2 ] - coord_b[ 2 ];
 				float  distance = sqrt(dx*dx + dy*dy + dz*dz);
 
-				if ( distance < avoid_distance )
+				if ( distance < BOIDS_SEPARATION_DISTANCE )
 				{
 					//ret.add( new PVector( pos.x - b.pos.x, pos.y - b.pos.y, pos.z - b.pos.z ) );
 					ret += Vec3f(	_coord[ 0 ] - coord_b[ 0 ], 
@@ -146,15 +148,15 @@ namespace SIM_PART
 				}
 			}
 			//ret.mult( avoid_factor );
-			ret *= avoid_factor;
+			ret *= BOIDS_SEPARATION_FACTOR;
 		}
 		return ret;
 	}
 
 	void Boid::_manage_collision(Vec3f dim_cage)
 	{
-		float turn_factor = 0.05;
-		float margin	  = 0;
+		float margin = BOIDS_BOX_MARGIN;
+		float turn_factor = BOIDS_TURN_FACTOR;
 		if ( _coord[0] < margin )
 			_vel.x += turn_factor;
 		if ( _coord[ 0 ] > dim_cage.x - margin )

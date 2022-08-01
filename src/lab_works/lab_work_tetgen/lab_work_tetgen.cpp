@@ -50,9 +50,9 @@ namespace SIM_PART
 		//s1.load( "origin_model", "data/model/icosphere2.obj" );
 
 		if (TYPE_SIMULATION == 0)
-			create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES );
+			create_particules( NB_POINT, CAGE_DIM, SIZE_OBJECTS, SPEED_POINTS );
 		else
-			create_boids( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES );
+			create_boids( NB_POINT, CAGE_DIM, SIZE_OBJECTS, SPEED_POINTS );
 
 		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
 			_points[ i ]->set_fix( 0 );
@@ -81,8 +81,8 @@ namespace SIM_PART
 		{
 			if ( play_mode || play_next_frame )
 			{
-				for ( int i = 0; i < NB_PARTICULES; i++ )
-					_points[ i ]->move( SPEED_PARTICULES, CAGE_DIM );
+				for ( int i = 0; i < NB_POINT; i++ )
+					_points[ i ]->move( SPEED_POINTS, CAGE_DIM );
 			}
 			_dstructure.update_all();
 		}
@@ -125,7 +125,7 @@ namespace SIM_PART
 	{
 		std::vector<TriangleMeshModel *> tmm_container;
 		s1.load_multiple_model( "sphere", 
-			"data/model/icosphere2.obj", tmm_container, NB_PARTICULES );
+			"data/model/icosphere2.obj", tmm_container, NB_POINT );
 
 		_points.push_back( new Particle( 0, 4.5, 3.5, 7.5,
 											 *tmm_container[ 0 ],
@@ -148,7 +148,7 @@ namespace SIM_PART
 	{
 		std::vector<TriangleMeshModel *> tmm_container;
 		s1.load_multiple_model( "sphere", 
-			"data/model/icosphere2.obj", tmm_container, NB_PARTICULES );
+			"data/model/icosphere2.obj", tmm_container, NB_POINT );
 
 		for ( int i = 0; i < nb; i++ )
 			_points.push_back( new Boid( i,
@@ -298,7 +298,7 @@ namespace SIM_PART
 				_dstructure.set_point_mode( true );
 		}
 
-		if ( ImGui::SliderInt( "Chosen particule", &_chosen_particule, 0, NB_PARTICULES ) ) 
+		if ( ImGui::SliderInt( "Chosen particule", &_chosen_particule, 0, NB_POINT ) ) 
 		{
 			_dstructure.set_active_particle( _chosen_particule );
 		}

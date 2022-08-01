@@ -14,7 +14,7 @@ namespace SIM_PART
 		{
 			_vel = Vec3f( getRandomFloat()-0.5, getRandomFloat()-0.5, getRandomFloat()-0.5 );
 			glm::normalize(_vel);
-			_vel *= SPEED_BOIDS;
+			_vel *= SPEED_POINTS;
 		}
 
 		const Vec3f & get_velocity() const { return _vel; }

@@ -17,13 +17,13 @@ namespace SIM_PART
 	{
 		//_nbparticules = p_particules.size();
 		_list_points  = p_particules;
-		std::cout << "Number of particles: " << NB_PARTICULES << std::endl;
+		std::cout << "Number of particles: " << NB_POINT << std::endl;
 
 		_tetgen_mesh.initialize();
-		_tetgen_mesh.numberofpoints = NB_PARTICULES;
+		_tetgen_mesh.numberofpoints = NB_POINT;
 		_tetgen_mesh.pointlist		= new REAL[ _tetgen_mesh.numberofpoints * 3 ];
 
-		for ( int i = 0; i < NB_PARTICULES; i++ )
+		for ( int i = 0; i < NB_POINT; i++ )
 		{
 			const float * coord_p = _list_points[ i ]->get_coord();
 			_positions.push_back( Vec3f( coord_p[ 0 ], coord_p[ 1 ], coord_p[ 2 ] ) );
@@ -161,7 +161,7 @@ namespace SIM_PART
 
 	void DelaunayStructure::tetrahedralize_particules( char * tetgen_parameters )
 	{
-		_tetgen_mesh.numberofpoints = NB_PARTICULES;
+		_tetgen_mesh.numberofpoints = NB_POINT;
 		_tetgen_mesh.pointlist		= _tetgen_mesh.pointlist;
 		std::cout << "TETGEN: Tetrahedralization..." << std::endl;
 		
@@ -239,7 +239,7 @@ namespace SIM_PART
 		std::vector<int> tp;
 		_filtered_points.clear();
 
-		for ( int i = 0; i < NB_PARTICULES; i++ )
+		for ( int i = 0; i < NB_POINT; i++ )
 			_list_points[ i ]->set_attract( false );
 
 		if ( !_draw_all_edges )
@@ -268,7 +268,7 @@ namespace SIM_PART
 			}
 			else if ( _mode_type == 1 )
 			{
-				for ( int i = 0; i < NB_PARTICULES; i++ )
+				for ( int i = 0; i < NB_POINT; i++ )
 					if ( _list_points[ i ]->is_fix() )
 						_filtered_points.emplace_back( i );
 
@@ -346,7 +346,7 @@ namespace SIM_PART
 						   GL_DYNAMIC_DRAW );
 
 		if ( !_point_mode )
-			for ( int i = 0; i < NB_PARTICULES; i++ )
+			for ( int i = 0; i < NB_POINT; i++ )
 				_list_points[ i ]->update_mesh();
 
 	}
@@ -386,7 +386,7 @@ namespace SIM_PART
 			{
 				#pragma omp parallel
 				{
-					std::vector<int> private_traveled_points( NB_PARTICULES, -1 );
+					std::vector<int> private_traveled_points( NB_POINT, -1 );
 					#pragma omp for
 					for ( int j = 0; j < _list_points.size(); j++ )
 						_list_points[ j ]->compute_attract_by_double_radius( ATTRACT_RADIUS, _list_points, _traveled_point, _iteration, _refresh_frame ); 
@@ -463,7 +463,7 @@ namespace SIM_PART
 
 		#pragma omp parallel
 		{
-			std::vector<int> traveled_points( NB_PARTICULES, -1 );
+			std::vector<int> traveled_points( NB_POINT, -1 );
 			int list_points_size = _list_points.size();
 			#pragma omp for
 			for ( int i = 0; i < list_points_size; i++ )
@@ -526,7 +526,7 @@ namespace SIM_PART
 
 	void DelaunayStructure::coloration() 
 	{
-		for ( int i = 0; i < NB_PARTICULES; i++ )
+		for ( int i = 0; i < NB_POINT; i++ )
 		{
 			_list_points[ i ]->compute_coloration( _mode_type );
 			_colors[ i ] = _list_points[ i ]->get_color();

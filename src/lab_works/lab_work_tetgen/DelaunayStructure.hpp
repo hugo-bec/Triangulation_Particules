@@ -64,7 +64,7 @@ namespace SIM_PART
 
 		inline void set_active_particle( int i )
 		{
-			_active_particle = i < 0 ? NB_PARTICULES - ( i * ( -1 ) ) % NB_PARTICULES : i % NB_PARTICULES;
+			_active_particle = i < 0 ? NB_POINT - ( i * ( -1 ) ) % NB_POINT : i % NB_POINT;
 		}
 
 		/* --- INITIALIZATION FUNCTIONS --- */ 
@@ -98,7 +98,7 @@ namespace SIM_PART
 		//Vec3f _dimCage;
 		//int	  _nbparticules;
 		//float _rayon_attract;
-		int	  nb_non_fix	 = NB_PARTICULES - NB_INIT_FIXED_POINTS;
+		int	  nb_non_fix	 = NB_POINT - NB_INIT_FIXED_POINTS;
 		std::vector<int> _traveled_point;
 		int				 _refresh_frame;
 		std::vector<int> _filtered_points;
