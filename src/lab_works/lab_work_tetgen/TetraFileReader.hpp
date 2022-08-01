@@ -12,13 +12,13 @@ namespace SIM_PART
 	  public:
 
 		static void readNodes( std::string				 fileName,
-							   std::vector<Particle *> & points,
+							   std::vector<Point *> & points,
 							   TriangleMeshModel &		 origin_model,
 							   float					 particle_size,
 							   float particle_speed);
 
 		static void readTetras( std::string						fileName,
-								std::vector<Particle *> &		points,
+								std::vector<Point *> &		points,
 								std::vector<Tetrahedron *> &	tetras );
 	};
 }

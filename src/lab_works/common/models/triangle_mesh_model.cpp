@@ -176,4 +176,16 @@ namespace SIM_PART
 		}
 	}
 
+	void TriangleMeshModel::printTransformationMatrix()
+	{
+		for ( int i = 0; i < 4; i++ )
+		{
+			for ( int j = 0; j < 4; j++ )
+				std::cout << _transformation[ i ][ j ] << " \t";
+			std::cout << std::endl;
+		}
+		std::cout << std::endl;
+	}
+
+
 } // namespace M3D_ISICG

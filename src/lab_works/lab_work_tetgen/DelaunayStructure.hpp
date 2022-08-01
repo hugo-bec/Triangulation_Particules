@@ -68,11 +68,11 @@ namespace SIM_PART
 		}
 
 		/* --- INITIALIZATION FUNCTIONS --- */ 
-		void init_particules( const std::vector<Particle *> & p_particules, int p_refresh_rate );
+		void init_particules( const std::vector<Point *> & p_particules, int p_refresh_rate );
 		void init_structure();
 		void init_mesh();
 		void init_buffers();
-		void init_all( GLuint program, const std::vector<Particle *> & p_particules, int p_refresh_rate );
+		void init_all( GLuint program, const std::vector<Point *> & p_particules, int p_refresh_rate );
 
 		/* --- UPDATE FUNCTIONS --- */ 
 		void tetrahedralize_particules( char * tetgen_parameters );
@@ -103,7 +103,7 @@ namespace SIM_PART
 		int				 _refresh_frame;
 		std::vector<int> _filtered_points;
 
-		std::vector<Particle *>		_list_points;
+		std::vector<Point *>		_list_points;
 		std::vector<Tetrahedron *>	_list_tetras;
 		tetgenio					_tetgen_mesh;
 

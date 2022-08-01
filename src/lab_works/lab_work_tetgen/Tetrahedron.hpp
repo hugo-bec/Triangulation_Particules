@@ -6,7 +6,7 @@
 
 namespace SIM_PART
 {
-	class Particle;
+	class Point;
 
 	class Tetrahedron
 	{
@@ -22,8 +22,8 @@ namespace SIM_PART
 
 		const std::vector<int> & get_points();
 		int						get_id();
-		void					print_points( std::vector<Particle *> list_points );
-		bool					is_fix( std::vector<Particle *> list_points );
+		void					print_points( std::vector<Point *> list_points );
+		bool					is_fix( std::vector<Point *> list_points );
 
 	  private:
 		int				 id;

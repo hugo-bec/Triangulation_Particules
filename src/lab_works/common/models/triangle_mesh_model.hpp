@@ -28,6 +28,7 @@ namespace SIM_PART
 		void cleanGL() override;
 
 		void setColor(Vec3f color) { for ( int i = 0; i < _meshes.size(); i++ ) _meshes[ i ].update_color( color ); }
+		void printTransformationMatrix();
 
 	  private:
 		void	 _loadMesh( const aiMesh * const p_mesh, const aiScene * const p_scene );

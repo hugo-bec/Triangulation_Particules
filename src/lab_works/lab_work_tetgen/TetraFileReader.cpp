@@ -12,7 +12,7 @@ namespace SIM_PART
 {
 	//=====================Nodes=======================
 	void TetraFileReader::readNodes(	std::string fileName, 
-										std::vector<Particle *> & points, 
+										std::vector<Point *> & points, 
 										TriangleMeshModel & origin_model, 
 										float particle_size, float particle_speed )
 	{
@@ -52,7 +52,7 @@ namespace SIM_PART
 	//======================Tetrahedrons==========================
 	// prerequisite: have to be called after readNodes.
 	void TetraFileReader::readTetras( std::string					fileName,
-									  std::vector<Particle *> &	   points,
+									  std::vector<Point *> &	   points,
 									  std::vector<Tetrahedron *> &	tetras )
 	{
 		std::ifstream	  fileTetra( fileName, std::ios::in );

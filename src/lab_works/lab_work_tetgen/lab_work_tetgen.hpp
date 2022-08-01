@@ -28,7 +28,12 @@ namespace SIM_PART
 		void create_particules( const unsigned int nb,
 								Vec3f			   cage_dim,
 								float			   size,
-								float speed, std::vector<TriangleMeshModel *> & tmm_container );
+								float speed );
+
+		void create_boids( const unsigned int				   nb,
+								Vec3f							   cage_dim,
+								float							   size,
+								float							   speed );
 
 
 
@@ -50,7 +55,7 @@ namespace SIM_PART
 		// ================ Scene data.
 		CageMesh				_cage;
 		DelaunayStructure		_dstructure;
-		std::vector<Particle *>	_particules;
+		std::vector<Point *>	_points;
 		
 
 		// ================ Settings Camera.

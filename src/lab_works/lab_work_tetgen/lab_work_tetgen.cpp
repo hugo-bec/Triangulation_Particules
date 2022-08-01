@@ -16,6 +16,8 @@
 #include "DelaunayStructure.hpp"
 #include <array>
 
+#include "Boid.hpp"
+
 namespace SIM_PART
 {
 	const std::string LabWorkTetgen::_shaderFolder = "src/lab_works/lab_work_tetgen/shaders/";
@@ -28,7 +30,7 @@ namespace SIM_PART
 	bool			  play_mode		  = false;
 	bool			  play_next_frame = false;
 	int				  mode_type		  = 0;
-	int				  iteration		  = 3;
+	int				  iteration		  = 1;
 
 	LabWorkTetgen::~LabWorkTetgen() { glDeleteProgram( _program ); }
 
@@ -46,17 +48,20 @@ namespace SIM_PART
 
 		// Init Particules
 		//s1.load( "origin_model", "data/model/icosphere2.obj" );
-		std::vector<TriangleMeshModel * > tmm_container;
-		s1.load_multiple_model( "sphere", "data/model/icosphere2.obj", tmm_container, NB_PARTICULES );
-		create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES, tmm_container );
+
+		if (TYPE_SIMULATION == 0)
+			create_particules( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES );
+		else
+			create_boids( NB_PARTICULES, CAGE_DIM, SIZE_PARTICLE, SPEED_PARTICULES );
+
 		for ( int i = 0; i < NB_INIT_FIXED_POINTS; i++ )
-			_particules[ i ]->set_fix( 0 );
+			_points[ i ]->set_fix( 0 );
 
 
 		// Init Delaunay Structure
 		_dstructure.set_verbose( DSTRUCTURE_VERBOSE ); // for printing all time execution 
 		//_dstructure.set_attract_radius( ATTRACT_RADIUS );
-		_dstructure.init_all( _program, _particules, TETRA_REFRESH_RATE );
+		_dstructure.init_all( _program, _points, TETRA_REFRESH_RATE );
 
 		//init camera
 		_initCamera();
@@ -77,7 +82,7 @@ namespace SIM_PART
 			if ( play_mode || play_next_frame )
 			{
 				for ( int i = 0; i < NB_PARTICULES; i++ )
-					_particules[ i ]->apply_brownian_mvt( SPEED_PARTICULES, CAGE_DIM );
+					_points[ i ]->move( SPEED_PARTICULES, CAGE_DIM );
 			}
 			_dstructure.update_all();
 		}
@@ -116,21 +121,43 @@ namespace SIM_PART
 	}
 
 
-	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size, float speed,
-											std::vector<TriangleMeshModel * > & tmm_container) 
+	void LabWorkTetgen::create_particules( const unsigned int nb, Vec3f cage_dim, float size, float speed ) 
 	{
-		_particules.push_back( new Particle( 0, 4.5, 3.5, 7.5,
+		std::vector<TriangleMeshModel *> tmm_container;
+		s1.load_multiple_model( "sphere", 
+			"data/model/icosphere2.obj", tmm_container, NB_PARTICULES );
+
+		_points.push_back( new Particle( 0, 4.5, 3.5, 7.5,
 											 *tmm_container[ 0 ],
 											 size,
 											 speed ) );
 		for (int i=1; i<nb; i++)
-			_particules.push_back( new Particle(
+			_points.push_back( new Particle(
 				i,	getRandomFloat() * cage_dim.x, 
 					getRandomFloat() * cage_dim.y, 
 					getRandomFloat() * cage_dim.z,
 												 *tmm_container[ i ],
 												 size,
 												 speed ) );
+	}
+
+	void LabWorkTetgen::create_boids( const unsigned int				  nb,
+										   Vec3f							  cage_dim,
+										   float							  size,
+										   float							  speed )
+	{
+		std::vector<TriangleMeshModel *> tmm_container;
+		s1.load_multiple_model( "sphere", 
+			"data/model/icosphere2.obj", tmm_container, NB_PARTICULES );
+
+		for ( int i = 0; i < nb; i++ )
+			_points.push_back( new Boid( i,
+												 getRandomFloat() * cage_dim.x,
+												 getRandomFloat() * cage_dim.y,
+												 getRandomFloat() * cage_dim.z,
+												 *tmm_container[ i ],
+												 size,
+												 speed, _points ) );
 	}
 
 

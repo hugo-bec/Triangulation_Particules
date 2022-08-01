@@ -13,7 +13,7 @@ namespace SIM_PART
 	 * ---------------------- INITIALIZATION FUNCTIONS -----------------------
 	 * ----------------------------------------------------------------------- */
 
-	void DelaunayStructure::init_particules( const std::vector<Particle* > & p_particules, int p_refresh_rate )
+	void DelaunayStructure::init_particules( const std::vector<Point* > & p_particules, int p_refresh_rate )
 	{
 		//_nbparticules = p_particules.size();
 		_list_points  = p_particules;
@@ -63,7 +63,8 @@ namespace SIM_PART
 		const unsigned int flags = aiProcessPreset_TargetRealtime_Fast | aiProcess_FlipUVs;
 		const aiScene * const scene = importer.ReadFile( p_filePath, flags );
 		if ( scene == nullptr )
-			throw std::runtime_error( "Fail to load file \" " + p_filePath.str() + "\": " + importer.GetErrorString() );
+			throw std::runtime_error( "Fail to load file \" " + 
+				p_filePath.str() + "\": " + importer.GetErrorString() );
 
 		_model = scene->mMeshes[ 0 ];
 
@@ -139,7 +140,7 @@ namespace SIM_PART
 
 	}
 
-	void DelaunayStructure::init_all( GLuint program, const std::vector<Particle *> & p_particules, int p_refresh_rate ) 
+	void DelaunayStructure::init_all( GLuint program, const std::vector<Point *> & p_particules, int p_refresh_rate ) 
 	{
 		init_particules( p_particules, p_refresh_rate );
 		init_mesh();

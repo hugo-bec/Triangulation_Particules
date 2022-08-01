@@ -5,6 +5,9 @@
 
 namespace SIM_PART
 {
+	extern bool DSTRUCTURE_VERBOSE;
+	extern int	  TYPE_SIMULATION;
+
 	extern int	  NB_PARTICULES;
 	extern float  SPEED_PARTICULES;
 	extern float  ATTRACT_RADIUS;
@@ -14,7 +17,8 @@ namespace SIM_PART
 	extern Vec3f  CAGE_DIM;
 	extern int	  NB_INIT_FIXED_POINTS;
 
-	extern bool DSTRUCTURE_VERBOSE;
+	//Boids
+	extern float SPEED_BOIDS;
 
 	
 }

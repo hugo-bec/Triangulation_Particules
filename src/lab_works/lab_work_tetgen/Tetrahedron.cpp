@@ -6,7 +6,7 @@ namespace SIM_PART
 
 	int Tetrahedron::get_id() { return id; }
 
-	void Tetrahedron::print_points( std::vector<Particle *> list_points )
+	void Tetrahedron::print_points( std::vector<Point *> list_points )
 	{
 		const float * coord;
 		for ( int i = 0; i < (int)points.size(); i++ )
@@ -20,7 +20,7 @@ namespace SIM_PART
 		}
 	}
 
-	bool Tetrahedron::is_fix( std::vector<Particle *> list_points ) 
+	bool Tetrahedron::is_fix( std::vector<Point *> list_points ) 
 	{
 		return list_points[ points[ 0 ] ]->is_fix() || list_points[ points[ 1 ] ]->is_fix()
 			   || list_points[ points[ 2 ] ]->is_fix() || list_points[ points[ 3 ] ]->is_fix();
