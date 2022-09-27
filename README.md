@@ -1,8 +1,8 @@
-# Neighborhood research using Delaunay tetrahedralization
+# Neighborhood research using Delaunay tetrahedralization (CPU only parallelizable)
 
 ![3D Vizualizer](tetra_aggregation_title.png)
 
-This project consisted in experimenting methods of finding the nearest points using Delaunay tetrahedralization. 
+This project consisted in experimenting methods of finding the nearest points using Delaunay tetrahedralization on CPU. 
 The different methods are tested with a simulation of Diffusion-limited aggregation and a simulation of 3D Boids. 
 This project need Visual Studio 2022 to run.
 
